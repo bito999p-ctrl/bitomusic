@@ -87,10 +87,13 @@ h1 {
 }
 
 .social-icon img {
+    width: 32px;
     height: 32px;
-    width: auto;
-    /* Maintain aspect ratio */
+    object-fit: contain;
+    /* Ensures the image scales correctly within the box */
     display: block;
+    border-radius: 4px;
+    /* Optional: matches common UI patterns */
 }
 
 /* Brand Colors */
