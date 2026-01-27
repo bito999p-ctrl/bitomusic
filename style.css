@@ -34,7 +34,6 @@ header {
 }
 
 .header-content {
-    /* Simply center content now */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -65,17 +64,13 @@ h1 {
     justify-content: center;
     align-items: center;
     gap: 32px;
-    /* Increased gap for better touch targets */
     margin-top: 10px;
 }
 
 .social-icon {
     display: flex;
     color: var(--light-gray);
-    /* Default fallback */
     background-color: transparent;
-    border-radius: 50%;
-    /* Optional: ensuring round feel if needed, but mainly for hover effects */
     transition: transform 0.2s ease, filter 0.2s ease;
 }
 
@@ -86,9 +81,16 @@ h1 {
 
 .social-icon svg {
     width: 32px;
-    /* Slightly larger icons */
     height: 32px;
     fill: currentColor;
+    display: block;
+}
+
+.social-icon img {
+    height: 32px;
+    width: auto;
+    /* Maintain aspect ratio */
+    display: block;
 }
 
 /* Brand Colors */
@@ -104,6 +106,11 @@ h1 {
 .social-icon.brand-youtube {
     color: #FF0000;
     /* YouTube Red */
+}
+
+.social-icon.brand-suno {
+    color: #ffffff;
+    /* Suno is typically white on black */
 }
 
 
