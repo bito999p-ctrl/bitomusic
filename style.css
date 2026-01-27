@@ -236,4 +236,9 @@ footer {
     header {
         padding: 60px 0 40px;
     }
+
+    .spotify-embed-area iframe {
+        height: 352px !important;
+        min-height: 352px !important;
+    }
 }
