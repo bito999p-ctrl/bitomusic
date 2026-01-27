@@ -52,8 +52,8 @@ function renderSpotify() {
             const iframe = document.createElement('iframe');
             iframe.src = embedSrc;
             iframe.width = "100%";
-            iframe.height = "152";
-            iframe.style.marginBottom = "16px";
+            iframe.height = "450"; // Taller height for vertical layout
+            iframe.style.minHeight = "450px"; // Ensure it sticks
             iframe.frameBorder = "0";
             iframe.allow = "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture";
             iframe.loading = "lazy";

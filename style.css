@@ -23,7 +23,6 @@ body {
 
 .container {
     max-width: 800px;
-    /* Slightly wider to accommodate 2 cols */
     margin: 0 auto;
     padding: 0 20px;
 }
@@ -34,11 +33,21 @@ header {
     text-align: center;
 }
 
+.header-content {
+    /* Simply center content now */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
 h1 {
     font-size: 3.5rem;
     font-weight: 800;
     letter-spacing: -0.05em;
-    margin-bottom: 10px;
+    margin: 0;
+    line-height: 1;
 }
 
 .tagline {
@@ -47,7 +56,56 @@ h1 {
     font-weight: 400;
     letter-spacing: 0.1em;
     text-transform: uppercase;
+    margin-bottom: 24px;
 }
+
+/* Header Socials */
+.header-socials {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 32px;
+    /* Increased gap for better touch targets */
+    margin-top: 10px;
+}
+
+.social-icon {
+    display: flex;
+    color: var(--light-gray);
+    /* Default fallback */
+    background-color: transparent;
+    border-radius: 50%;
+    /* Optional: ensuring round feel if needed, but mainly for hover effects */
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.social-icon:hover {
+    transform: translateY(-4px);
+    filter: brightness(1.2);
+}
+
+.social-icon svg {
+    width: 32px;
+    /* Slightly larger icons */
+    height: 32px;
+    fill: currentColor;
+}
+
+/* Brand Colors */
+.social-icon.brand-x {
+    color: #ffffff;
+}
+
+.social-icon.brand-spotify {
+    color: #1DB954;
+    /* Spotify Green */
+}
+
+.social-icon.brand-youtube {
+    color: #FF0000;
+    /* YouTube Red */
+}
+
 
 /* Sections */
 section {
@@ -66,7 +124,6 @@ h2 {
 
 /* Components: Spotify */
 .spotify-embed-area {
-    /* Grid Layout for 2 columns */
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 20px;
@@ -76,10 +133,7 @@ h2 {
 .spotify-embed-area iframe {
     border-radius: 12px;
     background-color: #111;
-    /* Fallback */
-    /* Ensure iframe takes full width of the grid cell */
     width: 100%;
-    /* Height is controlled by JS, but max-width ensures responsiveness */
 }
 
 /* Components: YouTube */
@@ -161,7 +215,6 @@ footer {
     border: 1px dashed var(--gray-color);
     border-radius: 8px;
     grid-column: 1 / -1;
-    /* Spans full width if shown */
 }
 
 /* Responsive */
@@ -173,6 +226,4 @@ footer {
     header {
         padding: 60px 0 40px;
     }
-
-    /* Grid becomes 1 column automatically due to minmax(300px, 1fr) */
 }
