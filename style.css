@@ -22,7 +22,8 @@ body {
 }
 
 .container {
-    max-width: 720px;
+    max-width: 800px;
+    /* Slightly wider to accommodate 2 cols */
     margin: 0 auto;
     padding: 0 20px;
 }
@@ -65,13 +66,20 @@ h2 {
 
 /* Components: Spotify */
 .spotify-embed-area {
-    /* Styles for the container if needed */
+    /* Grid Layout for 2 columns */
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
     width: 100%;
-    min-height: 152px;
 }
 
 .spotify-embed-area iframe {
     border-radius: 12px;
+    background-color: #111;
+    /* Fallback */
+    /* Ensure iframe takes full width of the grid cell */
+    width: 100%;
+    /* Height is controlled by JS, but max-width ensures responsiveness */
 }
 
 /* Components: YouTube */
@@ -152,6 +160,8 @@ footer {
     padding: 20px;
     border: 1px dashed var(--gray-color);
     border-radius: 8px;
+    grid-column: 1 / -1;
+    /* Spans full width if shown */
 }
 
 /* Responsive */
@@ -163,4 +173,6 @@ footer {
     header {
         padding: 60px 0 40px;
     }
+
+    /* Grid becomes 1 column automatically due to minmax(300px, 1fr) */
 }
