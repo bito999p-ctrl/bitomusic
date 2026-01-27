@@ -14,6 +14,8 @@ const config = {
 
     // YouTubeの動画またはプレイリストのURLリスト
     youtubeUrls: [
+        "https://youtu.be/H-DCHJTbr44?si=TbG4GPmlYwSXVY5l",
+        "https://youtu.be/BcOHQ-XXU7E?si=WkoEWnQ-K2ZpUDT2",
         "https://youtube.com/playlist?list=PLxpRgysXp3GnNkrOtAoHCNyQ2nF-TbYCG&si=RwQOr40vfjSit9AU",
         "https://youtube.com/playlist?list=PLxpRgysXp3GnkxK3lm_cwHLD_alvdc_3t&si=iAUFZulgd9aTWcTA",
         "https://youtube.com/playlist?list=PLxpRgysXp3GlUaHN7GwWZheqxz5XCbdzL&si=zhp8sRi9l6GatCre"
