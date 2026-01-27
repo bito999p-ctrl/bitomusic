@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bito Music</title>
+    <!-- 外部CSSファイルを読み込み -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <header>
+            <h1>Bito Music</h1>
+            <p class="tagline">Official Portfolio</p>
+        </header>
+
+        <!-- Spotify Section -->
+        <section>
+            <h2>Latest Track</h2>
+            <!-- JavaScriptがここに埋め込みプレイヤーを生成します -->
+            <div id="spotify-container" class="spotify-embed-area">
+                <div class="loading-placeholder">Loading Player...</div>
+            </div>
+        </section>
+
+        <!-- YouTube Section -->
+        <section>
+            <h2>Videos</h2>
+            <!-- JavaScriptがここに動画グリッドを生成します -->
+            <div id="youtube-container" class="youtube-grid">
+                <div class="loading-placeholder">Loading Videos...</div>
+            </div>
+        </section>
+
+        <!-- Links Section -->
+        <section>
+            <h2>Links</h2>
+            <div class="links-grid">
+
+                <!-- X (Twitter) -->
+                <a href="https://x.com/BitoCraftedTune" target="_blank" class="btn">
+                    <span>
+                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path
+                                d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z">
+                            </path>
+                        </svg>
+                        Follow on X
+                    </span>
+                </a>
+
+                <!-- AISA RADIO ALPS -->
+                <a href="https://aisa.radioalps.com/music/artist/bito" target="_blank" class="btn">
+                    <span>AISA RADIO ALPS</span>
+                </a>
+
+                <!-- SUNO -->
+                <a href="https://suno.com/@bito999" target="_blank" class="btn">
+                    <span>SUNO Profile</span>
+                </a>
+
+            </div>
+        </section>
+
+        <footer>
+            <p>&copy; 2024 Bito Music</p>
+        </footer>
+
+    </div>
+
+    <!-- 外部JavaScriptファイルを読み込み -->
+    <script src="script.js"></script>
+</body>
+
+</html>

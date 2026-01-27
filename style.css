@@ -1,0 +1,166 @@
+/* Base Variables */
+:root {
+    --bg-color: #000000;
+    --text-color: #ffffff;
+    --gray-color: #333333;
+    --light-gray: #888888;
+}
+
+/* Reset & Base Styles */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+.container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Header */
+header {
+    padding: 100px 0 60px;
+    text-align: center;
+}
+
+h1 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    letter-spacing: -0.05em;
+    margin-bottom: 10px;
+}
+
+.tagline {
+    color: var(--light-gray);
+    font-size: 1.1rem;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+/* Sections */
+section {
+    margin-bottom: 80px;
+}
+
+h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--gray-color);
+    padding-bottom: 12px;
+}
+
+/* Components: Spotify */
+.spotify-embed-area {
+    /* Styles for the container if needed */
+    width: 100%;
+    min-height: 152px;
+}
+
+.spotify-embed-area iframe {
+    border-radius: 12px;
+}
+
+/* Components: YouTube */
+.youtube-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.youtube-item {
+    background-color: #111;
+    aspect-ratio: 16/9;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--gray-color);
+}
+
+.youtube-item iframe {
+    width: 100%;
+    height: 100%;
+}
+
+/* Components: Buttons (Links) */
+.links-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 18px 24px;
+    background-color: transparent;
+    border: 1px solid #ffffff;
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.btn:hover {
+    background-color: #ffffff;
+    color: #000000;
+    transform: translateY(-2px);
+}
+
+.btn span {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.icon {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 40px 0 80px;
+    color: var(--light-gray);
+    font-size: 0.8rem;
+}
+
+/* Helper for empty/loading states */
+.loading-placeholder {
+    color: var(--light-gray);
+    font-family: monospace;
+    text-align: center;
+    padding: 20px;
+    border: 1px dashed var(--gray-color);
+    border-radius: 8px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    h1 {
+        font-size: 2.5rem;
+    }
+
+    header {
+        padding: 60px 0 40px;
+    }
+}
