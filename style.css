@@ -162,15 +162,15 @@ h2 {
 }
 
 /* Specific Brands */
-.icon-link.brand-spotify:hover {
+.icon-link.brand-spotify {
     color: #1DB954;
 }
 
-.icon-link.brand-youtube:hover {
+.icon-link.brand-youtube {
     color: #FF0000;
 }
 
-.icon-link.brand-x:hover {
+.icon-link.brand-x {
     color: #fff;
 }
 
@@ -234,9 +234,7 @@ h2 {
 }
 
 /* Spotify Styling */
-.spotify-col {
-    /* Ensure it tries to fill height if needed or maintain structure */
-}
+/* .spotify-col {} Removed empty rule */
 
 .spotify-col iframe {
     border-radius: 8px;
