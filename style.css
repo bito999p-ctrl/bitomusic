@@ -377,5 +377,8 @@ footer {
         border-bottom: none;
     }
 
-    /* On mobile, Spotify height usually ok at 352px or compact */
+    /* On mobile, reduce placeholder height for Spotify "Coming Soon" */
+    .spotify-col .empty-frame {
+        min-height: 150px;
+    }
 }
