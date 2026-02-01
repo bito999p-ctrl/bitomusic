@@ -22,82 +22,100 @@
 
 <body>
 
-    <div class="container">
+    <nav class="main-nav">
+        <a href="#" class="nav-toggle" aria-label="Menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </a>
+        <div class="nav-container">
+            <a href="#bito" class="nav-link">Bito</a>
+            <a href="#pophoper" class="nav-link">pophoper</a>
+            <a href="#hizumi" class="nav-link">歪み歪み</a>
+            <a href="#stray" class="nav-link">Stray Glitch Monkeys</a>
+            <a href="#metropolitans" class="nav-link">METROPOLITANS</a>
+            <a href="#rupture" class="nav-link">RUPTURE</a>
+        </div>
+    </nav>
+
+    <div class="container main-content">
 
         <header>
             <div class="header-content">
                 <h1>Bito Music</h1>
             </div>
-            <p class="tagline">Official Portfolio</p>
-
-            <!-- Social Icons Row (X, Spotify, YouTube, Suno) -->
-            <div class="header-socials">
-                <!-- X (Twitter) -->
-                <a href="https://x.com/BitoCraftedTune" target="_blank" class="social-icon brand-x"
-                    aria-label="X (Twitter)">
-                    <svg viewBox="0 0 24 24">
-                        <path
-                            d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z">
-                        </path>
-                    </svg>
-                </a>
-
-                <!-- Spotify -->
-                <a href="https://open.spotify.com/intl-ja/artist/5PDksV2zctE689I1uOLO2o" target="_blank"
-                    class="social-icon brand-spotify" aria-label="Spotify">
-                    <svg viewBox="0 0 24 24">
-                        <path
-                            d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141 4.439-1.5 9.839-.84 13.561 1.44.419.24.6.78.18 1.38zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.4-1.02 15.6 1.44.539.3.719.96.42 1.5-.239.479-.84.6-1.38.3z" />
-                    </svg>
-                </a>
-
-                <!-- YouTube -->
-                <a href="https://www.youtube.com/@bito_craft" target="_blank" class="social-icon brand-youtube"
-                    aria-label="YouTube">
-                    <svg viewBox="0 0 24 24">
-                        <path
-                            d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                    </svg>
-                </a>
-
-                <!-- Suno (Generic Music/Waveform Icon) -->
-                <a href="https://suno.com/@bito999" target="_blank" class="social-icon brand-suno" aria-label="Suno">
-                    <!-- Simple Circle + Waveform-like shape to represent music AI -->
-
-                    <img src="suno.jpeg" alt="Suno" loading="lazy">
-                </a>
-            </div>
-
+            <p class="tagline">Official Portfolio & Produced Works</p>
         </header>
 
-        <!-- Spotify Section -->
-        <section>
-            <h2>Latest Tracks</h2>
-            <!-- JavaScriptがここに埋め込みプレイヤーを生成します -->
-            <div id="spotify-container" class="spotify-embed-area">
-                <div class="loading-placeholder">Loading Player...</div>
+        <!-- Bito Section -->
+        <section id="bito" class="artist-section">
+            <div class="artist-header">
+                <h2>Bito</h2>
+                <div class="artist-links" id="links-bito"></div>
+            </div>
+            <div class="media-grid">
+                <div class="media-column youtube-col" id="youtube-bito"></div>
+                <div class="media-column spotify-col" id="spotify-bito"></div>
             </div>
         </section>
 
-        <!-- YouTube Section -->
-        <section>
-            <h2>Videos</h2>
-            <!-- JavaScriptがここに動画グリッドを生成します -->
-            <div id="youtube-container" class="youtube-grid">
-                <div class="loading-placeholder">Loading Videos...</div>
+        <!-- pophoper Section -->
+        <section id="pophoper" class="artist-section">
+            <div class="artist-header">
+                <h2>pophoper</h2>
+                <div class="artist-links" id="links-pophoper"></div>
+            </div>
+            <div class="media-grid">
+                <div class="media-column youtube-col" id="youtube-pophoper"></div>
+                <div class="media-column spotify-col" id="spotify-pophoper"></div>
             </div>
         </section>
 
-        <!-- Links Section -->
-        <section>
-            <h2>Links</h2>
-            <div class="links-grid">
+        <!-- hizumi yugami Section -->
+        <section id="hizumi" class="artist-section">
+            <div class="artist-header">
+                <h2>歪み歪み -hizumi yugami-</h2>
+                <div class="artist-links" id="links-hizumi"></div>
+            </div>
+            <div class="media-grid">
+                <div class="media-column youtube-col" id="youtube-hizumi"></div>
+                <div class="media-column spotify-col" id="spotify-hizumi"></div>
+            </div>
+        </section>
 
-                <!-- AISA RADIO ALPS -->
-                <a href="https://aisa.radioalps.com/music/artist/bito" target="_blank" class="btn">
-                    <span>AISA RADIO ALPS</span>
-                </a>
+        <!-- Stray Glitch Monkeys Section -->
+        <section id="stray" class="artist-section">
+            <div class="artist-header">
+                <h2>Stray Glitch Monkeys</h2>
+                <div class="artist-links" id="links-stray"></div>
+            </div>
+            <div class="media-grid">
+                <div class="media-column youtube-col" id="youtube-stray"></div>
+                <div class="media-column spotify-col" id="spotify-stray"></div>
+            </div>
+        </section>
 
+        <!-- THE METROPOLITANS Section -->
+        <section id="metropolitans" class="artist-section">
+            <div class="artist-header">
+                <h2>THE METROPOLITANS</h2>
+                <div class="artist-links" id="links-metropolitans"></div>
+            </div>
+            <div class="media-grid">
+                <div class="media-column youtube-col" id="youtube-metropolitans"></div>
+                <div class="media-column spotify-col" id="spotify-metropolitans"></div>
+            </div>
+        </section>
+
+        <!-- RUPTURE Section -->
+        <section id="rupture" class="artist-section">
+            <div class="artist-header">
+                <h2>RUPTURE</h2>
+                <div class="artist-links" id="links-rupture"></div>
+            </div>
+            <div class="media-grid">
+                <div class="media-column youtube-col" id="youtube-rupture"></div>
+                <div class="media-column spotify-col" id="spotify-rupture"></div>
             </div>
         </section>
 

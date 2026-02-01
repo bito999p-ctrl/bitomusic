@@ -1,9 +1,11 @@
 /* Base Variables */
 :root {
-    --bg-color: #000000;
-    --text-color: #ffffff;
+    --bg-color: #0d0d0d;
+    --text-color: #f0f0f0;
+    --accent-color: #ffffff;
     --gray-color: #333333;
     --light-gray: #888888;
+    --nav-bg: rgba(13, 13, 13, 0.9);
 }
 
 /* Reset & Base Styles */
@@ -11,6 +13,12 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 80px;
+    /* Offset for sticky nav */
 }
 
 body {
@@ -22,143 +30,198 @@ body {
 }
 
 .container {
-    max-width: 800px;
+    max-width: 1100px;
+    /* Slightly wider for the new layout */
     margin: 0 auto;
     padding: 0 20px;
 }
 
+/* Navigation */
+.main-nav {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background-color: var(--nav-bg);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--gray-color);
+    padding: 15px 0;
+}
+
+.nav-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.nav-link {
+    color: var(--light-gray);
+    text-decoration: none;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 0.05em;
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+    color: var(--accent-color);
+}
+
 /* Header */
 header {
-    padding: 100px 0 60px;
+    padding: 80px 0 60px;
     text-align: center;
 }
 
-.header-content {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 10px;
-    width: 100%;
-}
-
 h1 {
-    font-size: 3.5rem;
+    font-size: 3rem;
     font-weight: 800;
     letter-spacing: -0.05em;
-    margin: 0;
-    line-height: 1;
+    margin-bottom: 10px;
+    line-height: 1.1;
 }
 
 .tagline {
     color: var(--light-gray);
-    font-size: 1.1rem;
-    font-weight: 400;
-    letter-spacing: 0.1em;
+    font-size: 1rem;
     text-transform: uppercase;
-    margin-bottom: 24px;
+    letter-spacing: 0.2em;
 }
 
-/* Header Socials */
-.header-socials {
+/* Artist Sections */
+.artist-section {
+    margin-bottom: 100px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    /* Subtle separation */
+}
+
+.artist-header {
     display: flex;
-    justify-content: center;
     align-items: center;
-    gap: 32px;
-    margin-top: 10px;
-}
-
-.social-icon {
-    display: flex;
-    color: var(--light-gray);
-    background-color: transparent;
-    transition: transform 0.2s ease, filter 0.2s ease;
-}
-
-.social-icon:hover {
-    transform: translateY(-4px);
-    filter: brightness(1.2);
-}
-
-.social-icon svg {
-    width: 32px;
-    height: 32px;
-    fill: currentColor;
-    display: block;
-}
-
-.social-icon img {
-    width: 32px;
-    height: 32px;
-    object-fit: contain;
-    /* Ensures the image scales correctly within the box */
-    display: block;
-    border-radius: 4px;
-    /* Optional: matches common UI patterns */
-}
-
-/* Brand Colors */
-.social-icon.brand-x {
-    color: #ffffff;
-}
-
-.social-icon.brand-spotify {
-    color: #1DB954;
-    /* Spotify Green */
-}
-
-.social-icon.brand-youtube {
-    color: #FF0000;
-    /* YouTube Red */
-}
-
-.social-icon.brand-suno {
-    color: #ffffff;
-    /* Suno is typically white on black */
-}
-
-
-/* Sections */
-section {
-    margin-bottom: 80px;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 20px;
 }
 
 h2 {
-    font-size: 1.2rem;
+    font-size: 2rem;
     font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 24px;
-    border-bottom: 1px solid var(--gray-color);
-    padding-bottom: 12px;
+    letter-spacing: -0.02em;
+    margin: 0;
+    position: relative;
+    padding-left: 20px;
+    border-left: 4px solid var(--accent-color);
 }
 
-/* Components: Spotify */
-.spotify-embed-area {
+/* Artist Links (Icons) within header */
+.artist-links {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.icon-link {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--light-gray);
+    transition: all 0.2s ease;
+    border-radius: 50%;
+    /* Circular */
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.icon-link.disabled {
+    opacity: 0.3;
+    pointer-events: none;
+    filter: grayscale(100%);
+}
+
+.icon-link.disabled:hover {
+    color: var(--light-gray);
+    background: rgba(255, 255, 255, 0.05);
+    transform: none;
+}
+
+.icon-link:hover {
+    color: var(--text-color);
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+/* Specific Brands */
+.icon-link.brand-spotify:hover {
+    color: #1DB954;
+}
+
+.icon-link.brand-youtube:hover {
+    color: #FF0000;
+}
+
+.icon-link.brand-x:hover {
+    color: #fff;
+}
+
+.icon-link svg,
+.icon-link img {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+    border-radius: 2px;
+    object-fit: contain;
+}
+
+.icon-link span {
+    font-size: 10px;
+    font-weight: bold;
+    color: inherit;
+}
+
+
+/* Media Grid Layout */
+/* User requested: YouTube Left, Spotify Right. 
+   We swapped HTML, so first child is YouTube, second is Spotify.
+   We want YouTube to be 1fr (flexible) and Spotify to be fixed (~350px) or proper ratio.
+*/
+.media-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    /* Main Layout: YouTube (Large) | Spotify (Side) */
+    grid-template-columns: 1fr 350px;
+    gap: 30px;
+    align-items: stretch;
+    /* Stretch to match heights */
+}
+
+/* Media Column Base */
+.media-column {
+    display: flex;
+    flex-direction: column;
     gap: 20px;
-    width: 100%;
+    min-height: 200px;
 }
 
-.spotify-embed-area iframe {
-    border-radius: 12px;
-    background-color: #111;
-    width: 100%;
-}
-
-/* Components: YouTube */
+/* YouTube Styling */
+/* Use flex/grid to ensure items don't stretch weirdly, but container does */
 .youtube-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
+    /* Note: ID is youtube-container in old code, here we use direct children of .media-column */
+    width: 100%;
 }
 
 .youtube-item {
-    background-color: #111;
     aspect-ratio: 16/9;
     border-radius: 8px;
     overflow: hidden;
-    border: 1px solid var(--gray-color);
+    background-color: #000;
+    border: 1px solid #222;
+    width: 100%;
 }
 
 .youtube-item iframe {
@@ -166,79 +229,149 @@ h2 {
     height: 100%;
 }
 
-/* Components: Buttons (Links) */
-.links-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+/* Spotify Styling */
+.spotify-col {
+    /* Ensure it tries to fill height if needed or maintain structure */
 }
 
-.btn {
+.spotify-col iframe {
+    border-radius: 8px;
+    background-color: #000;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    min-height: 352px;
+    /* Ensure minimum height */
+    height: 100%;
+    /* Try to match parent height if stretched */
+
+    /* However, Spotify embeds have fixed internal designs. 
+       Usually 352px is 'tall' enough. 
+       If we want it to match YouTube (16:9 large), say 500px height, we can force it.
+    */
+    /* max-height: 600px; */
+}
+
+/* Empty Frame Styling */
+.empty-frame {
+    width: 100%;
+    height: 100%;
+    min-height: 352px;
+    /* Match standard Spotify height */
+    /* border: 1px dashed var(--gray-color); Removed as requested */
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 100%;
-    padding: 18px 24px;
-    background-color: transparent;
-    border: 1px solid #ffffff;
-    color: #ffffff;
-    text-decoration: none;
-    font-weight: 700;
-    font-size: 1rem;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-    cursor: pointer;
-}
-
-.btn:hover {
-    background-color: #ffffff;
-    color: #000000;
-    transform: translateY(-2px);
-}
-
-.btn span {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.icon {
-    width: 20px;
-    height: 20px;
-    fill: currentColor;
+    color: var(--light-gray);
+    font-family: monospace;
+    background: rgba(255, 255, 255, 0.02);
 }
 
 /* Footer */
 footer {
     text-align: center;
-    padding: 40px 0 80px;
+    padding: 60px 0;
     color: var(--light-gray);
     font-size: 0.8rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Helper for empty/loading states */
-.loading-placeholder {
-    color: var(--light-gray);
-    font-family: monospace;
-    text-align: center;
-    padding: 20px;
-    border: 1px dashed var(--gray-color);
-    border-radius: 8px;
-    grid-column: 1 / -1;
+/* Hamburger Toggle (Hidden on Desktop) */
+.nav-toggle {
+    display: none;
+}
+
+.main-nav {
+    /* Ensure nav container handles relative positioning for dropdown if needed, 
+           or keep fixed. Fixed is good. */
 }
 
 /* Responsive */
-@media (max-width: 600px) {
-    h1 {
-        font-size: 2.5rem;
+@media (max-width: 900px) {
+    .media-grid {
+        grid-template-columns: 1fr;
+        /* Stack vertically */
     }
 
-    header {
-        padding: 60px 0 40px;
+    /* Mobile Nav Accordion */
+    .main-nav {
+        padding: 0;
     }
 
-    .spotify-embed-area iframe {
-        height: 352px !important;
-        min-height: 352px !important;
+    .nav-toggle {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        width: 30px;
+        height: 21px;
+        margin: 15px 20px;
+        /* Align with container padding */
+        cursor: pointer;
+        z-index: 1001;
+        /* Above bg */
     }
+
+    .nav-toggle span {
+        display: block;
+        width: 100%;
+        height: 3px;
+        background-color: var(--text-color);
+        border-radius: 3px;
+        transition: all 0.3s ease;
+    }
+
+    /* Animate Hamburger */
+    .nav-toggle.active span:nth-child(1) {
+        transform: translateY(9px) rotate(45deg);
+    }
+
+    .nav-toggle.active span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .nav-toggle.active span:nth-child(3) {
+        transform: translateY(-9px) rotate(-45deg);
+    }
+
+    .nav-container {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        background-color: var(--bg-color);
+        /* Opaque bg for menu */
+        border-bottom: 1px solid var(--gray-color);
+
+        /* Accordion Logic */
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-in-out;
+
+        gap: 0;
+        /* Reset gap */
+        padding: 0;
+
+        /* Reset old scroll props */
+        flex-wrap: nowrap;
+        overflow-x: hidden;
+        white-space: normal;
+    }
+
+    .nav-container.active {
+        max-height: 400px;
+        /* Arbitrary large height to fit links */
+        padding-bottom: 20px;
+    }
+
+    .nav-link {
+        padding: 15px 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        display: block;
+        width: 100%;
+        text-align: left;
+    }
+
+    .nav-link:last-child {
+        border-bottom: none;
+    }
+
+    /* On mobile, Spotify height usually ok at 352px or compact */
 }
