@@ -59,12 +59,14 @@ const artists = [
         name: "Stray Glitch Monkeys",
         links: [
             { type: "twitter", url: "", label: "X" },
-            { type: "spotify", url: "", label: "Spotify" },
+            { type: "spotify", url: "https://open.spotify.com/intl-ja/artist/280n7G2T6dmFkCRs8JFMeX?si=v1hsCKO3TauIOwhjwdT6ng", label: "Spotify" },
             { type: "youtube", url: "https://youtube.com/playlist?list=PLxpRgysXp3GlaHKI8Wz0WWATs5SZFC6o4&si=3ffy2M9F2ouSJg32", label: "YouTube" },
             { type: "suno", url: "https://suno.com/playlist/99f6ddfd-d458-40cc-92e5-65141503e6df", label: "Suno" },
             { type: "aisa", url: "", label: "AISA RADIO" }
         ],
-        spotifyUrls: [],
+        spotifyUrls: [
+            "https://open.spotify.com/intl-ja/artist/280n7G2T6dmFkCRs8JFMeX?si=v1hsCKO3TauIOwhjwdT6ng"
+        ],
         youtubeUrls: [
             "https://youtube.com/playlist?list=PLxpRgysXp3GlaHKI8Wz0WWATs5SZFC6o4&si=3ffy2M9F2ouSJg32"
         ]
