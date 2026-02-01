@@ -114,12 +114,17 @@ const artists = [
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    artists.forEach(artist => {
-        renderArtistLinks(artist);
-        renderSpotify(artist);
-        renderYouTube(artist);
-    });
-    setupMobileNav();
+    try {
+        artists.forEach(artist => {
+            renderArtistLinks(artist);
+            renderSpotify(artist);
+            renderYouTube(artist);
+        });
+        setupMobileNav();
+    } catch (e) {
+        alert("Error loading site: " + e.message);
+        console.error(e);
+    }
 });
 
 function setupMobileNav() {
