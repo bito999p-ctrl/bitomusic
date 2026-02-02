@@ -1,11 +1,19 @@
 /* Base Variables */
 :root {
-    --bg-color: #0d0d0d;
-    --text-color: #f0f0f0;
+    --bg-color: #050505;
+    /* Deeper black */
+    --card-bg: #111111;
+    --text-color: #f5f5f7;
+    /* Apple-ish off-white */
     --accent-color: #ffffff;
-    --gray-color: #333333;
-    --light-gray: #888888;
-    --nav-bg: rgba(13, 13, 13, 0.9);
+    --gray-color: #2c2c2e;
+    /* Dark gray for borders */
+    --light-gray: #86868b;
+    /* Apple gray */
+    --nav-bg: rgba(5, 5, 5, 0.75);
+    --glass-blur: 20px;
+    --section-spacing: 140px;
+    --transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 /* Reset & Base Styles */
@@ -18,46 +26,48 @@
 html {
     scroll-behavior: smooth;
     scroll-padding-top: 80px;
-    /* Offset for sticky nav */
 }
 
 body {
     background-color: var(--bg-color);
     color: var(--text-color);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.01em;
+    /* Tighter layout */
+    overflow-x: hidden;
 }
 
 .container {
-    max-width: 1100px;
-    /* Slightly wider for the new layout */
+    max-width: 1080px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0 40px;
 }
 
 /* Navigation */
 .main-nav {
-    position: -webkit-sticky;
-    /* for Safari */
-    position: sticky;
+    position: fixed;
+    /* Fixed for constant presence */
     top: 0;
+    left: 0;
+    right: 0;
     z-index: 1000;
     background-color: var(--nav-bg);
-    -webkit-backdrop-filter: blur(10px);
-    /* for Safari */
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--gray-color);
-    padding: 15px 0;
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    backdrop-filter: blur(var(--glass-blur));
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 18px 0;
+    transition: background-color 0.3s ease;
 }
 
 .nav-container {
-    max-width: 1000px;
+    max-width: 1080px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0 40px;
     display: flex;
     justify-content: center;
-    gap: 30px;
+    gap: 40px;
     flex-wrap: wrap;
 }
 
@@ -65,9 +75,8 @@ body {
     color: var(--light-gray);
     text-decoration: none;
     font-weight: 500;
-    text-transform: uppercase;
-    font-size: 0.9rem;
-    letter-spacing: 0.05em;
+    font-size: 0.85rem;
+    letter-spacing: 0.02em;
     transition: color 0.3s ease;
 }
 
@@ -75,103 +84,238 @@ body {
     color: var(--accent-color);
 }
 
-/* Header */
-header {
-    padding: 80px 0 60px;
+/* Header / Hero */
+.hero-section {
+    width: 100%;
+    min-height: 80vh;
+    /* Slightly taller */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     text-align: center;
+    padding: 100px 20px 60px;
+    /* Added side padding for mobile */
+    opacity: 0;
+    /* Initial for animation */
+    animation: fadeUp 1.2s var(--transition-smooth) forwards;
+
+    position: relative;
+    overflow: hidden;
+    /* Ensure nothing spills out */
+}
+
+/* Parallax Background Layer */
+.hero-bg {
+    position: absolute;
+    top: -10%;
+    left: 0;
+    width: 100%;
+    height: 120%;
+    background-image: url('hero_bg.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: -3;
+    /* Deepest layer */
+    will-change: transform;
+}
+
+/* Particle Canvas Layer - Fullscreen Fixed */
+#particle-canvas {
+    position: fixed;
+    /* Stays on screen during scroll */
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 900;
+    /* High enough to float over images, below Nav (1000) */
+    pointer-events: none;
+    /* Pass clicks through */
+    opacity: 0.8;
+    mix-blend-mode: screen;
+    /* Nice blending effect */
+}
+
+/* Overlay to ensure text readability and seamless blending */
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    /* Vignette effect: Reduced opacity to show off Parallax */
+    background:
+        linear-gradient(to bottom, rgba(5, 5, 5, 0.1), var(--bg-color) 100%),
+        radial-gradient(ellipse at center, transparent 40%, var(--bg-color) 100%);
+    z-index: -1;
+    /* Top of background stack by default relative to other negatives */
+}
+
+/* Ensure content is above the overlay */
+.header-content,
+.tagline,
+h1,
+div {
+    z-index: 1;
+    position: relative;
 }
 
 h1 {
-    font-size: 3rem;
-    font-weight: 800;
-    letter-spacing: -0.05em;
-    margin-bottom: 10px;
+    font-size: 4.5rem;
+    /* Larger title */
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, #fff 20%, #888 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
     line-height: 1.1;
 }
 
 .tagline {
     color: var(--light-gray);
-    font-size: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
+    font-size: 1.2rem;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    margin-bottom: 30px;
+}
+
+/* Animation Utilities */
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.reveal-on-scroll {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.8s ease-out, transform 0.8s var(--transition-smooth);
+    will-change: opacity, transform;
+}
+
+.reveal-on-scroll.is-visible {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 /* Artist Sections */
 .artist-section {
-    margin-bottom: 100px;
-    padding-top: 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-    /* Subtle separation */
+    margin-bottom: var(--section-spacing);
+    position: relative;
+    /* Removed top border for cleaner look, visual separation via space */
 }
 
 .artist-header {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    /* Centered layout for headers */
+    align-items: flex-start;
     justify-content: space-between;
-    margin-bottom: 30px;
-    flex-wrap: wrap;
-    gap: 20px;
+    margin-bottom: 40px;
+    gap: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    /* Subtle divider */
+    padding-bottom: 20px;
+}
+
+@media (min-width: 768px) {
+    .artist-header {
+        flex-direction: row;
+        align-items: center;
+    }
 }
 
 h2 {
-    font-size: 2rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
+    font-size: 2.2rem;
+    font-weight: 600;
+    letter-spacing: -0.03em;
     margin: 0;
-    position: relative;
-    padding-left: 20px;
-    border-left: 4px solid var(--accent-color);
+    color: var(--text-color);
 }
 
-/* Artist Links (Icons) within header */
+/* Artist Links */
 .artist-links {
     display: flex;
-    gap: 15px;
+    gap: 12px;
     align-items: center;
 }
 
 .icon-link {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--light-gray);
-    transition: all 0.2s ease;
+    /* Muted default */
+    transition: all 0.3s var(--transition-smooth);
     border-radius: 50%;
-    /* Circular */
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.icon-link.disabled {
-    opacity: 0.3;
-    pointer-events: none;
-    filter: grayscale(100%);
-}
-
-.icon-link.disabled:hover {
-    color: var(--light-gray);
-    background: rgba(255, 255, 255, 0.05);
-    transform: none;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .icon-link:hover {
     color: var(--text-color);
-    background: rgba(255, 255, 255, 0.15);
-    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.05);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
-/* Specific Brands */
+/* Brand Colors on Hover only, or kept subtle? 
+   User asked for brand colors to be permanent. 
+   Let's keep the colored style from previous request?
+   actually, let's make them colored by default but subtle, and pop on hover.
+*/
+
 .icon-link.brand-spotify {
     color: #1DB954;
+    background: rgba(29, 185, 84, 0.1);
+    border-color: rgba(29, 185, 84, 0.1);
+}
+
+.icon-link.brand-spotify:hover {
+    background: rgba(29, 185, 84, 0.2);
+    border-color: rgba(29, 185, 84, 0.4);
 }
 
 .icon-link.brand-youtube {
     color: #FF0000;
+    background: rgba(255, 0, 0, 0.1);
+    border-color: rgba(255, 0, 0, 0.1);
+}
+
+.icon-link.brand-youtube:hover {
+    background: rgba(255, 0, 0, 0.2);
+    border-color: rgba(255, 0, 0, 0.4);
 }
 
 .icon-link.brand-x {
     color: #fff;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.icon-link.brand-x:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.icon-link.brand-tiktok {
+    color: #ff0050;
+    background: rgba(255, 0, 80, 0.08);
+}
+
+/* Custom TikTok Color tint */
+.icon-link.brand-tiktok:hover {
+    background: rgba(255, 0, 80, 0.2);
 }
 
 .icon-link svg,
@@ -179,151 +323,173 @@ h2 {
     width: 18px;
     height: 18px;
     fill: currentColor;
-    border-radius: 2px;
     object-fit: contain;
 }
 
-.icon-link span {
-    font-size: 10px;
-    font-weight: bold;
-    color: inherit;
-}
-
-
-/* Media Grid Layout */
-/* User requested: YouTube Left, Spotify Right. 
-   We swapped HTML, so first child is YouTube, second is Spotify.
-   We want YouTube to be 1fr (flexible) and Spotify to be fixed (~350px) or proper ratio.
-*/
+/* Media Grid */
 .media-grid {
     display: grid;
-    /* Main Layout: YouTube (Large) | Spotify (Side) */
-    grid-template-columns: 1fr 350px;
-    gap: 30px;
-    align-items: stretch;
-    /* Stretch to match heights */
+    grid-template-columns: 1fr 360px;
+    /* Fixed width for Spotify */
+    gap: 40px;
+    align-items: start;
 }
 
-/* Media Column Base */
+/* Media Components */
 .media-column {
     display: flex;
     flex-direction: column;
-    gap: 20px;
-    min-height: 200px;
+    gap: 24px;
 }
 
-/* YouTube Styling */
-/* Use flex/grid to ensure items don't stretch weirdly, but container does */
-.youtube-grid {
-    /* Note: ID is youtube-container in old code, here we use direct children of .media-column */
-    width: 100%;
+/* Cards / Items */
+.youtube-item,
+.spotify-col iframe,
+.empty-frame {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    transition: transform 0.4s var(--transition-smooth), box-shadow 0.4s var(--transition-smooth);
+    background-color: var(--card-bg);
+}
+
+.youtube-item:hover,
+.spotify-col iframe:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
 .youtube-item {
     aspect-ratio: 16/9;
-    border-radius: 8px;
-    overflow: hidden;
-    background-color: #000;
-    border: 1px solid #222;
-    width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .youtube-item iframe {
     width: 100%;
     height: 100%;
+    display: block;
 }
 
-/* Spotify Styling */
-/* .spotify-col {} Removed empty rule */
-
-.spotify-col iframe {
-    border-radius: 8px;
-    background-color: #000;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-    min-height: 352px;
-    /* Ensure minimum height */
-    height: 100%;
-    /* Try to match parent height if stretched */
-
-    /* However, Spotify embeds have fixed internal designs. 
-       Usually 352px is 'tall' enough. 
-       If we want it to match YouTube (16:9 large), say 500px height, we can force it.
-    */
-    /* max-height: 600px; */
-}
-
-/* Empty Frame Styling */
+/* Empty State */
 .empty-frame {
     width: 100%;
-    height: 100%;
     min-height: 352px;
-    /* Match standard Spotify height */
-    /* border: 1px dashed var(--gray-color); Removed as requested */
-    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     color: var(--light-gray);
-    font-family: monospace;
-    background: rgba(255, 255, 255, 0.02);
+    font-size: 0.9rem;
+}
+
+.empty-frame span {
+    opacity: 0.6;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
 }
 
 /* Footer */
 footer {
     text-align: center;
-    padding: 60px 0;
+    padding: 80px 0;
+    margin-top: 40px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
     color: var(--light-gray);
     font-size: 0.8rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Hamburger Toggle (Hidden on Desktop) */
+/* Mobile Nav Toggle */
 .nav-toggle {
     display: none;
 }
 
-.main-nav {
-    /* Ensure nav container handles relative positioning for dropdown if needed, 
-           or keep fixed. Fixed is good. */
-}
-
 /* Responsive */
-@media (max-width: 900px) {
+@media (max-width: 960px) {
     .media-grid {
         grid-template-columns: 1fr;
-        /* Stack vertically */
     }
 
-    /* Mobile Nav Accordion */
+    h1 {
+        font-size: 3rem;
+    }
+
+    .spotify-col iframe {
+        min-height: 352px;
+    }
+
+    .spotify-col .empty-frame {
+        min-height: 180px;
+        /* Smaller placeholder on mobile */
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 0 24px;
+    }
+
     .main-nav {
         padding: 0;
+        background-color: rgba(5, 5, 5, 0.95);
+        /* More solid on mobile */
     }
 
     .nav-toggle {
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
+        justify-content: center;
         width: 30px;
-        height: 21px;
-        margin: 15px 20px;
-        /* Align with container padding */
+        height: 48px;
+        /* Touch target */
+        margin: 0 24px;
         cursor: pointer;
         z-index: 1001;
-        /* Above bg */
     }
 
     .nav-toggle span {
         display: block;
         width: 100%;
-        height: 3px;
+        height: 2px;
         background-color: var(--text-color);
-        border-radius: 3px;
+        margin: 3px 0;
         transition: all 0.3s ease;
     }
 
-    /* Animate Hamburger */
+    .nav-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background-color: #000;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+        clip-path: circle(0% at 90% 5%);
+        /* Transition effect */
+        transition: clip-path 0.5s cubic-bezier(0.7, 0, 0.3, 1);
+        padding-top: 0;
+    }
+
+    .nav-container.active {
+        clip-path: circle(150% at 90% 5%);
+    }
+
+    .nav-link {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--light-gray);
+    }
+
+    .nav-link:hover {
+        color: #fff;
+    }
+
+    /* Hamburger Animation */
     .nav-toggle.active span:nth-child(1) {
-        transform: translateY(9px) rotate(45deg);
+        transform: translateY(8px) rotate(45deg);
     }
 
     .nav-toggle.active span:nth-child(2) {
@@ -331,52 +497,6 @@ footer {
     }
 
     .nav-toggle.active span:nth-child(3) {
-        transform: translateY(-9px) rotate(-45deg);
-    }
-
-    .nav-container {
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-        background-color: var(--bg-color);
-        /* Opaque bg for menu */
-        border-bottom: 1px solid var(--gray-color);
-
-        /* Accordion Logic */
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.3s ease-in-out;
-
-        gap: 0;
-        /* Reset gap */
-        padding: 0;
-
-        /* Reset old scroll props */
-        flex-wrap: nowrap;
-        overflow-x: hidden;
-        white-space: normal;
-    }
-
-    .nav-container.active {
-        max-height: 400px;
-        /* Arbitrary large height to fit links */
-        padding-bottom: 20px;
-    }
-
-    .nav-link {
-        padding: 15px 20px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        display: block;
-        width: 100%;
-        text-align: left;
-    }
-
-    .nav-link:last-child {
-        border-bottom: none;
-    }
-
-    /* On mobile, reduce placeholder height for Spotify "Coming Soon" */
-    .spotify-col .empty-frame {
-        min-height: 150px;
+        transform: translateY(-8px) rotate(-45deg);
     }
 }

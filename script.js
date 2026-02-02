@@ -123,11 +123,177 @@ document.addEventListener('DOMContentLoaded', () => {
             renderYouTube(artist);
         });
         setupMobileNav();
+        setupScrollAnimation();
+        setupParallax(); // Parallax effect
+        setupMagneticButtons(); // Magnetic effect
+        setupParticles(); // Particle effect
     } catch (e) {
-        alert("Error loading site: " + e.message);
+        // alert("Error loading site: " + e.message); 
         console.error(e);
     }
 });
+
+/* ... Scroll Animation ... */
+
+function setupParticles() {
+    const canvas = document.getElementById('particle-canvas');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    let particles = [];
+
+    // Configuration
+    const particleCount = 200; // Increased density as requested
+    const connectionDistance = 150;
+    const mouseParams = { x: null, y: null, radius: 250 }; // Slightly larger radius
+
+    // Resize handler - Fullscreen
+    function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Mouse listeners - attach to WINDOW for full screen tracking
+    window.addEventListener('mousemove', (e) => {
+        mouseParams.x = e.clientX;
+        mouseParams.y = e.clientY;
+    });
+
+    window.addEventListener('mouseleave', () => {
+        mouseParams.x = null;
+        mouseParams.y = null;
+    });
+
+    // Particle Class
+    class Particle {
+        constructor() {
+            this.x = Math.random() * width;
+            this.y = Math.random() * height;
+            this.vx = (Math.random() - 0.5) * 1.0; // Slightly faster drift? or keep smooth
+            this.vy = (Math.random() - 0.5) * 1.0;
+            this.size = Math.random() * 1.5 + 0.5; // Smaller particles (0.5 to 2.0px)
+            this.color = `rgba(255, 255, 255, ${Math.random() * 0.4 + 0.2})`; // Slightly brighter
+        }
+
+        update() {
+            // Move
+            this.x += this.vx;
+            this.y += this.vy;
+
+            // Mouse Attraction
+            if (mouseParams.x != null) {
+                let dx = mouseParams.x - this.x;
+                let dy = mouseParams.y - this.y;
+                let distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < mouseParams.radius) {
+                    const forceDirectionX = dx / distance;
+                    const forceDirectionY = dy / distance;
+                    const force = (mouseParams.radius - distance) / mouseParams.radius;
+                    const directionX = forceDirectionX * force * 0.5; // Attraction strength
+                    const directionY = forceDirectionY * force * 0.5;
+                    this.vx += directionX;
+                    this.vy += directionY;
+                }
+            }
+
+            // Friction (to stop them from accelerating forever)
+            this.vx *= 0.98;
+            this.vy *= 0.98;
+
+            // Bounce / Wrap
+            if (this.x < 0 || this.x > width) this.vx *= -1;
+            if (this.y < 0 || this.y > height) this.vy *= -1;
+        }
+
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    function init() {
+        particles = [];
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, width, height);
+
+        particles.forEach(p => {
+            p.update();
+            p.draw();
+        });
+        requestAnimationFrame(animate);
+    }
+
+    init();
+    animate();
+}
+
+function setupParallax() {
+    const heroBg = document.querySelector('.hero-bg');
+    if (!heroBg) return;
+
+    window.addEventListener('scroll', () => {
+        const scrollY = window.scrollY;
+        // Move background slower than scroll (speed factor 0.4)
+        heroBg.style.transform = `translateY(${scrollY * 0.4}px)`;
+    });
+}
+
+function setupMagneticButtons() {
+    // Target all icon links
+    const buttons = document.querySelectorAll('.icon-link');
+
+    buttons.forEach(btn => {
+        btn.addEventListener('mousemove', (e) => {
+            const rect = btn.getBoundingClientRect();
+            // Calculate mouse position relative to center of button
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+
+            // Move button slightly towards mouse (magnetic pull)
+            // Divide by factor to dampen movement
+            btn.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
+        });
+
+        btn.addEventListener('mouseleave', () => {
+            // Reset position smoothly
+            btn.style.transform = 'translate(0, 0)';
+            // Note: CSS transition property handles the smooth return
+        });
+    });
+}
+
+function setupScrollAnimation() {
+    const observerOptions = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.1
+    };
+
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                observer.unobserve(entry.target); // Only animate once
+            }
+        });
+    }, observerOptions);
+
+    const targets = document.querySelectorAll('.reveal-on-scroll');
+    targets.forEach(target => {
+        observer.observe(target);
+    });
+}
 
 function setupMobileNav() {
     const navToggle = document.querySelector('.nav-toggle');
