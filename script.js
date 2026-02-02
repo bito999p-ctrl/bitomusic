@@ -167,13 +167,36 @@ function setupParticles() {
         mouseParams.y = null;
     });
 
+    // Touch listeners (Mobile support)
+    window.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 0) {
+            mouseParams.x = e.touches[0].clientX;
+            mouseParams.y = e.touches[0].clientY;
+        }
+    });
+
+    window.addEventListener('touchmove', (e) => {
+        if (e.touches.length > 0) {
+            mouseParams.x = e.touches[0].clientX;
+            mouseParams.y = e.touches[0].clientY;
+        }
+    });
+
+    window.addEventListener('touchend', () => {
+        mouseParams.x = null;
+        mouseParams.y = null;
+    });
+
     // Particle Class
     class Particle {
         constructor() {
             this.x = Math.random() * width;
             this.y = Math.random() * height;
-            this.vx = (Math.random() - 0.5) * 1.0; // Slightly faster drift? or keep smooth
-            this.vy = (Math.random() - 0.5) * 1.0;
+            // Base drift velocity (Auto-Drift)
+            this.baseVx = (Math.random() - 0.5) * 0.8;
+            this.baseVy = (Math.random() - 0.5) * 0.8;
+            this.vx = this.baseVx;
+            this.vy = this.baseVy;
             this.size = Math.random() * 1.5 + 0.5; // Smaller particles (0.5 to 2.0px)
             this.color = `rgba(255, 255, 255, ${Math.random() * 0.4 + 0.2})`; // Slightly brighter
         }
@@ -193,18 +216,20 @@ function setupParticles() {
                     const forceDirectionX = dx / distance;
                     const forceDirectionY = dy / distance;
                     const force = (mouseParams.radius - distance) / mouseParams.radius;
-                    const directionX = forceDirectionX * force * 0.5; // Attraction strength
+                    // Attraction logic
+                    const directionX = forceDirectionX * force * 0.5;
                     const directionY = forceDirectionY * force * 0.5;
                     this.vx += directionX;
                     this.vy += directionY;
                 }
             }
 
-            // Friction (to stop them from accelerating forever)
-            this.vx *= 0.98;
-            this.vy *= 0.98;
+            // Return to base state (instead of simple friction stopping them)
+            // Gently interpolate velocity back to baseVx/Vy
+            this.vx += (this.baseVx - this.vx) * 0.05;
+            this.vy += (this.baseVy - this.vy) * 0.05;
 
-            // Bounce / Wrap
+            // Soft Bounce / Wrap
             if (this.x < 0 || this.x > width) this.vx *= -1;
             if (this.y < 0 || this.y > height) this.vy *= -1;
         }
