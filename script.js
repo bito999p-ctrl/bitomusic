@@ -133,6 +133,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+function setupCustomCursor() {
+    const cursor = document.getElementById('cursor');
+    if (!cursor) return;
+
+    // Move cursor
+    window.addEventListener('mousemove', (e) => {
+        cursor.style.left = e.clientX + 'px';
+        cursor.style.top = e.clientY + 'px';
+    });
+
+    // Hover effect for links and interactables
+    const interactables = document.querySelectorAll('a, button, .youtube-item, iframe, .glitch-text');
+    interactables.forEach(el => {
+        el.addEventListener('mouseenter', () => cursor.classList.add('hovered'));
+        el.addEventListener('mouseleave', () => cursor.classList.remove('hovered'));
+    });
+}
+
 /* ... Scroll Animation ... */
 
 function setupParticles() {
@@ -197,7 +215,7 @@ function setupParticles() {
             this.baseVy = (Math.random() - 0.5) * 0.8;
             this.vx = this.baseVx;
             this.vy = this.baseVy;
-            this.size = Math.random() * 1.5 + 0.5; // Smaller particles (0.5 to 2.0px)
+            this.size = Math.random() * 1.0 + 0.2; // Much smaller particles (0.2 to 1.2px) - VERY FINE
             this.color = `rgba(255, 255, 255, ${Math.random() * 0.4 + 0.2})`; // Slightly brighter
         }
 
