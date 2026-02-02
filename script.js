@@ -231,14 +231,34 @@ function setupParticles() {
                 let distance = Math.sqrt(dx * dx + dy * dy);
 
                 if (distance < mouseParams.radius) {
-                    const forceDirectionX = dx / distance;
-                    const forceDirectionY = dy / distance;
-                    const force = (mouseParams.radius - distance) / mouseParams.radius;
-                    // Attraction logic
-                    const directionX = forceDirectionX * force * 0.5;
-                    const directionY = forceDirectionY * force * 0.5;
-                    this.vx += directionX;
-                    this.vy += directionY;
+                    const nx = dx / distance;
+                    const ny = dy / distance;
+
+                    // Swarm Dynamics: Spring-to-Ring
+                    const swarmRadius = 120;
+
+                    // Spring Logic: Pull towards radius, push away if closer
+                    const springK = 0.01;
+                    const displacement = distance - swarmRadius;
+                    let force = displacement * springK;
+
+                    // Dampen force at edge of interaction range
+                    const edgeDampen = Math.max(0, 1 - (distance / mouseParams.radius));
+                    force *= edgeDampen;
+
+                    // Apply Radial Force
+                    this.vx += nx * force;
+                    this.vy += ny * force;
+
+                    // Tangential/Orbit Force (Spin)
+                    const orbit = 0.02 * edgeDampen;
+                    this.vx += -ny * orbit;
+                    this.vy += nx * orbit;
+
+                    // More Chaos
+                    const chaos = 1.0 * edgeDampen;
+                    this.vx += (Math.random() - 0.5) * chaos;
+                    this.vy += (Math.random() - 0.5) * chaos;
                 }
             }
 
