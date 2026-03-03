@@ -44,12 +44,14 @@ const artists = [
         name: "歪み歪み -hizumi yugami-",
         links: [
             { type: "twitter", url: "", label: "X" },
-            { type: "spotify", url: "", label: "Spotify" },
+            { type: "spotify", url: "https://open.spotify.com/intl-ja/artist/3tj9sPIAEwZbTk4SyAtT10", label: "Spotify" },
             { type: "youtube", url: "https://youtube.com/playlist?list=PLxpRgysXp3Gm6OgQmHL3bSaAfFxF-DK7d&si=H9atE_w5lqlmEo6c", label: "YouTube" },
             { type: "suno", url: "https://suno.com/playlist/20aa266e-cde7-4115-9795-30e75c164d01", label: "Suno" },
             { type: "aisa", url: "https://aisa.radioalps.com/music/artist/hizumiyugami", label: "AISA RADIO" }
         ],
-        spotifyUrls: [],
+        spotifyUrls: [
+            "https://open.spotify.com/intl-ja/artist/3tj9sPIAEwZbTk4SyAtT10"
+        ],
         youtubeUrls: [
             "https://youtube.com/playlist?list=PLxpRgysXp3Gm6OgQmHL3bSaAfFxF-DK7d&si=H9atE_w5lqlmEo6c"
         ]
@@ -76,12 +78,14 @@ const artists = [
         name: "THE METROPOLITANS",
         links: [
             { type: "twitter", url: "", label: "X" },
-            { type: "spotify", url: "", label: "Spotify" },
+            { type: "spotify", url: "https://open.spotify.com/intl-ja/artist/5lSsV9mEnzTwpDzOSWqPiQ", label: "Spotify" },
             { type: "youtube", url: "https://youtube.com/playlist?list=PLxpRgysXp3GnkxK3lm_cwHLD_alvdc_3t&si=d-KLo6zSzbX7Y4VP", label: "YouTube" },
             { type: "suno", url: "https://suno.com/playlist/f59d229a-79fc-4b48-b36a-1efbac94175f", label: "Suno" },
             { type: "aisa", url: "https://aisa.radioalps.com/music/artist/the-metropolitans", label: "AISA RADIO" }
         ],
-        spotifyUrls: [],
+        spotifyUrls: [
+            "https://open.spotify.com/intl-ja/artist/5lSsV9mEnzTwpDzOSWqPiQ"
+        ],
         youtubeUrls: [
             "https://youtube.com/playlist?list=PLxpRgysXp3GnkxK3lm_cwHLD_alvdc_3t&si=d-KLo6zSzbX7Y4VP"
         ]
