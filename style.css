@@ -615,3 +615,33 @@ footer {
         transform: skew(0deg);
     }
 }
+
+/* Mastering Tool Links & Button Styles */
+.nav-tool-link {
+    color: #00ffcc !important;
+}
+
+.nav-tool-link:hover {
+    color: #80ffdf !important;
+}
+
+.mastering-tool-btn {
+    color: #00ffcc;
+    text-decoration: none;
+    border: 1px solid rgba(0, 255, 204, 0.3);
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    transition: all 0.3s var(--transition-smooth);
+    display: inline-block;
+    background: rgba(0, 255, 204, 0.05);
+    font-weight: 500;
+}
+
+.mastering-tool-btn:hover {
+    background: rgba(0, 255, 204, 0.15);
+    border-color: rgba(0, 255, 204, 0.6);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 255, 204, 0.2);
+}
