@@ -284,9 +284,13 @@ body {
 }
 
 .player-controls {
-  display: flex;
+  display: none;
   align-items: center;
   gap: 12px;
+}
+
+body.has-track .player-controls {
+  display: flex;
 }
 
 .ctrl-btn {
@@ -1067,12 +1071,182 @@ input:checked + .slider-round:before {
 @media (max-width: 768px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
   .full-width, .span-2 {
     grid-column: span 1;
   }
   body {
     padding: 10px;
+  }
+  .panel {
+    padding: 14px 12px;
+    border-radius: 12px;
+  }
+  
+  /* Header Adjustments */
+  .app-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    text-align: center;
+    padding: 15px 10px;
+  }
+  .logo-area {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .logo-text {
+    text-align: center;
+  }
+  
+  /* Track Info Stack */
+  .track-info {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+    text-align: center;
+    padding: 15px;
+  }
+  .track-name {
+    max-width: 100%;
+    text-align: center;
+  }
+  .track-meta {
+    text-align: center;
+  }
+  .player-controls {
+    justify-content: center;
+  }
+  
+  /* Sticky Monitor Panel */
+  .visualizer-panel {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10, 14, 26, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(0, 242, 254, 0.2);
+    border-radius: 0 0 12px 12px !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+    margin: -10px -10px 12px -10px !important;
+    padding: 12px 15px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .visualizer-content {
+    height: 115px;
+    transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s;
+  }
+  
+  /* Monitor Collapsed Mode */
+  .visualizer-panel.collapsed {
+    padding-bottom: 8px;
+    border-radius: 0 !important;
+  }
+  .visualizer-panel.collapsed .visualizer-content {
+    height: 0;
+    opacity: 0;
+    margin: 0;
+    border: none;
+    pointer-events: none;
+  }
+  .visualizer-panel.collapsed .monitor-toggle-btn i {
+    transform: rotate(180deg);
+  }
+  
+  /* Monitor Toggle Button styling */
+  .monitor-toggle-btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--accent-cyan);
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .monitor-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Compressor Vertical Sliders to Horizontal */
+  .flex-sliders {
+    flex-direction: column !important;
+    gap: 15px !important;
+    padding: 12px !important;
+  }
+  .slider-col {
+    width: 100% !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 12px !important;
+  }
+  .slider-col .control-label {
+    min-width: 70px !important;
+    text-align: left !important;
+  }
+  .slider-col input[type="range"].vertical {
+    writing-mode: horizontal-tb !important;
+    direction: ltr !important;
+    width: 100% !important;
+    height: 6px !important;
+    margin: 5px 0 !important;
+  }
+  .slider-col input[type="range"].vertical::-webkit-slider-thumb {
+    width: 16px !important;
+    height: 16px !important;
+  }
+  .slider-col .value-readout {
+    min-width: 60px !important;
+    text-align: right !important;
+  }
+  
+  /* Export Panel Clean Column Stacking */
+  .export-panel {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 15px !important;
+  }
+  .export-actions {
+    width: 100% !important;
+  }
+
+  /* Compact Player Controls in Sticky Header */
+  .player-controls {
+    gap: 6px !important;
+    justify-content: flex-end;
+  }
+  .ctrl-btn {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 0.68rem !important;
+  }
+  .ctrl-btn.play-btn {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 0.72rem !important;
+    box-shadow: 0 2px 8px rgba(0, 242, 254, 0.3) !important;
+  }
+  .ctrl-btn i {
+    font-size: 0.72rem !important;
+  }
+  .ctrl-btn.bypass-btn {
+    padding: 0 10px !important;
+    border-radius: 10px !important;
+  }
+  .ctrl-btn.bypass-btn span {
+    display: none !important;
+  }
+  .ctrl-btn.bypass-btn::after {
+    content: 'BYP' !important;
+    font-size: 0.62rem !important;
+    font-weight: 700 !important;
   }
 }
 
