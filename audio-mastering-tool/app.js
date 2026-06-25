@@ -660,6 +660,8 @@ function drawWaveformView() {
   const waveformCanvas = document.getElementById('waveform-canvas');
   if (!waveformCanvas || !originalPeaks || !audioBuffer) return;
   
+  resizeCanvas(waveformCanvas);
+  
   const waveCtx = waveformCanvas.getContext('2d');
   // HighDPI resize check
   const rect = waveformCanvas.getBoundingClientRect();
@@ -720,6 +722,7 @@ function seekTo(seconds) {
     // 1. Temporarily flag seeking to prevent stopPlayback triggering in sourceNode.onended
     isSeeking = true;
     try {
+      sourceNode.onended = null; // Clear handler on old node before stopping to resolve race condition
       sourceNode.stop();
     } catch (e) {
       // already stopped or not started
@@ -746,7 +749,7 @@ function seekTo(seconds) {
     sourceNode.connect(activeNodes.bypassGain);
     
     sourceNode.start(0, seconds);
-    startTime = audioContext.currentTime - seconds;
+    startTime = audioContext.currentTime;
     isSeeking = false;
   } else {
     // If paused, just update static position and redraw playhead
@@ -770,9 +773,8 @@ function startRenderLoop() {
   resizeCanvas(waveformCanvas);
 
   function draw() {
-    animFrameId = requestAnimationFrame(draw);
-
     if (!isPlaying) return;
+    animFrameId = requestAnimationFrame(draw);
 
     const currentW = spectrumCanvas.width;
     const currentH = spectrumCanvas.height;
@@ -781,6 +783,7 @@ function startRenderLoop() {
     // 1. Draw Spectrum Visualizer
     // ------------------------------------------
     if (activeTab === 'spectrum') {
+      resizeCanvas(spectrumCanvas);
       const bufferLength = activeNodes.visualAnalyser.frequencyBinCount;
       const dataArray = new Uint8Array(bufferLength);
       activeNodes.visualAnalyser.getByteFrequencyData(dataArray);
@@ -874,10 +877,17 @@ function startRenderLoop() {
 function resizeCanvas(canvas) {
   const dpr = window.devicePixelRatio || 1;
   const rect = canvas.getBoundingClientRect();
-  canvas.width = rect.width * dpr;
-  canvas.height = rect.height * dpr;
-  const ctx = canvas.getContext('2d');
-  ctx.scale(dpr, dpr);
+  const targetW = Math.round(rect.width * dpr);
+  const targetH = Math.round(rect.height * dpr);
+  
+  if (canvas.width !== targetW || canvas.height !== targetH) {
+    canvas.width = targetW;
+    canvas.height = targetH;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    return true; // Canvas was resized
+  }
+  return false; // No resize needed
 }
 
 // Extract max and min peak envelopes from loaded buffer
@@ -2116,6 +2126,9 @@ function registerGuiEvents() {
       } else {
         document.getElementById('spectrum-view').classList.add('hidden');
         document.getElementById('waveform-view').classList.remove('hidden');
+        if (!isPlaying && audioBuffer) {
+          drawWaveformView();
+        }
       }
     });
   });
@@ -2228,6 +2241,7 @@ function loadAudioFile(file) {
         // Draw initial static wave
         activeTab = 'waveform';
         document.querySelector('[data-target="waveform"]').click();
+        drawWaveformView();
         
       }, (err) => {
         console.error('Audio decoding error:', err);
@@ -2448,6 +2462,11 @@ function initMobileHelp() {
   }
 
   tooltipElements.forEach(el => {
+    // If it's the reset button wrapper or reset button itself, skip mobile help tooltip completely to let the button work cleanly without popping up the sheet
+    if (el.id === 'btn-reset-master' || el.querySelector('#btn-reset-master') || el.closest('#btn-reset-master')) {
+      return;
+    }
+
     // Add tabindex dynamically to make spans focusable/tappable
     el.setAttribute('tabindex', '0');
 
@@ -2506,6 +2525,31 @@ document.addEventListener('DOMContentLoaded', () => {
       pausePlayback();
     } else {
       startPlayback();
+    }
+  });
+
+  // Spacebar Play/Pause Shortcut
+  window.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' || e.key === ' ') {
+      const activeEl = document.activeElement;
+      if (activeEl && (
+        (activeEl.tagName === 'INPUT' && activeEl.type !== 'range') ||
+        activeEl.tagName === 'TEXTAREA' ||
+        activeEl.tagName === 'SELECT' ||
+        activeEl.isContentEditable
+      )) {
+        return;
+      }
+      
+      const playBtn = document.getElementById('btn-play-pause');
+      if (playBtn && !playBtn.disabled && audioBuffer) {
+        e.preventDefault();
+        if (isPlaying) {
+          pausePlayback();
+        } else {
+          startPlayback();
+        }
+      }
     }
   });
 
