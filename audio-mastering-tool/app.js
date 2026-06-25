@@ -2203,6 +2203,7 @@ function loadAudioFile(file) {
 
         // Display controls
         document.getElementById('track-info').classList.remove('hidden');
+        document.body.classList.add('has-track');
         
         // Enable buttons
         document.getElementById('btn-play-pause').disabled = false;
@@ -2647,6 +2648,29 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Relocate player controls dynamically based on screen size
+  relocatePlayerControls();
+  window.addEventListener('resize', relocatePlayerControls);
+
   // Initialize width beam animation angle L/R
   updateStereoWidthNode();
 });
+
+// Relocate player controls (Play/Pause, Stop, Loop, Bypass) to sticky visualizer header on mobile
+function relocatePlayerControls() {
+  const controls = document.querySelector('.player-controls');
+  if (!controls) return;
+  
+  const isMobile = window.innerWidth <= 768;
+  if (isMobile) {
+    const mobileTarget = document.getElementById('mobile-controls-target');
+    if (mobileTarget && controls.parentElement !== mobileTarget) {
+      mobileTarget.appendChild(controls);
+    }
+  } else {
+    const desktopTarget = document.getElementById('desktop-controls-target');
+    if (desktopTarget && controls.parentElement !== desktopTarget) {
+      desktopTarget.appendChild(controls);
+    }
+  }
+}
