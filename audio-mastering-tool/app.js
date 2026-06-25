@@ -2636,6 +2636,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
   
+  // Mobile monitor toggle (collapse/expand)
+  const toggleMonitorBtn = document.getElementById('btn-toggle-monitor');
+  if (toggleMonitorBtn) {
+    toggleMonitorBtn.addEventListener('click', () => {
+      const panel = document.querySelector('.visualizer-panel');
+      if (panel) {
+        panel.classList.toggle('collapsed');
+      }
+    });
+  }
+
   // Initialize width beam animation angle L/R
   updateStereoWidthNode();
 });

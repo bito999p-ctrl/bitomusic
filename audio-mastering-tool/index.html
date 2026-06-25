@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
-  <link rel="stylesheet" href="styles.css?v=3.6">
+  <link rel="stylesheet" href="styles.css?v=3.7">
   <link rel="icon" href="../favicon.png" type="image/png">
 </head>
 <body>
@@ -42,29 +42,39 @@
             <span class="track-name" id="track-name">Song_Title.wav</span>
             <span class="track-meta" id="track-meta">44.1 kHz / 16-bit Stereo | 03:42</span>
           </div>
-          <div class="player-controls">
-            <button id="btn-play-pause" class="ctrl-btn play-btn" title="再生/一時停止" disabled>
-              <i class="fa-solid fa-play"></i>
-            </button>
-            <button id="btn-stop" class="ctrl-btn" title="停止" disabled>
-              <i class="fa-solid fa-stop"></i>
-            </button>
-            <button id="btn-loop" class="ctrl-btn toggle-btn" title="ループ" disabled>
-              <i class="fa-solid fa-repeat"></i>
-            </button>
-            <button id="btn-bypass" class="ctrl-btn bypass-btn toggle-btn alert-toggle" title="バイパス (A/Bテスト)" disabled>
-              <span>BYPASS</span>
-            </button>
+          <div id="desktop-controls-target">
+            <div class="player-controls">
+              <button id="btn-play-pause" class="ctrl-btn play-btn" title="再生/一時停止" disabled>
+                <i class="fa-solid fa-play"></i>
+              </button>
+              <button id="btn-stop" class="ctrl-btn" title="停止" disabled>
+                <i class="fa-solid fa-stop"></i>
+              </button>
+              <button id="btn-loop" class="ctrl-btn toggle-btn" title="ループ" disabled>
+                <i class="fa-solid fa-repeat"></i>
+              </button>
+              <button id="btn-bypass" class="ctrl-btn bypass-btn toggle-btn alert-toggle" title="バイパス (A/Bテスト)" disabled>
+                <span>BYPASS</span>
+              </button>
+            </div>
           </div>
         </div>
       </section>
 
       <section class="panel visualizer-panel span-2">
-        <div class="panel-header">
-          <h2 class="panel-title"><i class="fa-solid fa-chart-simple"></i> VISUALIZERS <span class="help-icon" data-tooltip="リアルタイムの周波数スペクトラムと、マスタリング前後の波形を視覚的に比較・モニタリングするエリアです。"><i class="fa-regular fa-circle-question"></i></span></h2>
-          <div class="visualizer-tabs">
-            <button class="tab-btn active" data-target="spectrum">FREQUENCY SPECTRUM</button>
-            <button class="tab-btn" data-target="waveform">WAVEFORM COMPARE</button>
+        <div class="panel-header" style="flex-direction: column; align-items: stretch; gap: 8px;">
+          <div class="visualizer-header-top" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <h2 class="panel-title" style="margin: 0;"><i class="fa-solid fa-chart-simple"></i> VISUALIZERS <span class="help-icon" data-tooltip="リアルタイムの周波数スペクトラムと、マスタリング前後の波形を視覚的に比較・モニタリングするエリアです。"><i class="fa-regular fa-circle-question"></i></span></h2>
+            <button id="btn-toggle-monitor" class="monitor-toggle-btn" style="display: none;" title="モニター表示切替">
+              <i class="fa-solid fa-chevron-up" style="transition: transform 0.3s;"></i>
+            </button>
+          </div>
+          <div class="visualizer-header-bottom" style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px; flex-wrap: wrap;">
+            <div class="visualizer-tabs">
+              <button class="tab-btn active" data-target="spectrum">FREQUENCY SPECTRUM</button>
+              <button class="tab-btn" data-target="waveform">WAVEFORM COMPARE</button>
+            </div>
+            <div id="mobile-controls-target"></div>
           </div>
         </div>
         
@@ -466,6 +476,6 @@
     </div>
   </div>
 
-  <script type="module" src="app.js?v=3.6"></script>
+  <script type="module" src="app.js?v=3.7"></script>
 </body>
 </html>
