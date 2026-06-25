@@ -48,6 +48,7 @@ let playbackOffset = 0; // Current time position in track
 
 // Downsampled peaks for waveform compare
 let originalPeaks = null;
+let cachedProcessedPeaks = null;
 const PEAK_POINTS = 800;
 
 // Web Audio API Nodes for active playback
@@ -493,6 +494,17 @@ function initAudio() {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
     logToUI(`initAudio: Created new AudioContext. State: ${audioContext.state}`, 'info');
   }
+  
+  // Set audio session type to 'playback' for iOS/mobile background playback support (unmutes silent switch and keeps background running)
+  if (navigator.audioSession) {
+    try {
+      navigator.audioSession.type = 'playback';
+      logToUI(`initAudio: Set audioSession.type to 'playback' for background playback support.`, 'info');
+    } catch (e) {
+      logToUI(`initAudio: Failed to set audioSession.type: ${e.message}`, 'warning');
+    }
+  }
+
   if (audioContext.state === 'suspended') {
     logToUI(`initAudio: Resuming suspended AudioContext...`, 'info');
     audioContext.resume()
@@ -681,17 +693,22 @@ function drawWaveformView() {
   }
 
   // Draw active processed (wet) approximation in Cyan
-  const proPeaks = calculateProcessedPeaks();
+  const proPeaks = getProcessedPeaks();
   waveCtx.fillStyle = 'rgba(0, 242, 254, 0.75)';
-  waveCtx.shadowBlur = 2;
-  waveCtx.shadowColor = 'rgba(0, 242, 254, 0.4)';
+  const useShadows = window.innerWidth > 768;
+  if (useShadows) {
+    waveCtx.shadowBlur = 2;
+    waveCtx.shadowColor = 'rgba(0, 242, 254, 0.4)';
+  }
   for (let i = 0; i < PEAK_POINTS; i++) {
     const x = (wWidth / PEAK_POINTS) * i;
     const maxVal = proPeaks.max[i] * (wHeight * 0.45);
     const minVal = proPeaks.min[i] * (wHeight * 0.45);
     waveCtx.fillRect(x, wHeight / 2 - maxVal, 1.2, maxVal - minVal);
   }
-  waveCtx.shadowBlur = 0;
+  if (useShadows) {
+    waveCtx.shadowBlur = 0;
+  }
 
   // Draw playback cursor position
   const currentOffset = isPlaying ? (pausedAt + (audioContext.currentTime - startTime)) : pausedAt;
@@ -700,13 +717,17 @@ function drawWaveformView() {
     const cursorX = progress * wWidth;
     waveCtx.strokeStyle = '#9d4edd';
     waveCtx.lineWidth = 1.5;
-    waveCtx.shadowBlur = 8;
-    waveCtx.shadowColor = '#9d4edd';
+    if (useShadows) {
+      waveCtx.shadowBlur = 8;
+      waveCtx.shadowColor = '#9d4edd';
+    }
     waveCtx.beginPath();
     waveCtx.moveTo(cursorX, 0);
     waveCtx.lineTo(cursorX, wHeight);
     waveCtx.stroke();
-    waveCtx.shadowBlur = 0;
+    if (useShadows) {
+      waveCtx.shadowBlur = 0;
+    }
   }
 }
 
@@ -772,9 +793,21 @@ function startRenderLoop() {
   resizeCanvas(spectrumCanvas);
   resizeCanvas(waveformCanvas);
 
-  function draw() {
+  let lastFrameTime = 0;
+  const isMobile = window.innerWidth <= 768;
+  const targetFps = isMobile ? 30 : 60;
+  const fpsInterval = 1000 / targetFps;
+
+  function draw(currentTime) {
     if (!isPlaying) return;
     animFrameId = requestAnimationFrame(draw);
+
+    const timestamp = currentTime || performance.now();
+    const elapsed = timestamp - lastFrameTime;
+    if (elapsed < fpsInterval) {
+      return; // Throttle frame rate
+    }
+    lastFrameTime = timestamp - (elapsed % fpsInterval);
 
     const currentW = spectrumCanvas.width;
     const currentH = spectrumCanvas.height;
@@ -836,8 +869,11 @@ function startRenderLoop() {
       // Outer glowing line
       specCtx.lineWidth = 2.5;
       specCtx.strokeStyle = '#00f2fe';
-      specCtx.shadowBlur = 6;
-      specCtx.shadowColor = 'rgba(0, 242, 254, 0.6)';
+      const useShadows = window.innerWidth > 768;
+      if (useShadows) {
+        specCtx.shadowBlur = 6;
+        specCtx.shadowColor = 'rgba(0, 242, 254, 0.6)';
+      }
       
       specCtx.beginPath();
       x = 0;
@@ -855,7 +891,9 @@ function startRenderLoop() {
         x += sliceWidth;
       }
       specCtx.stroke();
-      specCtx.shadowBlur = 0; // Reset shadow
+      if (useShadows) {
+        specCtx.shadowBlur = 0; // Reset shadow
+      }
     }
 
     // ------------------------------------------
@@ -1033,11 +1071,11 @@ function updateLevelMeters() {
   meterOutPeakL = Math.max(dbOutL, meterOutPeakL - DECAY_DB);
   meterOutPeakR = Math.max(dbOutR, meterOutPeakR - DECAY_DB);
 
-  // Update DOM fills
-  document.getElementById('meter-in-l').style.height = `${dbToPercent(meterInPeakL)}%`;
-  document.getElementById('meter-in-r').style.height = `${dbToPercent(meterInPeakR)}%`;
-  document.getElementById('meter-out-l').style.height = `${dbToPercent(meterOutPeakL)}%`;
-  document.getElementById('meter-out-r').style.height = `${dbToPercent(meterOutPeakR)}%`;
+  // Update DOM fills using GPU-accelerated transform: scaleY
+  document.getElementById('meter-in-l').style.transform = `scaleY(${dbToPercent(meterInPeakL) / 100})`;
+  document.getElementById('meter-in-r').style.transform = `scaleY(${dbToPercent(meterInPeakR) / 100})`;
+  document.getElementById('meter-out-l').style.transform = `scaleY(${dbToPercent(meterOutPeakL) / 100})`;
+  document.getElementById('meter-out-r').style.transform = `scaleY(${dbToPercent(meterOutPeakR) / 100})`;
 
   // ------------------------------------------
   // 4. Stereo Phase Correlation Index
@@ -1085,7 +1123,7 @@ function updateLevelMeters() {
 
   // GR Meter height maps from 0dB to 15dB
   const grPercent = Math.min(100, (grPeak / 15) * 100);
-  document.getElementById('meter-gr').style.height = `${grPercent}%`;
+  document.getElementById('meter-gr').style.transform = `scaleY(${grPercent / 100})`;
 
   // Limiter Active Light Indicator
   const limitLight = document.getElementById('limiter-light');
@@ -1106,11 +1144,11 @@ function updateLevelMeters() {
 }
 
 function resetLevelMeters() {
-  document.getElementById('meter-in-l').style.height = '0%';
-  document.getElementById('meter-in-r').style.height = '0%';
-  document.getElementById('meter-out-l').style.height = '0%';
-  document.getElementById('meter-out-r').style.height = '0%';
-  document.getElementById('meter-gr').style.height = '0%';
+  document.getElementById('meter-in-l').style.transform = 'scaleY(0)';
+  document.getElementById('meter-in-r').style.transform = 'scaleY(0)';
+  document.getElementById('meter-out-l').style.transform = 'scaleY(0)';
+  document.getElementById('meter-out-r').style.transform = 'scaleY(0)';
+  document.getElementById('meter-gr').style.transform = 'scaleY(0)';
   document.getElementById('corr-pointer').style.left = '50%';
   document.getElementById('limiter-light').className = 'limiter-light';
   document.getElementById('limiter-warning').className = 'limiter-warning hidden';
@@ -1127,6 +1165,7 @@ function resetLevelMeters() {
 // REAL-TIME NODE UPDATE ROUTINES
 // ==========================================================================
 function updateInputGainNode() {
+  invalidatePeakCache();
   if (activeNodes.inputGain) {
     const gainVal = Math.pow(10, params.inputGainDb / 20);
     activeNodes.inputGain.gain.setTargetAtTime(gainVal, audioContext.currentTime, 0.01);
@@ -1134,6 +1173,7 @@ function updateInputGainNode() {
 }
 
 function updateCeilingNode() {
+  invalidatePeakCache();
   if (activeNodes.ceilingGain) {
     const gainVal = Math.pow(10, params.ceiling / 20);
     activeNodes.ceilingGain.gain.setTargetAtTime(gainVal, audioContext.currentTime, 0.01);
@@ -1141,6 +1181,7 @@ function updateCeilingNode() {
 }
 
 function updateSaturatorNode() {
+  invalidatePeakCache();
   if (activeNodes.waveShaper) {
     activeNodes.waveShaper.curve = generateSaturatorCurve(params.satType, params.satDrive);
     
@@ -1156,6 +1197,7 @@ function updateSaturatorNode() {
 }
 
 function updateEqNodes() {
+  invalidatePeakCache();
   if (activeNodes.eqLow) {
     activeNodes.eqLow.frequency.setTargetAtTime(params.eqLowFreq, audioContext.currentTime, 0.01);
     activeNodes.eqLow.gain.setTargetAtTime(params.eqLowGain, audioContext.currentTime, 0.01);
@@ -1171,6 +1213,7 @@ function updateEqNodes() {
 }
 
 function updateCorrectiveEqNodes() {
+  invalidatePeakCache();
   if (activeNodes.eqCorrective1) {
     const n = params.correctiveNotches[0];
     activeNodes.eqCorrective1.frequency.setTargetAtTime(n.freq, audioContext.currentTime, 0.01);
@@ -1189,6 +1232,7 @@ function updateCorrectiveEqNodes() {
 }
 
 function updateCompressorNode() {
+  invalidatePeakCache();
   if (activeNodes.compressor) {
     if (params.compEnabled) {
       activeNodes.compressor.threshold.setTargetAtTime(params.compThreshold, audioContext.currentTime, 0.01);
@@ -1218,6 +1262,7 @@ function updateStereoWidthNode() {
 }
 
 function updateLimiterGainNode() {
+  invalidatePeakCache();
   if (activeNodes.limiterGain) {
     const gainVal = Math.pow(10, params.limiterBoost / 20);
     activeNodes.limiterGain.gain.setTargetAtTime(gainVal, audioContext.currentTime, 0.01);
@@ -2192,6 +2237,7 @@ function loadAudioFile(file) {
         
         // Downsample for waveform display
         originalPeaks = extractPeaks(audioBuffer, PEAK_POINTS);
+        invalidatePeakCache();
 
         // Update UI info
         document.getElementById('track-name').innerText = file.name;
@@ -2264,6 +2310,7 @@ function loadAudioFile(file) {
 function resetMasterSettings() {
   if (!audioBuffer) return;
   
+  invalidatePeakCache();
   logToUI("Resetting mastering parameters to AI Auto...", "info");
   
   // 1. Reset dropdown selections
@@ -2673,4 +2720,16 @@ function relocatePlayerControls() {
       desktopTarget.appendChild(controls);
     }
   }
+}
+
+// Performance Optimization: Cache processed peaks calculations
+function invalidatePeakCache() {
+  cachedProcessedPeaks = null;
+}
+
+function getProcessedPeaks() {
+  if (!cachedProcessedPeaks) {
+    cachedProcessedPeaks = calculateProcessedPeaks();
+  }
+  return cachedProcessedPeaks;
 }
