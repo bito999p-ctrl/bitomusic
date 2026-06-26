@@ -1061,6 +1061,33 @@ input:checked + .slider-round:before {
   margin-top: 20px;
 }
 
+.footer-links {
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  font-size: 0.75rem;
+  font-family: var(--font-ui);
+}
+
+.footer-links a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all var(--transition-speed);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.footer-links a:hover {
+  color: var(--accent-cyan);
+  text-shadow: 0 0 8px rgba(0, 242, 254, 0.35);
+}
+
+.footer-links .separator {
+  color: var(--text-muted);
+}
+
 /* RESPONSIVE DESIGN */
 @media (max-width: 1024px) {
   .dashboard-grid {

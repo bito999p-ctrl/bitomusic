@@ -64,6 +64,11 @@ let activeNodes = {
   eqCorrective1: null, // AI corrective EQ notch filter 1
   eqCorrective2: null, // AI corrective EQ notch filter 2
   eqCorrective3: null, // AI corrective EQ notch filter 3
+  eqCorrective4: null, // AI corrective EQ notch filter 4
+  eqCorrective5: null, // AI corrective EQ notch filter 5
+  eqCorrective6: null, // AI corrective EQ notch filter 6
+  eqCorrective7: null, // AI corrective EQ notch filter 7
+  eqCorrective8: null, // AI corrective EQ notch filter 8
   compressor: null,
   midGain: null,
   sideGain: null,
@@ -88,11 +93,16 @@ const params = {
   inputGainDb: 0.0,
   ceiling: -1.0,
   
-  // AI Corrective Notches (up to 3)
+  // AI Corrective Notches (up to 8)
   correctiveNotches: [
     { freq: 9000, gain: 0.0, enabled: false },
     { freq: 7500, gain: 0.0, enabled: false },
-    { freq: 11000, gain: 0.0, enabled: false }
+    { freq: 11000, gain: 0.0, enabled: false },
+    { freq: 6500, gain: 0.0, enabled: false },
+    { freq: 9500, gain: 0.0, enabled: false },
+    { freq: 8000, gain: 0.0, enabled: false },
+    { freq: 10500, gain: 0.0, enabled: false },
+    { freq: 7000, gain: 0.0, enabled: false }
   ],
   
   // Saturator
@@ -368,7 +378,7 @@ function setupMasteringChain(context, sourceNode, parameters, customDestination 
   eqHigh.frequency.setValueAtTime(parameters.eqHighFreq, context.currentTime);
   eqHigh.gain.setValueAtTime(parameters.eqHighGain, context.currentTime);
 
-  // 3連 AI Corrective Notch Filters
+  // 8連 AI Corrective Notch Filters
   const eqCorrective1 = context.createBiquadFilter();
   eqCorrective1.type = 'peaking';
   eqCorrective1.Q.setValueAtTime(6.0, context.currentTime); // 狭いQ値
@@ -387,12 +397,47 @@ function setupMasteringChain(context, sourceNode, parameters, customDestination 
   eqCorrective3.frequency.setValueAtTime(parameters.correctiveNotches[2].freq, context.currentTime);
   eqCorrective3.gain.setValueAtTime(parameters.correctiveNotches[2].enabled ? parameters.correctiveNotches[2].gain : 0.0, context.currentTime);
 
+  const eqCorrective4 = context.createBiquadFilter();
+  eqCorrective4.type = 'peaking';
+  eqCorrective4.Q.setValueAtTime(6.0, context.currentTime);
+  eqCorrective4.frequency.setValueAtTime(parameters.correctiveNotches[3].freq, context.currentTime);
+  eqCorrective4.gain.setValueAtTime(parameters.correctiveNotches[3].enabled ? parameters.correctiveNotches[3].gain : 0.0, context.currentTime);
+
+  const eqCorrective5 = context.createBiquadFilter();
+  eqCorrective5.type = 'peaking';
+  eqCorrective5.Q.setValueAtTime(6.0, context.currentTime);
+  eqCorrective5.frequency.setValueAtTime(parameters.correctiveNotches[4].freq, context.currentTime);
+  eqCorrective5.gain.setValueAtTime(parameters.correctiveNotches[4].enabled ? parameters.correctiveNotches[4].gain : 0.0, context.currentTime);
+
+  const eqCorrective6 = context.createBiquadFilter();
+  eqCorrective6.type = 'peaking';
+  eqCorrective6.Q.setValueAtTime(6.0, context.currentTime);
+  eqCorrective6.frequency.setValueAtTime(parameters.correctiveNotches[5].freq, context.currentTime);
+  eqCorrective6.gain.setValueAtTime(parameters.correctiveNotches[5].enabled ? parameters.correctiveNotches[5].gain : 0.0, context.currentTime);
+
+  const eqCorrective7 = context.createBiquadFilter();
+  eqCorrective7.type = 'peaking';
+  eqCorrective7.Q.setValueAtTime(6.0, context.currentTime);
+  eqCorrective7.frequency.setValueAtTime(parameters.correctiveNotches[6].freq, context.currentTime);
+  eqCorrective7.gain.setValueAtTime(parameters.correctiveNotches[6].enabled ? parameters.correctiveNotches[6].gain : 0.0, context.currentTime);
+
+  const eqCorrective8 = context.createBiquadFilter();
+  eqCorrective8.type = 'peaking';
+  eqCorrective8.Q.setValueAtTime(6.0, context.currentTime);
+  eqCorrective8.frequency.setValueAtTime(parameters.correctiveNotches[7].freq, context.currentTime);
+  eqCorrective8.gain.setValueAtTime(parameters.correctiveNotches[7].enabled ? parameters.correctiveNotches[7].gain : 0.0, context.currentTime);
+
   satSumNode.connect(eqLow);
   eqLow.connect(eqMid);
   eqMid.connect(eqHigh);
   eqHigh.connect(eqCorrective1);
   eqCorrective1.connect(eqCorrective2);
   eqCorrective2.connect(eqCorrective3);
+  eqCorrective3.connect(eqCorrective4);
+  eqCorrective4.connect(eqCorrective5);
+  eqCorrective5.connect(eqCorrective6);
+  eqCorrective6.connect(eqCorrective7);
+  eqCorrective7.connect(eqCorrective8);
 
   // 4. Glue Compressor
   const compressor = context.createDynamicsCompressor();
@@ -408,7 +453,7 @@ function setupMasteringChain(context, sourceNode, parameters, customDestination 
     compressor.ratio.setValueAtTime(1.0, context.currentTime); // 1:1 ratio = Bypassed dynamics
   }
 
-  eqCorrective3.connect(compressor);
+  eqCorrective8.connect(compressor);
 
   // 5. Stereo Imager Matrix (Mid/Side Processing)
   const splitter = context.createChannelSplitter(2);
@@ -509,6 +554,11 @@ function setupMasteringChain(context, sourceNode, parameters, customDestination 
     eqCorrective1,
     eqCorrective2,
     eqCorrective3,
+    eqCorrective4,
+    eqCorrective5,
+    eqCorrective6,
+    eqCorrective7,
+    eqCorrective8,
     compressor,
     midGain,
     sideGain,
@@ -620,6 +670,11 @@ function startPlayback() {
   activeNodes.eqCorrective1 = chain.eqCorrective1;
   activeNodes.eqCorrective2 = chain.eqCorrective2;
   activeNodes.eqCorrective3 = chain.eqCorrective3;
+  activeNodes.eqCorrective4 = chain.eqCorrective4;
+  activeNodes.eqCorrective5 = chain.eqCorrective5;
+  activeNodes.eqCorrective6 = chain.eqCorrective6;
+  activeNodes.eqCorrective7 = chain.eqCorrective7;
+  activeNodes.eqCorrective8 = chain.eqCorrective8;
   activeNodes.compressor = chain.compressor;
   activeNodes.midGain = chain.midGain;
   activeNodes.sideGain = chain.sideGain;
@@ -820,7 +875,6 @@ function startRenderLoop() {
   const specCtx = spectrumCanvas.getContext('2d');
   
   const waveformCanvas = document.getElementById('waveform-canvas');
-  const waveCtx = waveformCanvas.getContext('2d');
   
   // HighDPI canvas resize
   resizeCanvas(spectrumCanvas);
@@ -842,104 +896,108 @@ function startRenderLoop() {
     }
     lastFrameTime = timestamp - (elapsed % fpsInterval);
 
-    const currentW = spectrumCanvas.width;
-    const currentH = spectrumCanvas.height;
+    try {
+      const currentW = spectrumCanvas.width;
+      const currentH = spectrumCanvas.height;
 
-    // ------------------------------------------
-    // 1. Draw Spectrum Visualizer
-    // ------------------------------------------
-    if (activeTab === 'spectrum') {
-      resizeCanvas(spectrumCanvas);
-      const bufferLength = activeNodes.visualAnalyser.frequencyBinCount;
-      const dataArray = new Uint8Array(bufferLength);
-      activeNodes.visualAnalyser.getByteFrequencyData(dataArray);
+      // ------------------------------------------
+      // 1. Draw Spectrum Visualizer
+      // ------------------------------------------
+      if (activeTab === 'spectrum') {
+        resizeCanvas(spectrumCanvas);
+        const bufferLength = activeNodes.visualAnalyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        activeNodes.visualAnalyser.getByteFrequencyData(dataArray);
 
-      specCtx.clearRect(0, 0, currentW, currentH);
+        specCtx.clearRect(0, 0, currentW, currentH);
 
-      // Grid background
-      specCtx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
-      specCtx.lineWidth = 1;
-      const verticalLines = 8;
-      for (let i = 1; i < verticalLines; i++) {
-        const x = (currentW / verticalLines) * i;
+        // Grid background
+        specCtx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
+        specCtx.lineWidth = 1;
+        const verticalLines = 8;
+        for (let i = 1; i < verticalLines; i++) {
+          const x = (currentW / verticalLines) * i;
+          specCtx.beginPath();
+          specCtx.moveTo(x, 0);
+          specCtx.lineTo(x, currentH);
+          specCtx.stroke();
+        }
+
+        // Spectrum curve gradient
+        const gradient = specCtx.createLinearGradient(0, currentH, 0, 0);
+        gradient.addColorStop(0, 'rgba(157, 78, 221, 0.0)');
+        gradient.addColorStop(0.5, 'rgba(157, 78, 221, 0.3)');
+        gradient.addColorStop(1, 'rgba(0, 242, 254, 0.8)');
+
         specCtx.beginPath();
-        specCtx.moveTo(x, 0);
-        specCtx.lineTo(x, currentH);
+        specCtx.moveTo(0, currentH);
+
+        const sliceWidth = currentW / (bufferLength * 0.7); // Clip top frequencies (>15kHz) for nicer scale
+        let x = 0;
+
+        for (let i = 0; i < bufferLength * 0.7; i++) {
+          // Logarithmic scaling for human ear frequency resolution
+          const percentIdx = i / (bufferLength * 0.7);
+          const logIdx = Math.floor(Math.pow(percentIdx, 1.8) * (bufferLength * 0.7));
+          const v = dataArray[logIdx] / 255.0;
+          const y = currentH - v * (currentH * 0.82);
+
+          if (i === 0) {
+            specCtx.moveTo(x, y);
+          } else {
+            specCtx.lineTo(x, y);
+          }
+
+          x += sliceWidth;
+        }
+        specCtx.lineTo(currentW, currentH);
+        specCtx.fillStyle = gradient;
+        specCtx.fill();
+
+        // Outer glowing line
+        specCtx.lineWidth = 2.5;
+        specCtx.strokeStyle = '#00f2fe';
+        const useShadows = window.innerWidth > 768;
+        if (useShadows) {
+          specCtx.shadowBlur = 6;
+          specCtx.shadowColor = 'rgba(0, 242, 254, 0.6)';
+        }
+        
+        specCtx.beginPath();
+        x = 0;
+        for (let i = 0; i < bufferLength * 0.7; i++) {
+          const percentIdx = i / (bufferLength * 0.7);
+          const logIdx = Math.floor(Math.pow(percentIdx, 1.8) * (bufferLength * 0.7));
+          const v = dataArray[logIdx] / 255.0;
+          const y = currentH - v * (currentH * 0.82);
+
+          if (i === 0) {
+            specCtx.moveTo(x, y);
+          } else {
+            specCtx.lineTo(x, y);
+          }
+          x += sliceWidth;
+        }
         specCtx.stroke();
-      }
-
-      // Spectrum curve gradient
-      const gradient = specCtx.createLinearGradient(0, currentH, 0, 0);
-      gradient.addColorStop(0, 'rgba(157, 78, 221, 0.0)');
-      gradient.addColorStop(0.5, 'rgba(157, 78, 221, 0.3)');
-      gradient.addColorStop(1, 'rgba(0, 242, 254, 0.8)');
-
-      specCtx.beginPath();
-      specCtx.moveTo(0, currentH);
-
-      const sliceWidth = currentW / (bufferLength * 0.7); // Clip top frequencies (>15kHz) for nicer scale
-      let x = 0;
-
-      for (let i = 0; i < bufferLength * 0.7; i++) {
-        // Logarithmic scaling for human ear frequency resolution
-        const percentIdx = i / (bufferLength * 0.7);
-        const logIdx = Math.floor(Math.pow(percentIdx, 1.8) * (bufferLength * 0.7));
-        const v = dataArray[logIdx] / 255.0;
-        const y = currentH - v * (currentH * 0.82);
-
-        if (i === 0) {
-          specCtx.moveTo(x, y);
-        } else {
-          specCtx.lineTo(x, y);
+        if (useShadows) {
+          specCtx.shadowBlur = 0; // Reset shadow
         }
+      }
 
-        x += sliceWidth;
+      // ------------------------------------------
+      // 2. Draw Waveform Visualizer
+      // ------------------------------------------
+      if (activeTab === 'waveform' && originalPeaks) {
+        drawWaveformView();
       }
-      specCtx.lineTo(currentW, currentH);
-      specCtx.fillStyle = gradient;
-      specCtx.fill();
 
-      // Outer glowing line
-      specCtx.lineWidth = 2.5;
-      specCtx.strokeStyle = '#00f2fe';
-      const useShadows = window.innerWidth > 768;
-      if (useShadows) {
-        specCtx.shadowBlur = 6;
-        specCtx.shadowColor = 'rgba(0, 242, 254, 0.6)';
-      }
-      
-      specCtx.beginPath();
-      x = 0;
-      for (let i = 0; i < bufferLength * 0.7; i++) {
-        const percentIdx = i / (bufferLength * 0.7);
-        const logIdx = Math.floor(Math.pow(percentIdx, 1.8) * (bufferLength * 0.7));
-        const v = dataArray[logIdx] / 255.0;
-        const y = currentH - v * (currentH * 0.82);
-
-        if (i === 0) {
-          specCtx.moveTo(x, y);
-        } else {
-          specCtx.lineTo(x, y);
-        }
-        x += sliceWidth;
-      }
-      specCtx.stroke();
-      if (useShadows) {
-        specCtx.shadowBlur = 0; // Reset shadow
-      }
+      // ------------------------------------------
+      // 3. Peak/RMS level monitoring & VU meter update
+      // ------------------------------------------
+      updateLevelMeters();
+    } catch (err) {
+      console.error('Visualizer rendering loop error caught:', err);
     }
-
-    // ------------------------------------------
-// 2. Draw Waveform Visualizer
-// ------------------------------------------
-    if (activeTab === 'waveform' && originalPeaks) {
-      drawWaveformView();
-    }
-
-    // ------------------------------------------
-    // 3. Peak/RMS level monitoring & VU meter update
-    // ------------------------------------------
-    updateLevelMeters();
   }
 
   draw();
@@ -1247,20 +1305,13 @@ function updateEqNodes() {
 
 function updateCorrectiveEqNodes() {
   invalidatePeakCache();
-  if (activeNodes.eqCorrective1) {
-    const n = params.correctiveNotches[0];
-    activeNodes.eqCorrective1.frequency.setTargetAtTime(n.freq, audioContext.currentTime, 0.01);
-    activeNodes.eqCorrective1.gain.setTargetAtTime(n.enabled ? n.gain : 0.0, audioContext.currentTime, 0.01);
-  }
-  if (activeNodes.eqCorrective2) {
-    const n = params.correctiveNotches[1];
-    activeNodes.eqCorrective2.frequency.setTargetAtTime(n.freq, audioContext.currentTime, 0.01);
-    activeNodes.eqCorrective2.gain.setTargetAtTime(n.enabled ? n.gain : 0.0, audioContext.currentTime, 0.01);
-  }
-  if (activeNodes.eqCorrective3) {
-    const n = params.correctiveNotches[2];
-    activeNodes.eqCorrective3.frequency.setTargetAtTime(n.freq, audioContext.currentTime, 0.01);
-    activeNodes.eqCorrective3.gain.setTargetAtTime(n.enabled ? n.gain : 0.0, audioContext.currentTime, 0.01);
+  for (let i = 0; i < 8; i++) {
+    const nodeName = `eqCorrective${i + 1}`;
+    if (activeNodes[nodeName]) {
+      const n = params.correctiveNotches[i];
+      activeNodes[nodeName].frequency.setTargetAtTime(n.freq, audioContext.currentTime, 0.01);
+      activeNodes[nodeName].gain.setTargetAtTime(n.enabled ? n.gain : 0.0, audioContext.currentTime, 0.01);
+    }
   }
 }
 
@@ -1498,27 +1549,45 @@ function analyzeAudioResonances(buffer) {
   }
   const sibilanceBaseline = sumRegion / (sibilanceMaxBin - sibilanceMinBin + 1);
   
-  // ローカルピーク（極大値かつベースラインの1.35倍以上）をすべて検出
+  // ローカルピーク（極大値かつベースラインの1.18倍以上。ただし9kHz〜10kHzのSuno頻出帯域は敏感に検知するため1.08倍以上）をすべて検出
   const rawPeaks = [];
   for (let j = sibilanceMinBin + 1; j < sibilanceMaxBin; j++) {
     const val = avgSpectrum[j];
-    if (val > sibilanceBaseline * 1.35 && val > avgSpectrum[j - 1] && val > avgSpectrum[j + 1]) {
-      const peakFreq = Math.round((j * sampleRate) / fftSize);
+    const peakFreq = Math.round((j * sampleRate) / fftSize);
+    
+    // Suno AIの音源で特に耳に刺さりやすい 9kHz〜10kHz 帯域（マージンを取り8800Hz〜10200Hz）の判定
+    const isSunoRange = (peakFreq >= 8800 && peakFreq <= 10200);
+    const thresholdMultiplier = isSunoRange ? 1.08 : 1.18;
+    
+    if (val > sibilanceBaseline * thresholdMultiplier && val > avgSpectrum[j - 1] && val > avgSpectrum[j + 1]) {
       const ratio = val / sibilanceBaseline;
-      // 超過度合いに基づき、-1.2dB 〜 -4.0dB の減衰幅を設定
-      const cutDb = -Math.min(4.0, Math.max(1.2, (ratio - 1.25) * 3.0));
-      rawPeaks.push({ freq: peakFreq, cut: cutDb, val: val });
+      // 超過度合いに基づき減衰幅を設定（Suno帯域は耳を保護するため強くカット: -1.8dB 〜 -6.0dB、通常は -1.2dB 〜 -5.0dB）
+      let cutDb;
+      if (isSunoRange) {
+        cutDb = -Math.min(6.0, Math.max(1.8, (ratio - 1.08) * 8.0 + 1.8));
+      } else {
+        cutDb = -Math.min(5.0, Math.max(1.2, (ratio - 1.18) * 6.0 + 1.2));
+      }
+      
+      rawPeaks.push({
+        freq: peakFreq,
+        cut: cutDb,
+        val: val,
+        isSunoRange: isSunoRange,
+        // Suno帯域のピークを優先的にマスタリングEQ補正対象へ選ぶため、スコアに2.0倍の下駄を履かせる
+        score: ratio * (isSunoRange ? 2.0 : 1.0)
+      });
     }
   }
 
-  // 強度の高い順にソート
-  rawPeaks.sort((a, b) => b.val - a.val);
+  // 優先度スコアの高い順にソート
+  rawPeaks.sort((a, b) => b.score - a.score);
 
-  // 互いに600Hz以上離れた上位最大3個のピークを抽出
+  // 互いに400Hz以上離れた上位最大6個のピークを抽出（抜け感確保のため6個に制限）
   const filteredPeaks = [];
   for (const peak of rawPeaks) {
-    if (filteredPeaks.length >= 3) break;
-    const tooClose = filteredPeaks.some(p => Math.abs(p.freq - peak.freq) < 600);
+    if (filteredPeaks.length >= 6) break;
+    const tooClose = filteredPeaks.some(p => Math.abs(p.freq - peak.freq) < 400);
     if (!tooClose) {
       filteredPeaks.push({ freq: peak.freq, cut: peak.cut });
     }
@@ -2404,7 +2473,7 @@ function runAiAnalysis(showLog = true) {
     try {
       const result = analyzeAudioResonances(audioBuffer);
       
-      // 3連ノッチフィルターの設定適用
+      // 5連ノッチフィルターの設定適用
       params.correctiveNotches.forEach((n, idx) => {
         if (result.notches[idx]) {
           n.freq = result.notches[idx].freq;
@@ -2598,7 +2667,7 @@ function initMobileHelp() {
 // ==========================================================================
 // APP STARTUP BINDINGS
 // ==========================================================================
-document.addEventListener('DOMContentLoaded', () => {
+function initializeApp() {
   setupFileLoader();
   registerGuiEvents();
   initMobileHelp();
@@ -2749,7 +2818,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize width beam animation angle L/R
   updateStereoWidthNode();
-});
+}
+
+// Bulletproof execution strategy for DOM initialization
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+  initializeApp();
+}
 
 // Relocate player controls (Play/Pause, Stop, Loop, Bypass) to sticky visualizer header on mobile
 function relocatePlayerControls() {
@@ -2773,6 +2849,10 @@ function relocatePlayerControls() {
 // Performance Optimization: Cache processed peaks calculations
 function invalidatePeakCache() {
   cachedProcessedPeaks = null;
+  // 音源ロード済かつ一時停止中の場合、パラメータ変更に伴う波形表示を即座に更新する
+  if (!isPlaying && audioBuffer && activeTab === 'waveform') {
+    drawWaveformView();
+  }
 }
 
 function getProcessedPeaks() {
