@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="styles.css?v=3.17">
+  <link rel="stylesheet" href="styles.css?v=3.18">
   <style>
     .doc-container {
       max-width: 900px;
@@ -188,6 +188,20 @@
 
     <div class="timeline">
       
+      <!-- v3.18 -->
+      <div class="timeline-item major">
+        <div class="version-header">
+          <span class="version-tag major">v3.18</span>
+          <span class="version-date">2026.06.26</span>
+          <span class="version-title">Peaking EQ への Q値（帯域幅）調整機能の追加（セミ・パラメトリック化） & プリセット別最適化</span>
+        </div>
+        <ul class="update-list">
+          <li><span class="badge-add">追加</span><strong>3バンドEQの中域（MID PEAK）への Q-Factor（帯域幅）調整スライダーの追加</strong>：中音域フィルターの帯域幅（鋭さ）を `0.3`（非常に広範囲・滑らか）から `5.0`（ピンポイント・鋭い共鳴カット/ブースト）まで `0.1` 刻みで手動調整可能なスライダーを追加。3バンドEQをセミ・パラメトリックEQへとアップグレード。</li>
+          <li><span class="badge-change">改善</span><strong>ジャンル別プリセットへの最適な初期 Q値の適用</strong>：ROCK/METAL/AMBIENTなど各ジャンルの音響特性に合わせて、EQ Mid Qの初期値をプリセット化。例えば、ROCKでは中域の噛みつき感を出すため `1.2`（やや鋭め）に、METALではドンシャリ（ミッドスクープ）を広く行うため `0.8`（広め）に、AMBIENTでは中域を滑らかに補正するため `0.7`（極めて広め）に設定。</li>
+          <li><span class="badge-change">改善</span><strong>AI自動解析とリセット機能のパラメトリック対応</strong>：AIアシスタント機能およびリセット機能において、プリセットのQ値を正しく同期・再現し、マスタリング時にシームレスに動作するよう信号フローをアップグレード。</li>
+        </ul>
+      </div>
+
       <!-- v3.17 -->
       <div class="timeline-item major">
         <div class="version-header">

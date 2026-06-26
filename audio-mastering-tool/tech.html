@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="styles.css?v=3.17">
+  <link rel="stylesheet" href="styles.css?v=3.18">
   <style>
     .doc-container {
       max-width: 950px;
@@ -228,7 +228,7 @@
           <tr>
             <td><strong>3. 3-Band Equalizer</strong></td>
             <td><span class="tag-cyan">BiquadFilterNode</span> &times; 3</td>
-            <td>`lowshelf` (低域 EQ)、`peaking` (中域 EQ, Q=1.0)、`highshelf` (高域 EQ) の3つのフィルターを直列に接続。ジャンル特性に応じた音楽的な周波数のブースト/カットを行います。</td>
+            <td>`lowshelf` (低域 EQ)、`peaking` (中域 EQ, 可変 Q: 0.3〜5.0)、`highshelf` (高域 EQ) の3つのフィルターを直列に接続。ジャンル特性に応じた音楽的な周波数のブースト/カットに加え、中域のQ値（帯域幅）を調整可能です。</td>
           </tr>
           <tr>
             <td><strong>4. AI Corrective Notches</strong></td>
