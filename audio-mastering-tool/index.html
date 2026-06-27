@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
-  <link rel="stylesheet" href="styles.css?v=3.19">
+  <link rel="stylesheet" href="styles.css?v=3.31">
   <link rel="icon" href="../favicon.png" type="image/png">
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-C8CLCFDVX2"></script>
@@ -37,16 +37,18 @@
       </div>
     </header>
 
-    <main class="dashboard-grid">
-      <section class="panel upload-panel full-width">
-        <div id="drop-zone" class="drop-zone">
-          <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
-          <p class="upload-text">オーディオファイルをドラッグ＆ドロップ、または<span class="browse-btn">ファイルを選択</span></p>
-          <span class="upload-hint">対応形式: WAV, MP3, FLAC, M4A</span>
-          <input type="file" id="file-input" accept=".mp3,.wav,.flac,.m4a,audio/*" class="hidden-input">
-        </div>
-        
-        <div id="track-info" class="track-info hidden">
+    <section class="panel upload-panel" id="main-upload-panel">
+      <div id="drop-zone" class="drop-zone">
+        <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+        <p class="upload-text">オーディオファイルをドラッグ＆ドロップ、または<span class="browse-btn">ファイルを選択</span></p>
+        <span class="upload-hint">対応形式: WAV, MP3, FLAC, M4A</span>
+        <input type="file" id="file-input" accept=".mp3,.wav,.flac,.m4a,audio/*" class="hidden-input">
+      </div>
+    </section>
+
+    <div class="app-sticky-header-wrapper">
+      <section class="panel player-panel hidden" id="player-panel">
+        <div id="track-info" class="track-info">
           <div class="track-details">
             <span class="track-name" id="track-name">Song_Title.wav</span>
             <span class="track-meta" id="track-meta">44.1 kHz / 16-bit Stereo | 03:42</span>
@@ -65,12 +67,15 @@
               <button id="btn-bypass" class="ctrl-btn bypass-btn toggle-btn alert-toggle" title="バイパス (A/Bテスト)" disabled>
                 <span>BYPASS</span>
               </button>
+              <button id="btn-quick-upload" class="ctrl-btn upload-btn" title="ファイルを選択">
+                <i class="fa-solid fa-folder-open"></i>
+              </button>
             </div>
           </div>
         </div>
       </section>
 
-      <section class="panel visualizer-panel span-2">
+      <section class="panel visualizer-panel">
         <div class="panel-header" style="flex-direction: column; align-items: stretch; gap: 8px;">
           <div class="visualizer-header-top" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
             <h2 class="panel-title" style="margin: 0;"><i class="fa-solid fa-chart-simple"></i> VISUALIZERS <span class="help-icon" data-tooltip="リアルタイムの周波数スペクトラムと、マスタリング前後の波形を視覚的に比較・モニタリングするエリアです。"><i class="fa-regular fa-circle-question"></i></span></h2>
@@ -83,7 +88,10 @@
               <button class="tab-btn active" data-target="spectrum">FREQUENCY SPECTRUM</button>
               <button class="tab-btn" data-target="waveform">WAVEFORM COMPARE</button>
             </div>
-            <div id="mobile-controls-target"></div>
+            <div id="mobile-controls-target" class="mobile-controls-container">
+              <div class="mobile-controls-placeholder"></div>
+              <div id="mobile-track-name" class="mobile-sticky-track-name"></div>
+            </div>
           </div>
         </div>
         
@@ -109,8 +117,10 @@
           </div>
         </div>
       </section>
+    </div>
 
-      <section class="panel meter-panel">
+      <main class="dashboard-grid">
+        <section class="panel meter-panel">
         <div class="panel-header">
           <h2 class="panel-title"><i class="fa-solid fa-gauge-high"></i> ANALYZERS <span class="help-icon" data-tooltip="L/Rの入力音量、コンプレッサーのゲイン削減量（GR）、出力音量、およびステレオの左右相関を監視するメーター群です。"><i class="fa-regular fa-circle-question"></i></span></h2>
         </div>
@@ -414,6 +424,82 @@
         </div>
       </section>
 
+      <!-- AUDIO SPICES CABINET PANEL -->
+      <section class="panel control-panel full-width">
+        <div class="panel-header">
+          <h2 class="panel-title"><i class="fa-solid fa-pepper-hot"></i> AUDIO SPICES <span class="help-icon" data-tooltip="マスタリング適用後の最終出力に対して、お好みのスパイス（味付け）を手軽にON/OFFして聴き比べできます。プリセットの元の値を書き換えずに追加されます。"><i class="fa-regular fa-circle-question"></i></span></h2>
+        </div>
+        <div class="spice-cabinet-grid">
+          
+          <div class="spice-card">
+            <label class="spice-label" for="spice-air-treble">
+              <span class="spice-title">高音の抜け感 <span class="spice-sub">AIR TREBLE</span></span>
+              <span class="help-icon" data-tooltip="高音域（12kHz付近）にシルキーな空気感をプラスし、クリアで華やかなサウンドにします。"><i class="fa-regular fa-circle-question"></i></span>
+            </label>
+            <label class="switch">
+              <input type="checkbox" id="spice-air-treble">
+              <span class="slider-round"></span>
+            </label>
+          </div>
+
+          <div class="spice-card">
+            <label class="spice-label" for="spice-kick-punch">
+              <span class="spice-title">キックの抜け感 <span class="spice-sub">KICK PUNCH</span></span>
+              <span class="help-icon" data-tooltip="キックドラムの輪郭（アタック感）を引き立たせ、ボトムエンドのパンチを強化します。"><i class="fa-regular fa-circle-question"></i></span>
+            </label>
+            <label class="switch">
+              <input type="checkbox" id="spice-kick-punch">
+              <span class="slider-round"></span>
+            </label>
+          </div>
+
+          <div class="spice-card">
+            <label class="spice-label" for="spice-stereo-wider">
+              <span class="spice-title">空間の広がり <span class="spice-sub">STEREO WIDER</span></span>
+              <span class="help-icon" data-tooltip="ステレオイメージの横方向の広がりを拡張し、空間的な包入感を高めます。"><i class="fa-regular fa-circle-question"></i></span>
+            </label>
+            <label class="switch">
+              <input type="checkbox" id="spice-stereo-wider">
+              <span class="slider-round"></span>
+            </label>
+          </div>
+
+          <div class="spice-card">
+            <label class="spice-label" for="spice-vocal-presence">
+              <span class="spice-title">ボーカルの存在感 <span class="spice-sub">VOCAL PRESENCE</span></span>
+              <span class="help-icon" data-tooltip="中音域（2.5kHz付近）にフォーカスし、ボーカルやリード楽器を一歩前に引き出します。"><i class="fa-regular fa-circle-question"></i></span>
+            </label>
+            <label class="switch">
+              <input type="checkbox" id="spice-vocal-presence">
+              <span class="slider-round"></span>
+            </label>
+          </div>
+
+          <div class="spice-card">
+            <label class="spice-label" for="spice-analog-warmth">
+              <span class="spice-title">アナログの温かみ <span class="spice-sub">ANALOG WARMTH</span></span>
+              <span class="help-icon" data-tooltip="サチュレーターのブレンドとドライブを高め、温かみのあるアナログ機器の質感を加えます。"><i class="fa-regular fa-circle-question"></i></span>
+            </label>
+            <label class="switch">
+              <input type="checkbox" id="spice-analog-warmth">
+              <span class="slider-round"></span>
+            </label>
+          </div>
+
+          <div class="spice-card">
+            <label class="spice-label" for="spice-loudness-push">
+              <span class="spice-title">音圧プッシュ <span class="spice-sub">LOUDNESS PUSH</span></span>
+              <span class="help-icon" data-tooltip="リミッターのブーストを底上げし、元のバランスを崩さずにもう一歩大きな音圧を引き出します。"><i class="fa-regular fa-circle-question"></i></span>
+            </label>
+            <label class="switch">
+              <input type="checkbox" id="spice-loudness-push">
+              <span class="slider-round"></span>
+            </label>
+          </div>
+
+        </div>
+      </section>
+
       <section class="panel export-panel full-width" style="display: flex; flex-direction: row; align-items: flex-end; gap: 20px; flex-wrap: wrap;">
         <div class="control-group" style="flex: 1; min-width: 200px;">
           <label for="export-format">EXPORT FORMAT <span class="help-icon" data-tooltip="出力する音声ファイルのフォーマット。高品質アーカイブ用のWAVや、配布に便利なMP3が選べます。"><i class="fa-regular fa-circle-question"></i></span></label>
@@ -478,6 +564,11 @@
           <span style="font-style: italic; font-size: 0.62rem;">UI typography and iconography are powered by open-source digital asset distributions.</span>
         </div>
 
+        <div style="background: rgba(239, 68, 68, 0.08); padding: 10px; border-radius: 6px; border: 1px solid rgba(239, 68, 68, 0.15);">
+          <span style="color: #f87171; font-weight: 600;"><i class="fa-solid fa-ban"></i> Proprietary Source Code Notice</span><br>
+          <span style="color: #fff; font-weight: 500;">Unauthorized copying, redistribution, modification, or reuse of any part of this software's source code is strictly prohibited.</span> All rights reserved.
+        </div>
+
       </div>
     </section>
 
@@ -504,6 +595,6 @@
     </div>
   </div>
 
-  <script type="module" src="app.js?v=3.19"></script>
+  <script type="module" src="app.js?v=3.31"></script>
 </body>
 </html>
