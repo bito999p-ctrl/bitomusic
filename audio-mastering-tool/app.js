@@ -2991,7 +2991,18 @@ function initializeApp() {
     const wrapper = document.querySelector('.app-sticky-header-wrapper');
     if (wrapper) {
       const wasSticky = wrapper.classList.contains('is-sticky');
-      const isSticky = window.scrollY > 40;
+      
+      // Calculate static threshold from the non-sticky header bottom position + gap (20px) - sticky top (15px)
+      const header = document.querySelector('.app-header');
+      const baseThreshold = header ? Math.max(0, header.offsetTop + header.offsetHeight + 20 - 15) : 75;
+      
+      // Hysteresis: un-stick slightly earlier (10px buffer) when scrolling up to prevent scroll wheel jitter
+      const threshold = wasSticky ? Math.max(0, baseThreshold - 10) : baseThreshold;
+      
+      const isSticky = window.scrollY > threshold;
+      
+      console.log('[handleScroll Internal Log]', JSON.stringify({ scrollY: window.scrollY, baseThreshold, threshold, isSticky, wasSticky }));
+      
       if (isSticky !== wasSticky) {
         if (isSticky) {
           wrapper.classList.add('is-sticky');

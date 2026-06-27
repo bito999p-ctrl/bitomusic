@@ -66,6 +66,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  overflow-anchor: none;
 }
 
 /* HEADER */
@@ -171,6 +172,7 @@ body {
   align-items: stretch;
   width: 100%;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-anchor: none;
 }
 
 body.has-track .app-sticky-header-wrapper {
@@ -1323,24 +1325,40 @@ input:checked + .slider-round:before {
     width: 100% !important;
   }
 
-  /* Compact Player Controls in Sticky Header */
+  /* Shorten visualizer tab texts on mobile to make room for larger buttons */
+  .visualizer-tabs .tab-btn {
+    font-size: 0 !important;
+    padding: 6px 10px !important;
+  }
+  .visualizer-tabs .tab-btn[data-target="spectrum"]::after {
+    content: 'SPECTRUM';
+    font-size: 0.65rem !important;
+    letter-spacing: 0.5px;
+  }
+  .visualizer-tabs .tab-btn[data-target="waveform"]::after {
+    content: 'WAVEFORM';
+    font-size: 0.65rem !important;
+    letter-spacing: 0.5px;
+  }
+
+  /* Compact Player Controls in Sticky Header - Enlarged for touch accessibility (v3.20.4) */
   .player-controls {
-    gap: 6px !important;
+    gap: 7px !important;
     justify-content: flex-end;
   }
   .ctrl-btn {
-    width: 32px !important;
-    height: 32px !important;
-    font-size: 0.68rem !important;
+    width: 37px !important;
+    height: 37px !important;
+    font-size: 0.75rem !important;
   }
   .ctrl-btn.play-btn {
-    width: 32px !important;
-    height: 32px !important;
-    font-size: 0.72rem !important;
+    width: 37px !important;
+    height: 37px !important;
+    font-size: 0.8rem !important;
     box-shadow: 0 2px 8px rgba(0, 242, 254, 0.3) !important;
   }
   .ctrl-btn i {
-    font-size: 0.72rem !important;
+    font-size: 0.78rem !important;
   }
   .ctrl-btn.bypass-btn {
     padding: 0 10px !important;
@@ -1351,7 +1369,7 @@ input:checked + .slider-round:before {
   }
   .ctrl-btn.bypass-btn::after {
     content: 'BYP' !important;
-    font-size: 0.62rem !important;
+    font-size: 0.68rem !important;
     font-weight: 700 !important;
   }
 }
