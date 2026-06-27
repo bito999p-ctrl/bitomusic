@@ -30,6 +30,11 @@
   --transition-speed: 0.25s;
 }
 
+body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -158,6 +163,55 @@ body {
   grid-column: span 2;
 }
 
+/* Header Wrapper on Desktop/Tablet (Sticky only when track is loaded) */
+.app-sticky-header-wrapper {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  align-items: stretch;
+  width: 100%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body.has-track .app-sticky-header-wrapper {
+  position: sticky;
+  top: 15px;
+  z-index: 1000;
+}
+
+/* Visualizer Panel (non-sticky on desktop, inherits sticky from wrapper) */
+.visualizer-panel {
+  flex: 1.6;
+  min-width: 0;
+  background: rgba(10, 14, 26, 0.95) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 242, 254, 0.2) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.upload-panel, .player-panel {
+  flex: 1;
+  min-width: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.upload-panel .drop-zone {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 160px;
+}
+
+.upload-panel .track-info, .player-panel .track-info {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+}
+
 /* PANELS (GLASSMORPHISM) */
 .panel {
   background: var(--panel-bg);
@@ -228,6 +282,7 @@ body {
 .drop-zone:hover .upload-icon {
   color: var(--accent-cyan);
 }
+
 
 .browse-btn {
   color: var(--accent-cyan);
@@ -1149,11 +1204,32 @@ input:checked + .slider-round:before {
     justify-content: center;
   }
   
-  /* Sticky Monitor Panel */
-  .visualizer-panel {
+  /* Mobile Sticky Wrapper (Non-display:contents for iOS WebKit compatibility) */
+  .app-sticky-header-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  body.has-track .app-sticky-header-wrapper {
+    position: -webkit-sticky;
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: 1000;
+  }
+
+  body.has-track .player-panel {
+    display: none !important;
+  }
+
+  .upload-panel, .player-panel {
+    border-radius: 16px !important;
+    padding: 20px;
+    border: 1px solid var(--panel-border) !important;
+  }
+
+  .visualizer-panel {
+    position: static;
     background: rgba(10, 14, 26, 0.95);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -1371,7 +1447,7 @@ input:checked + .slider-round:before {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
   z-index: 10000;
   display: flex;
@@ -1460,6 +1536,190 @@ input:checked + .slider-round:before {
   color: var(--text-primary);
   overflow-y: auto;
   padding-top: 5px;
+}
+
+/* AUDIO SPICES CABINET */
+.spice-cabinet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.spice-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all var(--transition-speed) ease;
+}
+
+.spice-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(0, 242, 254, 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.spice-card:has(input:checked) {
+  background: rgba(0, 242, 254, 0.03);
+  border-color: rgba(0, 242, 254, 0.3);
+  box-shadow: 0 0 15px rgba(0, 242, 254, 0.1);
+}
+
+.spice-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+  flex: 1;
+}
+
+.spice-title {
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.spice-sub {
+  font-family: var(--font-tech);
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: 2px;
+}
+
+/* STICKY COLLAPSED STATES (v3.25) */
+@media (min-width: 769px) {
+  .app-sticky-header-wrapper.is-sticky {
+    gap: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+
+  .app-sticky-header-wrapper.is-sticky .panel {
+    background: rgba(10, 14, 26, 0.97) !important;
+    border-color: rgba(0, 242, 254, 0.15) !important;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+  }
+
+  /* Player Panel Collapsed */
+  .app-sticky-header-wrapper.is-sticky .player-panel {
+    padding: 8px 16px;
+    border-radius: 10px;
+  }
+
+  .app-sticky-header-wrapper.is-sticky .track-info {
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    height: 100%;
+    padding: 0;
+  }
+
+  .app-sticky-header-wrapper.is-sticky .track-details {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 10px;
+    text-align: left;
+  }
+
+  .app-sticky-header-wrapper.is-sticky .track-name {
+    font-size: 0.78rem;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-bottom: 0;
+  }
+
+  .app-sticky-header-wrapper.is-sticky .track-meta {
+    font-size: 0.65rem;
+    margin: 0;
+  }
+
+  .app-sticky-header-wrapper.is-sticky .player-controls {
+    margin-top: 2px;
+    justify-content: center;
+    width: 100%;
+  }
+
+  /* Visualizer Panel Collapsed */
+  .app-sticky-header-wrapper.is-sticky .visualizer-panel {
+    padding: 8px 16px;
+    border-radius: 10px;
+  }
+
+  .app-sticky-header-wrapper.is-sticky .visualizer-panel .panel-header {
+    padding-bottom: 6px;
+    gap: 4px;
+  }
+
+  .app-sticky-header-wrapper.is-sticky .visualizer-header-top {
+    display: none !important; /* Hide visualizer title to save vertical height */
+  }
+
+  .app-sticky-header-wrapper.is-sticky .visualizer-header-bottom {
+    margin-top: 0;
+  }
+
+  .app-sticky-header-wrapper.is-sticky .visualizer-content {
+    height: 65px; /* Shrunk height */
+  }
+}
+
+/* Quick Upload Button & Mobile Sticky Track Name Styles */
+.upload-btn {
+  background: rgba(0, 242, 254, 0.08) !important;
+  border-color: rgba(0, 242, 254, 0.2) !important;
+}
+
+.upload-btn:hover {
+  background: rgba(0, 242, 254, 0.18) !important;
+  border-color: rgba(0, 242, 254, 0.4) !important;
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
+}
+
+.mobile-controls-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.mobile-sticky-track-name {
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  margin-top: 2px;
+  display: none;
+}
+
+body.has-track .mobile-sticky-track-name {
+  display: block;
+}
+
+@media (min-width: 769px) {
+  .mobile-controls-container {
+    display: none !important;
+  }
 }
 
 

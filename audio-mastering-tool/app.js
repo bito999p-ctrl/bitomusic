@@ -59,6 +59,7 @@ let activeNodes = {
   satWetGain: null,
   waveShaper: null,
   eqLow: null,
+  kickPeaking: null,
   eqMid: null,
   eqHigh: null,
   eqCorrective1: null, // AI corrective EQ notch filter 1
@@ -135,6 +136,37 @@ const params = {
   // Limiter/Maximizer
   limiterBoost: 4.0 // +4.0 dB
 };
+
+// Audio Spices State Configuration
+const spices = {
+  airTreble: false,
+  kickPunch: false,
+  stereoWider: false,
+  vocalPresence: false,
+  analogWarmth: false,
+  loudnessPush: false
+};
+
+// Compute combined parameters (original sliders + spice offsets)
+function getCombinedParams() {
+  return {
+    ...params,
+    satEnabled: params.satEnabled || spices.analogWarmth,
+    satDrive: Math.max(0, Math.min(100, params.satDrive + (spices.analogWarmth ? 15 : 0))),
+    satMix: Math.max(0, Math.min(100, params.satMix + (spices.analogWarmth ? 18 : 0))),
+    eqLowGain: params.eqLowGain, // No low shelf boost for kickPunch (prevents bass guitar mud)
+    kickPeakingGain: spices.kickPunch ? 4.5 : 0.0, // Dedicated narrow 55Hz kick thump peaking boost
+    eqMidGain: params.eqMidGain + (spices.vocalPresence ? 2.5 : 0.0),
+    eqHighGain: params.eqHighGain + (spices.airTreble ? 3.0 : 0.0),
+    compEnabled: params.compEnabled || spices.kickPunch,
+    compThreshold: Math.max(-36, Math.min(-12, params.compThreshold - (spices.kickPunch ? 4.0 : 0.0))),
+    compRatio: Math.max(1.0, Math.min(10.0, params.compRatio + (spices.kickPunch ? 1.0 : 0.0))),
+    compAttack: Math.max(0.001, Math.min(0.5, params.compAttack + (spices.kickPunch ? 0.020 : 0.0))),
+    compRelease: Math.max(0.02, Math.min(1.0, params.compRelease - (spices.kickPunch ? 0.04 : 0.0))),
+    stereoWidth: Math.max(0.0, Math.min(2.0, params.stereoWidth + (spices.stereoWider ? 0.45 : 0.0))),
+    limiterBoost: Math.max(0.0, Math.min(15.0, params.limiterBoost + (spices.loudnessPush ? 2.5 : 0.0)))
+  };
+}
 
 // Genre Presets Configuration
 const GENRE_PRESETS = {
@@ -389,6 +421,13 @@ function setupMasteringChain(context, sourceNode, parameters, customDestination 
   eqLow.frequency.setValueAtTime(parameters.eqLowFreq, context.currentTime);
   eqLow.gain.setValueAtTime(parameters.eqLowGain, context.currentTime);
 
+  // Dedicated Peaking Filter for Kick Punch (v3.30+)
+  const kickPeaking = context.createBiquadFilter();
+  kickPeaking.type = 'peaking';
+  kickPeaking.Q.setValueAtTime(2.0, context.currentTime); // narrow Q to isolate kick drum
+  kickPeaking.frequency.setValueAtTime(55, context.currentTime); // 55Hz fundamental thump
+  kickPeaking.gain.setValueAtTime(parameters.kickPeakingGain || 0.0, context.currentTime);
+
   const eqMid = context.createBiquadFilter();
   eqMid.type = 'peaking';
   eqMid.Q.setValueAtTime(parameters.eqMidQ, context.currentTime);
@@ -450,7 +489,8 @@ function setupMasteringChain(context, sourceNode, parameters, customDestination 
   eqCorrective8.gain.setValueAtTime(parameters.correctiveNotches[7].enabled ? parameters.correctiveNotches[7].gain : 0.0, context.currentTime);
 
   satSumNode.connect(eqLow);
-  eqLow.connect(eqMid);
+  eqLow.connect(kickPeaking);
+  kickPeaking.connect(eqMid);
   eqMid.connect(eqHigh);
   eqHigh.connect(eqCorrective1);
   eqCorrective1.connect(eqCorrective2);
@@ -577,6 +617,7 @@ function setupMasteringChain(context, sourceNode, parameters, customDestination 
     satWetGain,
     waveShaper,
     eqLow,
+    kickPeaking,
     eqMid,
     eqHigh,
     eqCorrective1,
@@ -687,7 +728,7 @@ function startPlayback() {
   activeNodes.bypassGain = bypassGain;
 
   // 3. Build Main Mastering Chain
-  const chain = setupMasteringChain(audioContext, sourceNode, params, masteredOutGain);
+  const chain = setupMasteringChain(audioContext, sourceNode, getCombinedParams(), masteredOutGain);
   
   // Connect references to let slider changes alter nodes in real time
   activeNodes.inputGain = chain.inputGain;
@@ -695,6 +736,7 @@ function startPlayback() {
   activeNodes.satWetGain = chain.satWetGain;
   activeNodes.waveShaper = chain.waveShaper;
   activeNodes.eqLow = chain.eqLow;
+  activeNodes.kickPeaking = chain.kickPeaking;
   activeNodes.eqMid = chain.eqMid;
   activeNodes.eqHigh = chain.eqHigh;
   activeNodes.eqCorrective1 = chain.eqCorrective1;
@@ -1086,12 +1128,14 @@ function calculateProcessedPeaks() {
   const proMax = new Float32Array(PEAK_POINTS);
   const proMin = new Float32Array(PEAK_POINTS);
   
-  const inputG = Math.pow(10, params.inputGainDb / 20);
-  const limitG = Math.pow(10, params.limiterBoost / 20);
-  const ceilingG = Math.pow(10, params.ceiling / 20);
+  const p = getCombinedParams();
   
-  const compThreshLinear = Math.pow(10, params.compThreshold / 20);
-  const ratio = params.compEnabled ? params.compRatio : 1.0;
+  const inputG = Math.pow(10, p.inputGainDb / 20);
+  const limitG = Math.pow(10, p.limiterBoost / 20);
+  const ceilingG = Math.pow(10, p.ceiling / 20);
+  
+  const compThreshLinear = Math.pow(10, p.compThreshold / 20);
+  const ratio = p.compEnabled ? p.compRatio : 1.0;
 
   // 視覚的な「のり波形（フラットな潰れ）」を防ぎ、音楽的なピークの強弱を維持するソフトリミッターシミュレータ
   const softLimit = (x) => {
@@ -1105,7 +1149,7 @@ function calculateProcessedPeaks() {
     let min = originalPeaks.min[i] * inputG;
 
     // Fast compressor math simulation
-    if (params.compEnabled) {
+    if (p.compEnabled) {
       // Squash positive
       const absMax = Math.abs(max);
       if (absMax > compThreshLinear) {
@@ -1119,9 +1163,9 @@ function calculateProcessedPeaks() {
     }
 
     // Saturation simulation (tape soft clip)
-    if (params.satEnabled) {
-      const blend = params.satMix / 100;
-      const k = 0.5 + (params.satDrive / 100) * 5.5;
+    if (p.satEnabled) {
+      const blend = p.satMix / 100;
+      const k = 0.5 + (p.satDrive / 100) * 5.5;
       
       const satMax = Math.tanh(k * max) / Math.tanh(k);
       const satMin = Math.tanh(k * min) / Math.tanh(k);
@@ -1145,7 +1189,7 @@ function calculateProcessedPeaks() {
     proMax[i] = max;
     proMin[i] = min;
   }
-
+  
   return { max: proMax, min: proMin };
 }
 
@@ -1306,10 +1350,11 @@ function updateCeilingNode() {
 function updateSaturatorNode() {
   invalidatePeakCache();
   if (activeNodes.waveShaper) {
-    activeNodes.waveShaper.curve = generateSaturatorCurve(params.satType, params.satDrive);
+    const p = getCombinedParams();
+    activeNodes.waveShaper.curve = generateSaturatorCurve(p.satType, p.satDrive);
     
-    if (params.satEnabled) {
-      const blend = params.satMix / 100;
+    if (p.satEnabled) {
+      const blend = p.satMix / 100;
       activeNodes.satDryGain.gain.setTargetAtTime(1.0 - blend, audioContext.currentTime, 0.01);
       activeNodes.satWetGain.gain.setTargetAtTime(blend, audioContext.currentTime, 0.01);
     } else {
@@ -1321,18 +1366,22 @@ function updateSaturatorNode() {
 
 function updateEqNodes() {
   invalidatePeakCache();
+  const p = getCombinedParams();
   if (activeNodes.eqLow) {
-    activeNodes.eqLow.frequency.setTargetAtTime(params.eqLowFreq, audioContext.currentTime, 0.01);
-    activeNodes.eqLow.gain.setTargetAtTime(params.eqLowGain, audioContext.currentTime, 0.01);
+    activeNodes.eqLow.frequency.setTargetAtTime(p.eqLowFreq, audioContext.currentTime, 0.01);
+    activeNodes.eqLow.gain.setTargetAtTime(p.eqLowGain, audioContext.currentTime, 0.01);
+  }
+  if (activeNodes.kickPeaking) {
+    activeNodes.kickPeaking.gain.setTargetAtTime(p.kickPeakingGain, audioContext.currentTime, 0.01);
   }
   if (activeNodes.eqMid) {
-    activeNodes.eqMid.frequency.setTargetAtTime(params.eqMidFreq, audioContext.currentTime, 0.01);
-    activeNodes.eqMid.gain.setTargetAtTime(params.eqMidGain, audioContext.currentTime, 0.01);
-    activeNodes.eqMid.Q.setTargetAtTime(params.eqMidQ, audioContext.currentTime, 0.01);
+    activeNodes.eqMid.frequency.setTargetAtTime(p.eqMidFreq, audioContext.currentTime, 0.01);
+    activeNodes.eqMid.gain.setTargetAtTime(p.eqMidGain, audioContext.currentTime, 0.01);
+    activeNodes.eqMid.Q.setTargetAtTime(p.eqMidQ, audioContext.currentTime, 0.01);
   }
   if (activeNodes.eqHigh) {
-    activeNodes.eqHigh.frequency.setTargetAtTime(params.eqHighFreq, audioContext.currentTime, 0.01);
-    activeNodes.eqHigh.gain.setTargetAtTime(params.eqHighGain, audioContext.currentTime, 0.01);
+    activeNodes.eqHigh.frequency.setTargetAtTime(p.eqHighFreq, audioContext.currentTime, 0.01);
+    activeNodes.eqHigh.gain.setTargetAtTime(p.eqHighGain, audioContext.currentTime, 0.01);
   }
 }
 
@@ -1351,11 +1400,12 @@ function updateCorrectiveEqNodes() {
 function updateCompressorNode() {
   invalidatePeakCache();
   if (activeNodes.compressor) {
-    if (params.compEnabled) {
-      activeNodes.compressor.threshold.setTargetAtTime(params.compThreshold, audioContext.currentTime, 0.01);
-      activeNodes.compressor.ratio.setTargetAtTime(params.compRatio, audioContext.currentTime, 0.01);
-      activeNodes.compressor.attack.setTargetAtTime(params.compAttack, audioContext.currentTime, 0.01);
-      activeNodes.compressor.release.setTargetAtTime(params.compRelease, audioContext.currentTime, 0.01);
+    const p = getCombinedParams();
+    if (p.compEnabled) {
+      activeNodes.compressor.threshold.setTargetAtTime(p.compThreshold, audioContext.currentTime, 0.01);
+      activeNodes.compressor.ratio.setTargetAtTime(p.compRatio, audioContext.currentTime, 0.01);
+      activeNodes.compressor.attack.setTargetAtTime(p.compAttack, audioContext.currentTime, 0.01);
+      activeNodes.compressor.release.setTargetAtTime(p.compRelease, audioContext.currentTime, 0.01);
     } else {
       activeNodes.compressor.threshold.setTargetAtTime(0, audioContext.currentTime, 0.01);
       activeNodes.compressor.ratio.setTargetAtTime(1.0, audioContext.currentTime, 0.01); // no-compression
@@ -1365,18 +1415,18 @@ function updateCompressorNode() {
 
 function updateStereoWidthNode() {
   if (activeNodes.midGain && activeNodes.sideGain) {
-    const w = params.stereoWidth;
+    const p = getCombinedParams();
     activeNodes.midGain.gain.setTargetAtTime(1.0, audioContext.currentTime, 0.01);
-    activeNodes.sideGain.gain.setTargetAtTime(w, audioContext.currentTime, 0.01);
+    activeNodes.sideGain.gain.setTargetAtTime(p.stereoWidth, audioContext.currentTime, 0.01);
     
     if (activeNodes.sideHighPass) {
-      activeNodes.sideHighPass.frequency.setTargetAtTime(params.sideHighPassFreq || 110, audioContext.currentTime, 0.01);
+      activeNodes.sideHighPass.frequency.setTargetAtTime(p.sideHighPassFreq || 110, audioContext.currentTime, 0.01);
     }
     
     // Animate width indicator beams in HTML
     // left: rotate angle based on width (0 width = 0 deg, 2 width = -60 deg)
-    const angleL = -45 * w;
-    const angleR = 45 * w;
+    const angleL = -45 * p.stereoWidth;
+    const angleR = 45 * p.stereoWidth;
     document.getElementById('width-beam-l').style.transform = `rotate(${angleL}deg)`;
     document.getElementById('width-beam-r').style.transform = `rotate(${angleR}deg)`;
   }
@@ -1385,7 +1435,8 @@ function updateStereoWidthNode() {
 function updateLimiterGainNode() {
   invalidatePeakCache();
   if (activeNodes.limiterGain) {
-    const gainVal = Math.pow(10, params.limiterBoost / 20);
+    const p = getCombinedParams();
+    const gainVal = Math.pow(10, p.limiterBoost / 20);
     activeNodes.limiterGain.gain.setTargetAtTime(gainVal, audioContext.currentTime, 0.01);
   }
 }
@@ -1996,7 +2047,7 @@ async function renderMasteredTrack() {
   offlineSource.buffer = audioBuffer;
   
   // Set up the EXACT same signal chain in the offline context
-  const offlineChain = setupMasteringChain(offlineCtx, offlineSource, params);
+  const offlineChain = setupMasteringChain(offlineCtx, offlineSource, getCombinedParams());
   offlineChain.outputNode.connect(offlineCtx.destination);
   
   offlineSource.start(0);
@@ -2358,6 +2409,11 @@ function setupFileLoader() {
   
   dropZone.addEventListener('click', () => fileInput.click());
   
+  const quickUploadBtn = document.getElementById('btn-quick-upload');
+  if (quickUploadBtn) {
+    quickUploadBtn.addEventListener('click', () => fileInput.click());
+  }
+  
   dropZone.addEventListener('dragover', (e) => {
     e.preventDefault();
     dropZone.classList.add('dragover');
@@ -2381,6 +2437,44 @@ function setupFileLoader() {
     if (files.length > 0) {
       loadAudioFile(files[0]);
     }
+  });
+
+  // Audio Spices Event Listeners
+  document.getElementById('spice-air-treble').addEventListener('change', (e) => {
+    spices.airTreble = e.target.checked;
+    updateEqNodes();
+    drawWaveformView();
+  });
+
+  document.getElementById('spice-kick-punch').addEventListener('change', (e) => {
+    spices.kickPunch = e.target.checked;
+    updateEqNodes();
+    updateCompressorNode();
+    drawWaveformView();
+  });
+
+  document.getElementById('spice-stereo-wider').addEventListener('change', (e) => {
+    spices.stereoWider = e.target.checked;
+    updateStereoWidthNode();
+    drawWaveformView();
+  });
+
+  document.getElementById('spice-vocal-presence').addEventListener('change', (e) => {
+    spices.vocalPresence = e.target.checked;
+    updateEqNodes();
+    drawWaveformView();
+  });
+
+  document.getElementById('spice-analog-warmth').addEventListener('change', (e) => {
+    spices.analogWarmth = e.target.checked;
+    updateSaturatorNode();
+    drawWaveformView();
+  });
+
+  document.getElementById('spice-loudness-push').addEventListener('change', (e) => {
+    spices.loudnessPush = e.target.checked;
+    updateLimiterGainNode();
+    drawWaveformView();
   });
 }
 
@@ -2411,14 +2505,25 @@ function loadAudioFile(file) {
 
         // Update UI info
         document.getElementById('track-name').innerText = file.name;
+        const mobTrack = document.getElementById('mobile-track-name');
+        if (mobTrack) {
+          mobTrack.innerText = file.name;
+        }
         
         const durationMin = Math.floor(buffer.duration / 60);
         const durationSec = Math.floor(buffer.duration % 60).toString().padStart(2, '0');
         const infoStr = `${buffer.sampleRate / 1000} kHz / ${buffer.numberOfChannels === 2 ? 'Stereo' : 'Mono'} | ${durationMin}:${durationSec}`;
         document.getElementById('track-meta').innerText = infoStr;
 
-        // Display controls
-        document.getElementById('track-info').classList.remove('hidden');
+        // Display controls and swap panels
+        const mainUpload = document.getElementById('main-upload-panel');
+        if (mainUpload) {
+          mainUpload.classList.add('hidden');
+        }
+        const playerPanel = document.getElementById('player-panel');
+        if (playerPanel) {
+          playerPanel.classList.remove('hidden');
+        }
         document.body.classList.add('has-track');
         
         // Enable buttons
@@ -2488,6 +2593,16 @@ function resetMasterSettings() {
   baseLoudnessTarget = 'genre';
   document.getElementById('preset-select').value = 'auto';
   document.getElementById('loudness-select').value = 'genre';
+  
+  // Reset spices
+  for (let key in spices) {
+    spices[key] = false;
+  }
+  const spiceIds = ['air-treble', 'kick-punch', 'stereo-wider', 'vocal-presence', 'analog-warmth', 'loudness-push'];
+  spiceIds.forEach(id => {
+    const el = document.getElementById(`spice-${id}`);
+    if (el) el.checked = false;
+  });
   
   // 2. Reset sibilance corrective notches
   params.correctiveNotches.forEach(n => {
@@ -2869,9 +2984,30 @@ function initializeApp() {
     });
   }
 
-  // Relocate player controls dynamically based on screen size
-  relocatePlayerControls();
-  window.addEventListener('resize', relocatePlayerControls);
+  // Handle scroll/resize events: toggle sticky collapse state and relocate controls
+  function handleScroll() {
+    relocatePlayerControls();
+    
+    const wrapper = document.querySelector('.app-sticky-header-wrapper');
+    if (wrapper) {
+      const wasSticky = wrapper.classList.contains('is-sticky');
+      const isSticky = window.scrollY > 40;
+      if (isSticky !== wasSticky) {
+        if (isSticky) {
+          wrapper.classList.add('is-sticky');
+        } else {
+          wrapper.classList.remove('is-sticky');
+        }
+        // Force visualizer redraw immediately to adjust to the collapsed canvas height
+        invalidatePeakCache();
+      }
+    }
+  }
+
+  // Relocate player controls dynamically based on screen size/scroll
+  handleScroll();
+  window.addEventListener('resize', handleScroll);
+  window.addEventListener('scroll', handleScroll);
 
   // Initialize width beam animation angle L/R
   updateStereoWidthNode();
@@ -2884,18 +3020,20 @@ if (document.readyState === 'loading') {
   initializeApp();
 }
 
-// Relocate player controls (Play/Pause, Stop, Loop, Bypass) to sticky visualizer header on mobile
+// Relocate player controls (Play/Pause, Stop, Loop, Bypass) to sticky visualizer header on mobile/desktop scroll
 function relocatePlayerControls() {
   const controls = document.querySelector('.player-controls');
   if (!controls) return;
   
   const isMobile = window.innerWidth <= 768;
   if (isMobile) {
-    const mobileTarget = document.getElementById('mobile-controls-target');
+    // On mobile, keep player controls in the sticky visualizer header placeholder
+    const mobileTarget = document.querySelector('#mobile-controls-target .mobile-controls-placeholder');
     if (mobileTarget && controls.parentElement !== mobileTarget) {
       mobileTarget.appendChild(controls);
     }
   } else {
+    // On PC/tablet, keep player controls in the upload panel (since the upload panel sticks side-by-side with visualizer)
     const desktopTarget = document.getElementById('desktop-controls-target');
     if (desktopTarget && controls.parentElement !== desktopTarget) {
       desktopTarget.appendChild(controls);
