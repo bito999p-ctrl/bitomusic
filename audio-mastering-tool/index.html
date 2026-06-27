@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
-  <link rel="stylesheet" href="styles.css?v=3.20.9">
+  <link rel="stylesheet" href="styles.css?v=3.20.12">
   <link rel="icon" href="../favicon.png" type="image/png">
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-C8CLCFDVX2"></script>
@@ -213,23 +213,25 @@
             <span class="value-readout" id="ceiling-val">-1.0 dB</span>
           </div>
         </div>
-        
-        <div class="ai-assistant-section" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.05); display: flex; flex-direction: column; gap: 8px;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span class="control-label" style="font-size: 0.72rem; font-weight: 700; color: var(--text-secondary); letter-spacing: 1px;">AI SMART ASSISTANCE <span class="help-icon" data-tooltip="AIによる自動音響解析と最適化。AUTOオンでプリセット変更時も自動連動。"><i class="fa-regular fa-circle-question"></i></span></span>
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <span style="font-size: 0.65rem; color: var(--text-secondary); font-weight: 600;">AUTO</span>
-              <label class="switch" style="transform: scale(0.8); transform-origin: right center; margin: 0; display: inline-flex;">
-                <input type="checkbox" id="ai-auto-run" checked>
-                <span class="slider-round"></span>
-              </label>
-            </div>
+      </section>
+
+      <section class="panel control-panel">
+        <div class="panel-header">
+          <h2 class="panel-title"><i class="fa-solid fa-wand-magic-sparkles"></i> AI SMART ASSISTANCE <span class="help-icon" data-tooltip="AIによる自動音響解析と最適化。AUTOオンでプリセット変更時も自動連動。"><i class="fa-regular fa-circle-question"></i></span></h2>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="font-size: 0.65rem; color: var(--text-secondary); font-weight: 600;">AUTO</span>
+            <label class="switch" style="transform: scale(0.8); transform-origin: right center; margin: 0; display: inline-flex;">
+              <input type="checkbox" id="ai-auto-run" checked>
+              <span class="slider-round"></span>
+            </label>
           </div>
+        </div>
+        <div class="control-group" style="margin-bottom: 0;">
           <button id="btn-ai-analyze" class="action-btn" style="padding: 10px 15px; font-size: 0.78rem; font-weight: 700; background: linear-gradient(135deg, var(--accent-purple) 0%, #ff007f 100%); border: none; border-radius: 8px; box-shadow: 0 4px 12px rgba(157, 78, 221, 0.2); cursor: pointer; color: #fff; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;" disabled>
             <i class="fa-solid fa-wand-magic-sparkles"></i> ANALYZE & AUTO-CORRECT EQ
           </button>
           
-          <div id="ai-report" class="ai-report" style="margin-top: 8px; font-family: var(--font-tech); font-size: 0.7rem; color: var(--text-muted); display: none; background: rgba(0, 0, 0, 0.35); border-radius: 8px; padding: 12px; border: 1px solid rgba(157, 78, 221, 0.2); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); animation: fadeIn 0.4s ease;">
+          <div id="ai-report" class="ai-report" style="margin-top: 12px; font-family: var(--font-tech); font-size: 0.7rem; color: var(--text-muted); display: none; background: rgba(0, 0, 0, 0.35); border-radius: 8px; padding: 12px; border: 1px solid rgba(157, 78, 221, 0.2); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); animation: fadeIn 0.4s ease;">
             
             <div style="text-align: center; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 6px; color: var(--accent-cyan); font-weight: 700; font-size: 0.72rem; letter-spacing: 1px;">
               <i class="fa-solid fa-square-poll-vertical"></i> ANALYZED SONIC PROFILE
@@ -595,6 +597,6 @@
     </div>
   </div>
 
-  <script type="module" src="app.js?v=3.20.9"></script>
+  <script type="module" src="app.js?v=3.20.12"></script>
 </body>
 </html>

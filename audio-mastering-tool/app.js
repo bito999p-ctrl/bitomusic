@@ -442,49 +442,49 @@ function setupMasteringChain(context, sourceNode, parameters, customDestination 
   // 8連 AI Corrective Notch Filters
   const eqCorrective1 = context.createBiquadFilter();
   eqCorrective1.type = 'peaking';
-  eqCorrective1.Q.setValueAtTime(6.0, context.currentTime); // 狭いQ値
+  eqCorrective1.Q.setValueAtTime(12.0, context.currentTime); // 非常に鋭いQ値で高域の艶感を保護
   eqCorrective1.frequency.setValueAtTime(parameters.correctiveNotches[0].freq, context.currentTime);
   eqCorrective1.gain.setValueAtTime(parameters.correctiveNotches[0].enabled ? parameters.correctiveNotches[0].gain : 0.0, context.currentTime);
 
   const eqCorrective2 = context.createBiquadFilter();
   eqCorrective2.type = 'peaking';
-  eqCorrective2.Q.setValueAtTime(6.0, context.currentTime);
+  eqCorrective2.Q.setValueAtTime(12.0, context.currentTime);
   eqCorrective2.frequency.setValueAtTime(parameters.correctiveNotches[1].freq, context.currentTime);
   eqCorrective2.gain.setValueAtTime(parameters.correctiveNotches[1].enabled ? parameters.correctiveNotches[1].gain : 0.0, context.currentTime);
 
   const eqCorrective3 = context.createBiquadFilter();
   eqCorrective3.type = 'peaking';
-  eqCorrective3.Q.setValueAtTime(6.0, context.currentTime);
+  eqCorrective3.Q.setValueAtTime(12.0, context.currentTime);
   eqCorrective3.frequency.setValueAtTime(parameters.correctiveNotches[2].freq, context.currentTime);
   eqCorrective3.gain.setValueAtTime(parameters.correctiveNotches[2].enabled ? parameters.correctiveNotches[2].gain : 0.0, context.currentTime);
 
   const eqCorrective4 = context.createBiquadFilter();
   eqCorrective4.type = 'peaking';
-  eqCorrective4.Q.setValueAtTime(6.0, context.currentTime);
+  eqCorrective4.Q.setValueAtTime(12.0, context.currentTime);
   eqCorrective4.frequency.setValueAtTime(parameters.correctiveNotches[3].freq, context.currentTime);
   eqCorrective4.gain.setValueAtTime(parameters.correctiveNotches[3].enabled ? parameters.correctiveNotches[3].gain : 0.0, context.currentTime);
 
   const eqCorrective5 = context.createBiquadFilter();
   eqCorrective5.type = 'peaking';
-  eqCorrective5.Q.setValueAtTime(6.0, context.currentTime);
+  eqCorrective5.Q.setValueAtTime(12.0, context.currentTime);
   eqCorrective5.frequency.setValueAtTime(parameters.correctiveNotches[4].freq, context.currentTime);
   eqCorrective5.gain.setValueAtTime(parameters.correctiveNotches[4].enabled ? parameters.correctiveNotches[4].gain : 0.0, context.currentTime);
 
   const eqCorrective6 = context.createBiquadFilter();
   eqCorrective6.type = 'peaking';
-  eqCorrective6.Q.setValueAtTime(6.0, context.currentTime);
+  eqCorrective6.Q.setValueAtTime(12.0, context.currentTime);
   eqCorrective6.frequency.setValueAtTime(parameters.correctiveNotches[5].freq, context.currentTime);
   eqCorrective6.gain.setValueAtTime(parameters.correctiveNotches[5].enabled ? parameters.correctiveNotches[5].gain : 0.0, context.currentTime);
 
   const eqCorrective7 = context.createBiquadFilter();
   eqCorrective7.type = 'peaking';
-  eqCorrective7.Q.setValueAtTime(6.0, context.currentTime);
+  eqCorrective7.Q.setValueAtTime(12.0, context.currentTime);
   eqCorrective7.frequency.setValueAtTime(parameters.correctiveNotches[6].freq, context.currentTime);
   eqCorrective7.gain.setValueAtTime(parameters.correctiveNotches[6].enabled ? parameters.correctiveNotches[6].gain : 0.0, context.currentTime);
 
   const eqCorrective8 = context.createBiquadFilter();
   eqCorrective8.type = 'peaking';
-  eqCorrective8.Q.setValueAtTime(6.0, context.currentTime);
+  eqCorrective8.Q.setValueAtTime(12.0, context.currentTime);
   eqCorrective8.frequency.setValueAtTime(parameters.correctiveNotches[7].freq, context.currentTime);
   eqCorrective8.gain.setValueAtTime(parameters.correctiveNotches[7].enabled ? parameters.correctiveNotches[7].gain : 0.0, context.currentTime);
 
@@ -1637,7 +1637,7 @@ function analyzeAudioResonances(buffer) {
   }
   const sibilanceBaseline = sumRegion / (sibilanceMaxBin - sibilanceMinBin + 1);
   
-  // ローカルピーク（極大値かつベースラインの1.18倍以上。ただし9kHz〜10kHzのSuno頻出帯域は敏感に検知するため1.08倍以上）をすべて検出
+  // ローカルピーク（極大値かつベースラインの1.32倍以上。ただし9kHz〜10kHzのSuno頻出帯域は敏感に検知するため1.16倍以上）をすべて検出
   const rawPeaks = [];
   for (let j = sibilanceMinBin + 1; j < sibilanceMaxBin; j++) {
     const val = avgSpectrum[j];
@@ -1645,16 +1645,16 @@ function analyzeAudioResonances(buffer) {
     
     // Suno AIの音源で特に耳に刺さりやすい 9kHz〜10kHz 帯域（マージンを取り8800Hz〜10200Hz）の判定
     const isSunoRange = (peakFreq >= 8800 && peakFreq <= 10200);
-    const thresholdMultiplier = isSunoRange ? 1.08 : 1.18;
+    const thresholdMultiplier = isSunoRange ? 1.16 : 1.32;
     
     if (val > sibilanceBaseline * thresholdMultiplier && val > avgSpectrum[j - 1] && val > avgSpectrum[j + 1]) {
       const ratio = val / sibilanceBaseline;
-      // 超過度合いに基づき減衰幅を設定（Suno帯域は耳を保護するため強くカット: -1.8dB 〜 -6.0dB、通常は -1.2dB 〜 -5.0dB）
+      // 超過度合いに基づき減衰幅を設定（高域の艶感を損なわないようマイルド化: Suno帯域は -1.5dB 〜 -3.5dB、通常は -1.0dB 〜 -2.5dB）
       let cutDb;
       if (isSunoRange) {
-        cutDb = -Math.min(6.0, Math.max(1.8, (ratio - 1.08) * 8.0 + 1.8));
+        cutDb = -Math.min(3.5, Math.max(1.5, (ratio - 1.16) * 6.0 + 1.5));
       } else {
-        cutDb = -Math.min(5.0, Math.max(1.2, (ratio - 1.18) * 6.0 + 1.2));
+        cutDb = -Math.min(2.5, Math.max(1.0, (ratio - 1.32) * 4.0 + 1.0));
       }
       
       // 8500Hz未満のカットはかなり緩やか（50%）にする
@@ -1676,10 +1676,10 @@ function analyzeAudioResonances(buffer) {
   // 優先度スコアの高い順にソート
   rawPeaks.sort((a, b) => b.score - a.score);
 
-  // 互いに400Hz以上離れた上位最大6個のピークを抽出（抜け感確保のため6個に制限）
+  // 互いに400Hz以上離れた上位最大4個のピークを抽出（高音の艶感・空気感を維持するため4個に制限）
   const filteredPeaks = [];
   for (const peak of rawPeaks) {
-    if (filteredPeaks.length >= 6) break;
+    if (filteredPeaks.length >= 4) break;
     const tooClose = filteredPeaks.some(p => Math.abs(p.freq - peak.freq) < 400);
     if (!tooClose) {
       filteredPeaks.push({ freq: peak.freq, cut: peak.cut });
@@ -1922,6 +1922,18 @@ function loadGenrePreset(genreKey) {
     params.limiterBoost = LOUDNESS_TARGETS[loudnessKey].boost;
   } else {
     // custom - keep current params.limiterBoost as is
+  }
+
+  // Reset sibilance corrective notches and hide AI report panel
+  params.correctiveNotches.forEach(n => {
+    n.enabled = false;
+    n.gain = 0.0;
+  });
+  updateCorrectiveEqNodes();
+  
+  const aiReport = document.getElementById('ai-report');
+  if (aiReport) {
+    aiReport.style.display = 'none';
   }
 
   // 2. Refresh HTML Controls
