@@ -2117,7 +2117,7 @@ async function renderMasteredTrack() {
     
     const origName = document.getElementById('file-input').files[0]?.name || 'aether_master.wav';
     const baseName = origName.substring(0, origName.lastIndexOf('.')) || origName;
-    link.download = `${baseName}_mastered.${fileExtension}`;
+    link.download = `mastered_${baseName}.${fileExtension}`;
     
     document.body.appendChild(link);
     link.click();
