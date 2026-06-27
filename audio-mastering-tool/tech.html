@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="styles.css?v=3.18">
+  <link rel="stylesheet" href="styles.css?v=3.19">
   <style>
     .doc-container {
       max-width: 950px;
@@ -247,7 +247,7 @@
               音源のL/Rを Mid（センター）と Side（広がり）にマトリックス変換して独立処理。
               <ul>
                 <li><strong>Mid</strong>：センター定位のボーカル・キックの輪郭を維持するため、ゲインは完全に `1.0` に固定。</li>
-                <li><strong>Side</strong>：`width` スライダーで広がり幅を調整。さらに、低域の左右の位相干渉による低域のボヤけ（シュワシュワ音）を防ぐため、<strong>Side成分の110Hz以下を強制カットする 110Hz High-Pass Filter</strong> を搭載。これにより低域は完全モノラルに保たれ、締まりのある重低音を実現。</li>
+                <li><strong>Side</strong>：`width` スライダーで広がり幅を調整。さらに、低域の左右の位相干渉による低域のボヤけ（シュワシュワ音）を防ぐため、<strong>Side成分をカットする可変ハイパスフィルター（90Hz〜150Hz）</strong>を搭載。EDMやHipHopなどのクラブ系では150Hz、生楽器系では90Hzなど、ジャンル別で自動的に最適化されます。これにより低域はタイトに保たれつつ、豊かな空間表現を可能にしています。</li>
               </ul>
             </td>
           </tr>

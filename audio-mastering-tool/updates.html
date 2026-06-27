@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="styles.css?v=3.18">
+  <link rel="stylesheet" href="styles.css?v=3.19">
   <style>
     .doc-container {
       max-width: 900px;
@@ -188,6 +188,20 @@
 
     <div class="timeline">
       
+      <!-- v3.19 -->
+      <div class="timeline-item major">
+        <div class="version-header">
+          <span class="version-tag major">v3.19</span>
+          <span class="version-date">2026.06.27</span>
+          <span class="version-title">ジャンル適応型 Side HPF（低域モノラル化可変制御）の導入 ＆ プリセット・サチュレーター配合率の最適化</span>
+        </div>
+        <ul class="update-list">
+          <li><span class="badge-add">追加</span><strong>ジャンル適応型 Side High-Pass Filter の実装</strong>：Side成分のローカット周波数を一律 `110Hz` から、ジャンル別の音響特性に合わせた <strong>`90Hz〜150Hz` の動的スイープ制御</strong> へとアップグレード。EDMやHipHop、Hardcoreなどの重低音が要となるクラブ系では `150Hz` までハイパス周波数を上げて超低域のステレオ位相ズレを強力に防ぎ、アコースティックやジャズ、クラシックなどの生楽器系では `90Hz` まで下げることで、ベースやコントラバスの豊かな空気感・ステレオ幅を自動保護します。</li>
+          <li><span class="badge-change">改善</span><strong>ジャンル別プリセットのサチュレーター配合率（satMix）の個別調整</strong>：前バージョンで一律に抑えすぎたサチュレーション配合量をジャンルに合わせて最適化。パンチや歪みの質感が重要な **EDM** は `15%`、**HIPHOP** は `14%`、**HARDCORE** は `18%` へと引き上げ、ダイナミックで力強い倍音感を付与。一方で、**POPS** は `10%`、**AMBIENT** は `8%`、**JAZZ** は `15%`（従来25%）へと調整し、透明感のある繊細なトーンを徹底しました。</li>
+          <li><span class="badge-change">改善</span><strong>AI自動解析およびリセット機能の適応型連動</strong>：AIオートマスタリングによる推奨パラメータ提案時、および「RESET」ボタン実行時にも、各ジャンルに応じた最適な Side HPF 周波数とサチュレーター配合率がシームレスに同期・再現されるようシステム設計を拡張しました。</li>
+        </ul>
+      </div>
+
       <!-- v3.18 -->
       <div class="timeline-item major">
         <div class="version-header">
