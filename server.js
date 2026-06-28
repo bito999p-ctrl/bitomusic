@@ -4,6 +4,12 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Request logger middleware
+app.use((req, res, next) => {
+  console.log(`[Request] ${req.method} ${req.url}`);
+  next();
+});
+
 // Serve static client files from the AETHER_PLAYER directory
 app.use(express.static(path.join(__dirname, 'AETHER_PLAYER')));
 
@@ -68,15 +74,37 @@ app.get('/api/suno', async (req, res) => {
 
       let braceCount = 0;
       let endIdx = -1;
+      let inString = false;
+      let quoteChar = null;
+      let escaped = false;
       const startIdx = idx + 'self.__next_f.push('.length;
 
       for (let i = startIdx; i < html.length; i++) {
-        if (html[i] === '(' || html[i] === '[') braceCount++;
-        else if (html[i] === ')' || html[i] === ']') {
-          braceCount--;
-          if (braceCount === 0) {
-            endIdx = i;
-            break;
+        const char = html[i];
+        if (escaped) {
+          escaped = false;
+          continue;
+        }
+        if (char === '\\') {
+          escaped = true;
+          continue;
+        }
+        if (inString) {
+          if (char === quoteChar) {
+            inString = false;
+          }
+        } else {
+          if (char === '"' || char === "'") {
+            inString = true;
+            quoteChar = char;
+          } else if (char === '(' || char === '[') {
+            braceCount++;
+          } else if (char === ')' || char === ']') {
+            braceCount--;
+            if (braceCount === 0) {
+              endIdx = i;
+              break;
+            }
           }
         }
       }
@@ -112,46 +140,105 @@ app.get('/api/suno', async (req, res) => {
     const combined = pushes.join('');
 
     // Extract tracks
-    const clipIndexRegex = /"clip"\s*:\s*\{/g;
-    let clipMatch;
     const tracks = [];
     const seenTrackIds = new Set();
+    const seenAudioUrls = new Set();
 
-    while ((clipMatch = clipIndexRegex.exec(combined)) !== null) {
-      const startIdx = clipMatch.index + clipMatch[0].length - 1; // start at '{'
-      let braceCount = 0;
-      let endIdx = -1;
-      for (let i = startIdx; i < combined.length; i++) {
-        if (combined[i] === '{') braceCount++;
-        else if (combined[i] === '}') {
-          braceCount--;
-          if (braceCount === 0) {
-            endIdx = i;
+    // Find all occurrences of "id" key followed by a 36-char UUID
+    const idRegex = /"id"\s*:\s*"([a-f0-9\-]{36})"/gi;
+    let idMatch;
+
+    while ((idMatch = idRegex.exec(combined)) !== null) {
+      const uuid = idMatch[1];
+      if (seenTrackIds.has(uuid)) continue;
+
+      // Scan backwards from the match index to find the starting '{' of this object at braceLevel 0
+      let startIdx = -1;
+      let braceLevel = 0;
+      for (let i = idMatch.index; i >= 0; i--) {
+        if (combined[i] === '}') braceLevel++;
+        else if (combined[i] === '{') {
+          if (braceLevel === 0) {
+            startIdx = i;
             break;
+          } else {
+            braceLevel--;
           }
         }
       }
 
-      if (endIdx !== -1) {
-        const clipJsonStr = combined.slice(startIdx, endIdx + 1);
-        try {
-          const clip = JSON.parse(clipJsonStr);
-          if (clip && clip.id && !seenTrackIds.has(clip.id)) {
-            seenTrackIds.add(clip.id);
+      if (startIdx !== -1) {
+        // Walk forward from startIdx to find the matching closing '}'
+        let braceCount = 0;
+        let endIdx = -1;
+        for (let i = startIdx; i < combined.length; i++) {
+          if (combined[i] === '{') braceCount++;
+          else if (combined[i] === '}') {
+            braceCount--;
+            if (braceCount === 0) {
+              endIdx = i;
+              break;
+            }
+          }
+        }
+
+        if (endIdx !== -1) {
+          const objStr = combined.slice(startIdx, endIdx + 1);
+          // Use robust regex-based property extraction to bypass malformed JSON / unquoted references in Next.js RSC payload
+          const titleMatch = objStr.match(/"title"\s*:\s*"([^"]+)"/i);
+          if (titleMatch) {
+            const audioMatch = objStr.match(/"audio_url"\s*:\s*"([^"]+)"/i);
+            const audio_url = audioMatch ? audioMatch[1] : `https://cdn1.suno.ai/${uuid}.mp3`;
+            
+            // Skip duplicate audio URLs (e.g. hook schemas, video uploads, or multiple references)
+            if (seenAudioUrls.has(audio_url)) continue;
+            
+            seenTrackIds.add(uuid);
+            seenAudioUrls.add(audio_url);
+            
+            const title = titleMatch[1];
+            
+            const imageMatch = objStr.match(/"image_url"\s*:\s*"([^"]+)"/i);
+            const image_url = imageMatch ? imageMatch[1] : `https://cdn1.suno.ai/image_${uuid}.png`;
+            
+            const artistMatch = objStr.match(/"(?:user_display_name|display_name)"\s*:\s*"([^"]+)"/i);
+            const artist_name = artistMatch ? artistMatch[1] : 'Suno Artist';
+            
+            const durationMatch = objStr.match(/"duration"\s*:\s*([0-9\.]+)/i);
+            const duration = durationMatch ? parseFloat(durationMatch[1]) : 0;
+            
+            const playMatch = objStr.match(/"play_count"\s*:\s*([0-9]+)/i);
+            const play_count = playMatch ? parseInt(playMatch[1], 10) : 0;
+            
+            const upvoteMatch = objStr.match(/"upvote_count"\s*:\s*([0-9]+)/i);
+            const upvote_count = upvoteMatch ? parseInt(upvoteMatch[1], 10) : 0;
+            
+            const promptMatch = objStr.match(/"prompt"\s*:\s*"([^"]+)"/i);
+            let description = '';
+            if (promptMatch) {
+              description = promptMatch[1]
+                .replace(/\\n/g, '\n')
+                .replace(/\\r/g, '\r')
+                .replace(/\\"/g, '"')
+                .replace(/\\\\/g, '\\');
+            }
+
+            const createdMatch = objStr.match(/"created_at"\s*:\s*"([^"]+)"/i);
+            const created_at = createdMatch ? createdMatch[1] : '';
+
             tracks.push({
-              id: clip.id,
-              title: clip.title || 'Untitled',
-              audio_url: clip.audio_url || `https://cdn1.suno.ai/${clip.id}.mp3`,
-              image_url: clip.image_url || `https://cdn1.suno.ai/image_${clip.id}.png`,
-              artist_name: clip.user_display_name || clip.display_name || 'Suno Artist',
-              duration: clip.duration || 0,
-              play_count: clip.play_count || 0,
-              upvote_count: clip.upvote_count || 0,
-              description: clip.metadata?.prompt || clip.metadata?.tags || ''
+              id: uuid,
+              title,
+              audio_url,
+              image_url,
+              artist_name,
+              duration,
+              play_count,
+              upvote_count,
+              description,
+              created_at
             });
           }
-        } catch (e) {
-          // Ignore parse errors on partial matches
         }
       }
     }
@@ -194,6 +281,11 @@ app.get('/api/suno', async (req, res) => {
       if (match) {
         name = match[1].replace('Playlist', '').trim();
       }
+    }
+
+    // Truncate profile tracks to first 20 items to match Suno page 1 and avoid playlist tracks mix-in
+    if (isProfile && tracks.length > 20) {
+      tracks.length = 20;
     }
 
     return res.json({
