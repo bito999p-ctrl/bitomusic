@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AetherPlayer - Suno & AetherMaster Enhancer</title>
+  <meta name="description" content="Sunoの楽曲をAetherMasterの高音質化・ノイズ除去エンジンで再生するプレミアム音楽プレイヤー。">
+  <!-- Google Fonts Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- 1. Landing Screen (Shown when no parameter is present) -->
+    <div id="landing-screen" class="landing-container">
+      <div class="landing-card card">
+        <div class="logo landing-logo">
+          <span class="logo-icon">✦</span>
+          <h1>AetherPlayer</h1>
+        </div>
+        <p class="landing-subtitle">Sunoの公開曲やプレイリストを、AetherMasterの高音質AI AUTOマスタリング技術で再生する専用プレイヤー</p>
+        
+        <div class="landing-import-box">
+          <input 
+            type="text" 
+            id="landing-input" 
+            placeholder="ユーザー名 (例: @bito999) または プレイリストURL / ID..." 
+            autocomplete="off"
+          >
+          <button id="landing-btn" class="btn btn-primary">
+            <span id="landing-btn-text">読み込む</span>
+            <span id="landing-btn-loader" class="loader hidden"></span>
+          </button>
+        </div>
+
+        <div class="quick-links">
+          <span class="quick-label">クイック試聴:</span>
+          <button class="quick-link-btn" data-url="@bito999">@bito999 (アーティスト)</button>
+          <button class="quick-link-btn" data-url="20aa266e-cde7-4115-9795-30e75c164d01">歪み歪み (プレイリスト)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Player Workspace (Shown after data is successfully imported) -->
+    <div id="player-workspace" class="player-workspace-container hidden">
+      <!-- Top Nav / Control Bar -->
+      <header class="app-header">
+        <div class="logo">
+          <span class="logo-icon">✦</span>
+          <h1>AetherPlayer</h1>
+          <span class="logo-subtitle">Active</span>
+        </div>
+        <div class="header-actions">
+          <button id="back-to-landing-btn" class="btn btn-secondary">
+            <span>🔍 別のURLを読み込む</span>
+          </button>
+          <button id="share-btn" class="btn btn-primary" title="共有用リンクをコピー">
+            <span>共有URLをコピー</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Workspace -->
+      <main class="app-workspace">
+
+        <!-- Left Sidebar: Playlist & Songs list -->
+        <section class="workspace-sidebar card">
+          <div class="sidebar-header">
+            <div id="source-info" class="source-info-container">
+              <img id="source-cover" src="" alt="Cover" class="source-cover">
+              <div class="source-text">
+                <h2 id="source-name">Suno Playlist</h2>
+                <span id="source-type">Playlist</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab contents -->
+          <div class="sidebar-content">
+            <!-- Playlists List (Only populated when profile is imported) -->
+            <div id="playlists-section" class="playlists-section hidden">
+              <h3>公開プレイリスト</h3>
+              <div id="playlists-list" class="playlists-list"></div>
+            </div>
+
+            <!-- Tracks List -->
+            <div class="tracks-section">
+              <h3>トラック一覧 (<span id="tracks-count">0</span>)</h3>
+              <div id="tracks-list" class="tracks-list">
+                <div class="empty-list">曲が読み込まれていません</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Center Panel: Vinyl Player Hub & Visualizer -->
+        <section class="workspace-player card">
+          <div class="player-hud">
+            <!-- Audio Visualizer Canvas Container -->
+            <div class="visualizer-container">
+              <canvas id="player-visualizer"></canvas>
+              <div class="artwork-wrapper">
+                <img id="track-artwork" src="https://cdn1.suno.ai/image_large_00000000-0000-0000-0000-000000000000.png" alt="Artwork" class="artwork-img">
+              </div>
+            </div>
+
+            <!-- Track Metadata -->
+            <div class="track-details">
+              <h2 id="track-title">曲を選択してください</h2>
+              <p id="track-artist">Suno Artist</p>
+            </div>
+
+            <!-- Progress / Seek Bar -->
+            <div class="player-progress">
+              <span id="current-time">0:00</span>
+              <input type="range" id="progress-bar" min="0" max="100" value="0" step="0.1">
+              <span id="duration-time">0:00</span>
+            </div>
+
+            <!-- Player Controls -->
+            <div class="player-controls">
+              <button id="shuffle-btn" class="ctrl-btn" title="シャッフル"><span class="icon">🔀</span></button>
+              <button id="prev-btn" class="ctrl-btn" title="前の曲"><span class="icon">⏮</span></button>
+              <button id="play-pause-btn" class="ctrl-btn play-btn" title="再生"><span class="icon-play">▶</span></button>
+              <button id="next-btn" class="ctrl-btn" title="次の曲"><span class="icon">⏭</span></button>
+              <button id="repeat-btn" class="ctrl-btn" title="リピート"><span class="icon">🔁</span></button>
+            </div>
+
+            <!-- Footer Volume & Mode controls -->
+            <div class="player-footer">
+              <div class="volume-control">
+                <span class="volume-icon">🔊</span>
+                <input type="range" id="volume-slider" min="0" max="100" value="80">
+              </div>
+              <div class="visualizer-mode">
+                <select id="vis-mode-select">
+                  <option value="pulse-ring">✦ Neon Rings (標準)</option>
+                  <option value="bars">✦ Waves (バー表示)</option>
+                  <option value="oscilloscope">✦ Oscilloscope (波形)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Right Panel: Sound Enhancer & Lyrics -->
+        <section class="workspace-utility card">
+          <!-- Toggle Tabs -->
+          <div class="tab-header">
+            <button id="tab-enhancer-btn" class="tab-btn active">Sound Enhancer</button>
+            <button id="tab-lyrics-btn" class="tab-btn">Lyrics</button>
+          </div>
+
+          <div class="tab-body">
+            <!-- 1. Enhancer controls -->
+            <div id="tab-enhancer" class="tab-content">
+              <!-- Master Bypass Toggle -->
+              <div class="enhancer-header">
+                <div class="enhancer-title-block">
+                  <h3>AetherMaster Engine</h3>
+                  <p>AI Auto-Mastering Mode</p>
+                </div>
+                <label class="switch-container">
+                  <input type="checkbox" id="enhancer-toggle" checked>
+                  <span class="switch-slider"></span>
+                </label>
+              </div>
+
+              <!-- AI Status HUD -->
+              <div class="ai-status-hud card">
+                <div class="ai-status-row">
+                  <span class="hud-label">AI Status</span>
+                  <span id="ai-status" class="status-badge idle">STANDBY</span>
+                </div>
+                <div class="ai-status-row">
+                  <span class="hud-label">Loudness Target</span>
+                  <span id="hud-loudness-desc" class="hud-value">AUTO DEFAULT (-14 LUFS)</span>
+                </div>
+              </div>
+
+              <!-- Dynamic Parameters Display -->
+              <div class="ai-params-display">
+                <h4>リアルタイムAIマスタリング分析</h4>
+                
+                <!-- Corrective Notches List -->
+                <div class="param-card">
+                  <span class="param-title">AI補正ノッチフィルター (レゾナンス除去)</span>
+                  <div id="notches-list" class="notches-list">
+                    <div class="empty-notches">分析待ち...</div>
+                  </div>
+                </div>
+
+                <!-- EQ & Saturation -->
+                <div class="param-row-grid">
+                  <div class="param-small-card">
+                    <span class="lbl">Bass EQ</span>
+                    <span id="hud-eq-low" class="val">-- dB</span>
+                  </div>
+                  <div class="param-small-card">
+                    <span class="lbl">Treble EQ</span>
+                    <span id="hud-eq-high" class="val">-- dB</span>
+                  </div>
+                  <div class="param-small-card">
+                    <span class="lbl">Stereo Width</span>
+                    <span id="hud-width" class="val">--</span>
+                  </div>
+                  <div class="param-small-card">
+                    <span class="lbl">Hiss Cut</span>
+                    <span id="hud-hiss" class="val">-- %</span>
+                  </div>
+                </div>
+
+                <!-- Dynamics -->
+                <div class="param-card">
+                  <span class="param-title">ダイナミクス & 音圧ブースト</span>
+                  <div class="dynamics-info-row">
+                    <div class="info-cell">
+                      <span class="lbl">Comp Threshold</span>
+                      <span id="hud-comp-thresh" class="val">-- dB</span>
+                    </div>
+                    <div class="info-cell">
+                      <span class="lbl">Comp Ratio</span>
+                      <span id="hud-comp-ratio" class="val">--</span>
+                    </div>
+                    <div class="info-cell">
+                      <span class="lbl">Limiter Boost</span>
+                      <span id="hud-limiter-boost" class="val">-- dB</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Gain Reduction Meter (visualizing compression dynamics) -->
+              <div class="gr-meter-wrapper" style="margin-top: 20px;">
+                <div class="gr-meter-label">
+                  <span>Glue Compressor GR</span>
+                  <span id="gr-value">0.0 dB</span>
+                </div>
+                <div class="gr-bar-bg">
+                  <div id="gr-bar-fill" class="gr-bar-fill"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Lyrics display -->
+            <div id="tab-lyrics" class="tab-content hidden">
+              <div class="lyrics-container">
+                <div id="lyrics-text" class="lyrics-text">
+                  曲を選択すると歌詞が表示されます。
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+  </div>
+
+  <!-- Audio Element (hidden) -->
+  <audio id="audio-player" crossorigin="anonymous"></audio>
+
+  <!-- JS Scripts -->
+  <script type="module" src="player.js"></script>
+</body>
+</html>
