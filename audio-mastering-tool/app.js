@@ -639,14 +639,47 @@ function setupMasteringChain(context, sourceNode, parameters, customDestination 
   };
 }
 
+function setupAudioContextListeners(ctx) {
+  if (!ctx) return;
+  
+  ctx.addEventListener('statechange', () => {
+    logToUI(`[AudioEngine] AudioContext state changed to: ${ctx.state}`, 'info');
+    // If context is suspended or interrupted by the system while we think we are playing, pause playback UI
+    if ((ctx.state === 'suspended' || ctx.state === 'interrupted') && isPlaying) {
+      logToUI(`[AudioEngine] AudioContext suspended/interrupted by system. Syncing UI.`, 'warning');
+      pausePlayback();
+    }
+  });
+
+  // Listen for audio output device changes (like Bluetooth disconnecting, headphones unplugged)
+  if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) {
+    if (!navigator.mediaDevices._hasDeviceChangeListener) {
+      navigator.mediaDevices._hasDeviceChangeListener = true;
+      navigator.mediaDevices.addEventListener('devicechange', () => {
+        logToUI("[AudioEngine] Media device change detected (e.g. Bluetooth/Headphones connection changed).", "info");
+        if (isPlaying) {
+          logToUI("[AudioEngine] Pausing playback due to audio output route change.", "warning");
+          pausePlayback();
+        }
+      });
+    }
+  }
+}
+
+function createAudioContext() {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  logToUI(`createAudioContext: Created new AudioContext. State: ${ctx.state}`, 'info');
+  setupAudioContextListeners(ctx);
+  return ctx;
+}
+
 // ==========================================================================
 // PLAYER & ENGINE INITIALIZATION
 // ==========================================================================
 function initAudio() {
   logToUI(`initAudio: State before init: ${audioContext ? audioContext.state : 'null'}`, 'info');
   if (!audioContext) {
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    logToUI(`initAudio: Created new AudioContext. State: ${audioContext.state}`, 'info');
+    audioContext = createAudioContext();
   }
   
   // Set audio session type to 'playback' for iOS/mobile background playback support (unmutes silent switch and keeps background running)
@@ -659,8 +692,8 @@ function initAudio() {
     }
   }
 
-  if (audioContext.state === 'suspended') {
-    logToUI(`initAudio: Resuming suspended AudioContext...`, 'info');
+  if (audioContext.state === 'suspended' || audioContext.state === 'interrupted') {
+    logToUI(`initAudio: Resuming suspended/interrupted AudioContext...`, 'info');
     audioContext.resume()
       .then(() => {
         logToUI(`initAudio: AudioContext resumed. State: ${audioContext.state}`, 'info');
@@ -686,12 +719,8 @@ function startPlayback() {
   
   // Track offset when finished
   sourceNode.onended = () => {
-    if (isPlaying && !isLooping) {
-      // Loop finished or playback stopped
-      const elapsed = audioContext.currentTime - startTime;
-      if (elapsed + pausedAt >= audioBuffer.duration) {
-        stopPlayback();
-      }
+    if (!isLooping) {
+      stopPlayback();
     }
   };
 
@@ -803,7 +832,10 @@ function pausePlayback() {
   if (pausedAt >= audioBuffer.duration) {
     pausedAt = 0;
   }
-  sourceNode.stop();
+  if (sourceNode) {
+    sourceNode.onended = null;
+    sourceNode.stop();
+  }
   isPlaying = false;
   updatePlayButtonUI(false);
   document.getElementById('status-text').innerText = 'PLAYBACK PAUSED';
@@ -811,10 +843,18 @@ function pausePlayback() {
   
   cancelAnimationFrame(animFrameId);
   resetLevelMeters();
+
+  // Suspend AudioContext to save battery when not playing
+  if (audioContext && audioContext.state === 'running') {
+    audioContext.suspend().then(() => {
+      logToUI("AudioContext suspended to save battery.", "info");
+    });
+  }
 }
 
 function stopPlayback() {
-  if (isPlaying) {
+  if (isPlaying && sourceNode) {
+    sourceNode.onended = null;
     sourceNode.stop();
   }
   pausedAt = 0;
@@ -825,6 +865,13 @@ function stopPlayback() {
   
   cancelAnimationFrame(animFrameId);
   resetLevelMeters();
+
+  // Suspend AudioContext to save battery when stopped
+  if (audioContext && audioContext.state === 'running') {
+    audioContext.suspend().then(() => {
+      logToUI("AudioContext suspended to save battery.", "info");
+    });
+  }
 }
 
 // ==========================================================================
@@ -919,11 +966,8 @@ function seekTo(seconds) {
     sourceNode.loop = isLooping;
     
     sourceNode.onended = () => {
-      if (isPlaying && !isLooping && !isSeeking) {
-        const elapsed = audioContext.currentTime - startTime;
-        if (elapsed + pausedAt >= audioBuffer.duration) {
-          stopPlayback();
-        }
+      if (!isLooping) {
+        stopPlayback();
       }
     };
     
@@ -2504,7 +2548,7 @@ function loadAudioFile(file) {
     
     // Create initial dummy audio context if not loaded
     if (!audioContext) {
-      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      audioContext = createAudioContext();
     }
     
     try {

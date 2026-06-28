@@ -204,6 +204,10 @@
         </div>
         <ul class="update-list">
           <li><span class="badge-change">改善</span><strong>エクスポートファイル名規則の変更</strong>：オフライン書き出し時のファイル出力名を、従来の接尾辞型（`[FileName]_mastered.wav`）から、ファイル整理や並び替え時に管理しやすい接頭辞型（`mastered_[FileName].wav`）に変更しました。</li>
+          <li><span class="badge-fix">修正</span><strong>システム割り込み時の再生復帰処理</strong>：スマホで他の音声アプリが再生された際、AudioContext がブラウザ（iOS Safari/Android Chrome）によって自動で中断/一時停止（interrupted/suspended）された場合でも、アプリに戻って「再生」ボタンを押した際に自動的に AudioContext をアクティブ化して正常に再生再開できるよう復帰ロジックを強化しました。</li>
+          <li><span class="badge-change">改善</span><strong>超省電力設計（バッテリー消費の削減）</strong>：再生が一時停止（Pause）または停止（Stop）したタイミングで自動的に AudioContext をサスペンド状態にし、デバイスのオーディオ用ハードウェアをスリープさせます。これにより、アプリを開いたまま放置した際などの余計なバッテリー・電力量の消費を完全に防止します。</li>
+          <li><span class="badge-add">追加</span><strong>オーディオ接続ルート切断（Bluetooth切断など）時の自動停止機能</strong>：Bluetoothイヤホン・スピーカーが切断されたり、ヘッドホンが抜かれたりした際のデバイス接続変更（`devicechange`）を検知し、自動的に再生を一時停止（Pause）する機能を搭載しました。予期せぬ端末スピーカーからの音漏れを防ぎ、車のエンジン停止時などのデバイス切断に連動して音楽をスマートに停止させます。</li>
+          <li><span class="badge-fix">修正</span><strong>再生自然終了時のUIステートリセットバグの解消</strong>：楽曲が最後まで再生し終わった際に、浮動小数点数（ミリ秒単位の再生精度）の微小な誤差によって終了判定がバイパスされ、再生マーク（一時停止アイコン）のままUIがフリーズしてしまうバグを解消しました。曲が終わった時点で確実にシステムが停止（SYSTEM READY / 停止状態）へ復帰します。</li>
         </ul>
       </div>
 
