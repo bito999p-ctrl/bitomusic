@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
-  <link rel="stylesheet" href="styles.css?v=3.21.2">
+  <link rel="stylesheet" href="styles.css?v=3.21.4">
   <link rel="icon" href="../favicon.png" type="image/png">
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-C8CLCFDVX2"></script>
@@ -275,6 +275,24 @@
             </div>
 
           </div>
+        </div>
+      </section>
+
+      <section class="panel control-panel">
+        <div class="panel-header">
+          <h2 class="panel-title"><i class="fa-solid fa-wind"></i> NOISE CLEANER <span class="help-icon" data-tooltip="音源内の定常的な雑音や低域ノイズを検知・除去するクリーナーセクションです。"><i class="fa-regular fa-circle-question"></i></span></h2>
+        </div>
+        <div class="control-row">
+          <span class="control-label">RUMBLE CUT <span class="help-icon" data-tooltip="低周波ノイズ（空調音、AC電源ハム音など）を物理的にカットします。"><i class="fa-regular fa-circle-question"></i></span></span>
+          <label class="switch">
+            <input type="checkbox" id="rumble-cut-enable">
+            <span class="slider-round"></span>
+          </label>
+        </div>
+        <div class="control-row">
+          <span class="control-label">HISS REDUCER <span class="help-icon" data-tooltip="高音域のヒスノイズ（シャー音）を、演奏音に合わせて動的にフィルタリングして低減します（0%で無効）。"><i class="fa-regular fa-circle-question"></i></span></span>
+          <input type="range" id="hiss-reducer-slider" min="0" max="100" step="1" value="0">
+          <span class="value-readout" id="hiss-reducer-val">OFF</span>
         </div>
       </section>
 
@@ -597,6 +615,6 @@
     </div>
   </div>
 
-  <script type="module" src="app.js?v=3.21.2"></script>
+  <script type="module" src="app.js?v=3.21.4"></script>
 </body>
 </html>

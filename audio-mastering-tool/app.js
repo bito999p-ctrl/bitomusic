@@ -79,6 +79,9 @@ let activeNodes = {
   ceilingGain: null,
   masteredOutGain: null,
   bypassGain: null,
+  rumbleFilter: null,
+  hissFilter: null,
+  hissEnvelopeGain: null,
   
   // Analysers
   inputSplitter: null,
@@ -134,7 +137,11 @@ const params = {
   sideHighPassFreq: 110,
   
   // Limiter/Maximizer
-  limiterBoost: 4.0 // +4.0 dB
+  limiterBoost: 4.0, // +4.0 dB
+  
+  // Noise Cleaner
+  rumbleCutEnabled: false,
+  hissReductionAmount: 0 // 0 to 100%
 };
 
 // Audio Spices State Configuration
@@ -379,6 +386,16 @@ function generateSoftClipCurve() {
   return curve;
 }
 
+function generateAbsoluteValCurve() {
+  const n_samples = 1024;
+  const curve = new Float32Array(n_samples);
+  for (let i = 0; i < n_samples; ++i) {
+    const x = (i * 2) / (n_samples - 1) - 1;
+    curve[i] = Math.abs(x);
+  }
+  return curve;
+}
+
 // ==========================================================================
 // SIGNAL CHAIN CREATION FUNCTION
 // ==========================================================================
@@ -388,6 +405,39 @@ function setupMasteringChain(context, sourceNode, parameters, customDestination 
   // 1. Input Gain Node
   const inputGainNode = context.createGain();
   inputGainNode.gain.setValueAtTime(Math.pow(10, parameters.inputGainDb / 20), context.currentTime);
+
+  // Rumble Filter (HPF)
+  const rumbleFilter = context.createBiquadFilter();
+  rumbleFilter.type = 'highpass';
+  rumbleFilter.frequency.setValueAtTime(parameters.rumbleCutEnabled ? 80.0 : 10.0, context.currentTime);
+  rumbleFilter.Q.setValueAtTime(0.707, context.currentTime);
+
+  // Dynamic Hiss Filter (VCF Lowpass)
+  const hissFilter = context.createBiquadFilter();
+  hissFilter.type = 'lowpass';
+  
+  const hissAmount = parameters.hissReductionAmount || 0;
+  const baseFreq = 20000.0 - (16000.0 * (hissAmount / 100.0));
+  hissFilter.frequency.setValueAtTime(baseFreq, context.currentTime);
+  hissFilter.Q.setValueAtTime(0.5, context.currentTime); // Gentle slope
+
+  // Sidechain Envelope Follower for Hiss Filter
+  const sidechainHpf = context.createBiquadFilter();
+  sidechainHpf.type = 'highpass';
+  sidechainHpf.frequency.setValueAtTime(4000.0, context.currentTime);
+  sidechainHpf.Q.setValueAtTime(0.707, context.currentTime);
+
+  const rectifier = context.createWaveShaper();
+  rectifier.curve = generateAbsoluteValCurve();
+
+  const envelopeSmoother = context.createBiquadFilter();
+  envelopeSmoother.type = 'lowpass';
+  envelopeSmoother.frequency.setValueAtTime(10.0, context.currentTime);
+  envelopeSmoother.Q.setValueAtTime(0.707, context.currentTime);
+
+  const hissEnvelopeGain = context.createGain();
+  const maxEnvGain = 35000.0 * (hissAmount / 100.0);
+  hissEnvelopeGain.gain.setValueAtTime(maxEnvGain, context.currentTime);
 
   // 2. Parallel Saturator Stage
   const satDryGain = context.createGain();
@@ -407,10 +457,22 @@ function setupMasteringChain(context, sourceNode, parameters, customDestination 
     satWetGain.gain.setValueAtTime(0.0, context.currentTime);
   }
 
-  // Hook up parallel saturator
-  inputGainNode.connect(satDryGain);
-  inputGainNode.connect(waveShaper);
+  // Hook up main signal path
+  inputGainNode.connect(rumbleFilter);
+  rumbleFilter.connect(hissFilter);
+  
+  hissFilter.connect(satDryGain);
+  hissFilter.connect(waveShaper);
   waveShaper.connect(satWetGain);
+
+  // Hook up sidechain envelope follower path (splits from rumbleFilter output)
+  rumbleFilter.connect(sidechainHpf);
+  sidechainHpf.connect(rectifier);
+  rectifier.connect(envelopeSmoother);
+  envelopeSmoother.connect(hissEnvelopeGain);
+  
+  // Connect envelope gain modulator to hissFilter frequency AudioParam
+  hissEnvelopeGain.connect(hissFilter.frequency);
 
   satDryGain.connect(satSumNode);
   satWetGain.connect(satSumNode);
@@ -440,53 +502,56 @@ function setupMasteringChain(context, sourceNode, parameters, customDestination 
   eqHigh.gain.setValueAtTime(parameters.eqHighGain, context.currentTime);
 
   // 8連 AI Corrective Notch Filters
+  const setupHissAmount = parameters.hissReductionAmount || 0;
+  const setupHissFactor = Math.max(0.4, 1.0 - (setupHissAmount / 100.0) * 0.65);
+
   const eqCorrective1 = context.createBiquadFilter();
   eqCorrective1.type = 'peaking';
   eqCorrective1.Q.setValueAtTime(12.0, context.currentTime); // 非常に鋭いQ値で高域の艶感を保護
   eqCorrective1.frequency.setValueAtTime(parameters.correctiveNotches[0].freq, context.currentTime);
-  eqCorrective1.gain.setValueAtTime(parameters.correctiveNotches[0].enabled ? parameters.correctiveNotches[0].gain : 0.0, context.currentTime);
+  eqCorrective1.gain.setValueAtTime(parameters.correctiveNotches[0].enabled ? (parameters.correctiveNotches[0].gain * setupHissFactor) : 0.0, context.currentTime);
 
   const eqCorrective2 = context.createBiquadFilter();
   eqCorrective2.type = 'peaking';
   eqCorrective2.Q.setValueAtTime(12.0, context.currentTime);
   eqCorrective2.frequency.setValueAtTime(parameters.correctiveNotches[1].freq, context.currentTime);
-  eqCorrective2.gain.setValueAtTime(parameters.correctiveNotches[1].enabled ? parameters.correctiveNotches[1].gain : 0.0, context.currentTime);
+  eqCorrective2.gain.setValueAtTime(parameters.correctiveNotches[1].enabled ? (parameters.correctiveNotches[1].gain * setupHissFactor) : 0.0, context.currentTime);
 
   const eqCorrective3 = context.createBiquadFilter();
   eqCorrective3.type = 'peaking';
   eqCorrective3.Q.setValueAtTime(12.0, context.currentTime);
   eqCorrective3.frequency.setValueAtTime(parameters.correctiveNotches[2].freq, context.currentTime);
-  eqCorrective3.gain.setValueAtTime(parameters.correctiveNotches[2].enabled ? parameters.correctiveNotches[2].gain : 0.0, context.currentTime);
+  eqCorrective3.gain.setValueAtTime(parameters.correctiveNotches[2].enabled ? (parameters.correctiveNotches[2].gain * setupHissFactor) : 0.0, context.currentTime);
 
   const eqCorrective4 = context.createBiquadFilter();
   eqCorrective4.type = 'peaking';
   eqCorrective4.Q.setValueAtTime(12.0, context.currentTime);
   eqCorrective4.frequency.setValueAtTime(parameters.correctiveNotches[3].freq, context.currentTime);
-  eqCorrective4.gain.setValueAtTime(parameters.correctiveNotches[3].enabled ? parameters.correctiveNotches[3].gain : 0.0, context.currentTime);
+  eqCorrective4.gain.setValueAtTime(parameters.correctiveNotches[3].enabled ? (parameters.correctiveNotches[3].gain * setupHissFactor) : 0.0, context.currentTime);
 
   const eqCorrective5 = context.createBiquadFilter();
   eqCorrective5.type = 'peaking';
   eqCorrective5.Q.setValueAtTime(12.0, context.currentTime);
   eqCorrective5.frequency.setValueAtTime(parameters.correctiveNotches[4].freq, context.currentTime);
-  eqCorrective5.gain.setValueAtTime(parameters.correctiveNotches[4].enabled ? parameters.correctiveNotches[4].gain : 0.0, context.currentTime);
+  eqCorrective5.gain.setValueAtTime(parameters.correctiveNotches[4].enabled ? (parameters.correctiveNotches[4].gain * setupHissFactor) : 0.0, context.currentTime);
 
   const eqCorrective6 = context.createBiquadFilter();
   eqCorrective6.type = 'peaking';
   eqCorrective6.Q.setValueAtTime(12.0, context.currentTime);
   eqCorrective6.frequency.setValueAtTime(parameters.correctiveNotches[5].freq, context.currentTime);
-  eqCorrective6.gain.setValueAtTime(parameters.correctiveNotches[5].enabled ? parameters.correctiveNotches[5].gain : 0.0, context.currentTime);
+  eqCorrective6.gain.setValueAtTime(parameters.correctiveNotches[5].enabled ? (parameters.correctiveNotches[5].gain * setupHissFactor) : 0.0, context.currentTime);
 
   const eqCorrective7 = context.createBiquadFilter();
   eqCorrective7.type = 'peaking';
   eqCorrective7.Q.setValueAtTime(12.0, context.currentTime);
   eqCorrective7.frequency.setValueAtTime(parameters.correctiveNotches[6].freq, context.currentTime);
-  eqCorrective7.gain.setValueAtTime(parameters.correctiveNotches[6].enabled ? parameters.correctiveNotches[6].gain : 0.0, context.currentTime);
+  eqCorrective7.gain.setValueAtTime(parameters.correctiveNotches[6].enabled ? (parameters.correctiveNotches[6].gain * setupHissFactor) : 0.0, context.currentTime);
 
   const eqCorrective8 = context.createBiquadFilter();
   eqCorrective8.type = 'peaking';
   eqCorrective8.Q.setValueAtTime(12.0, context.currentTime);
   eqCorrective8.frequency.setValueAtTime(parameters.correctiveNotches[7].freq, context.currentTime);
-  eqCorrective8.gain.setValueAtTime(parameters.correctiveNotches[7].enabled ? parameters.correctiveNotches[7].gain : 0.0, context.currentTime);
+  eqCorrective8.gain.setValueAtTime(parameters.correctiveNotches[7].enabled ? (parameters.correctiveNotches[7].gain * setupHissFactor) : 0.0, context.currentTime);
 
   satSumNode.connect(eqLow);
   eqLow.connect(kickPeaking);
@@ -613,6 +678,9 @@ function setupMasteringChain(context, sourceNode, parameters, customDestination 
   return {
     outputNode: ceilingGain,
     inputGain: inputGainNode,
+    rumbleFilter,
+    hissFilter,
+    hissEnvelopeGain,
     satDryGain,
     satWetGain,
     waveShaper,
@@ -784,6 +852,9 @@ function startPlayback() {
   activeNodes.limiter = chain.limiter;
   activeNodes.safetyClipper = chain.safetyClipper;
   activeNodes.ceilingGain = chain.ceilingGain;
+  activeNodes.rumbleFilter = chain.rumbleFilter;
+  activeNodes.hissFilter = chain.hissFilter;
+  activeNodes.hissEnvelopeGain = chain.hissEnvelopeGain;
 
   // 4. Hook up Input monitoring (right after inputGain)
   chain.inputGain.connect(inputSplitter);
@@ -1391,6 +1462,21 @@ function updateCeilingNode() {
   }
 }
 
+function updateNoiseCutNodes() {
+  invalidatePeakCache();
+  if (activeNodes.rumbleFilter && activeNodes.hissFilter && activeNodes.hissEnvelopeGain) {
+    const targetRumbleFreq = params.rumbleCutEnabled ? 80.0 : 10.0;
+    activeNodes.rumbleFilter.frequency.setTargetAtTime(targetRumbleFreq, audioContext.currentTime, 0.02);
+    
+    const hissAmount = params.hissReductionAmount || 0;
+    const baseFreq = 20000.0 - (16000.0 * (hissAmount / 100.0));
+    activeNodes.hissFilter.frequency.setTargetAtTime(baseFreq, audioContext.currentTime, 0.02);
+    
+    const maxEnvGain = 35000.0 * (hissAmount / 100.0);
+    activeNodes.hissEnvelopeGain.gain.setTargetAtTime(maxEnvGain, audioContext.currentTime, 0.02);
+  }
+}
+
 function updateSaturatorNode() {
   invalidatePeakCache();
   if (activeNodes.waveShaper) {
@@ -1431,12 +1517,19 @@ function updateEqNodes() {
 
 function updateCorrectiveEqNodes() {
   invalidatePeakCache();
+  
+  // Calculate dynamic scaling factor to prevent double processing in sibilance range
+  const hissAmount = params.hissReductionAmount || 0;
+  const hissReductionFactor = Math.max(0.4, 1.0 - (hissAmount / 100.0) * 0.65); // Scale notches down up to 65% when hiss reduction is 100%
+  
   for (let i = 0; i < 8; i++) {
     const nodeName = `eqCorrective${i + 1}`;
     if (activeNodes[nodeName]) {
       const n = params.correctiveNotches[i];
       activeNodes[nodeName].frequency.setTargetAtTime(n.freq, audioContext.currentTime, 0.01);
-      activeNodes[nodeName].gain.setTargetAtTime(n.enabled ? n.gain : 0.0, audioContext.currentTime, 0.01);
+      
+      const scaledGain = n.enabled ? (n.gain * hissReductionFactor) : 0.0;
+      activeNodes[nodeName].gain.setTargetAtTime(scaledGain, audioContext.currentTime, 0.01);
     }
   }
 }
@@ -1566,6 +1659,9 @@ function analyzeAudioResonances(buffer) {
     slicePoints.push(startOffset + Math.floor(range * (i / (numSlices - 1))));
   }
   
+  const sliceRMSList = [];
+  const sliceSpectrums = [];
+  
   let totalEnergyL2 = 0;
   let totalEnergyR2 = 0;
   let totalDotProduct = 0;
@@ -1627,10 +1723,14 @@ function analyzeAudioResonances(buffer) {
     fft(re, im);
     
     // スペクトラム強度の算出と累積
+    const spec = new Float32Array(fftSize / 2);
     for (let j = 0; j < fftSize / 2; j++) {
       const mag = Math.sqrt(re[j] * re[j] + im[j] * im[j]);
       avgSpectrum[j] += mag / numSlices;
+      spec[j] = mag;
     }
+    sliceSpectrums.push(spec);
+    sliceRMSList.push(sliceRMS);
   }
 
   // クレストファクター (dB)
@@ -1669,6 +1769,48 @@ function analyzeAudioResonances(buffer) {
   // 実際のエネルギー比率
   const actualLowMidRatio = lowEnergy / (midEnergy + 1e-6);
   const actualHighMidRatio = highEnergy / (midEnergy + 1e-6);
+
+  // Noise Floor Estimation in the quietest segment
+  let minRmsIdx = 0;
+  let minRmsVal = 1.0;
+  for (let i = 0; i < sliceRMSList.length; i++) {
+    if (sliceRMSList[i] < minRmsVal) {
+      minRmsVal = sliceRMSList[i];
+      minRmsIdx = i;
+    }
+  }
+
+  // Hiss estimation (amplitude average between 6kHz and 15kHz in the quietest block)
+  const binHissStart = Math.floor((6000 * fftSize) / sampleRate);
+  const binHissEnd = Math.floor((15000 * fftSize) / sampleRate);
+  let hissSum = 0;
+  for (let j = binHissStart; j <= binHissEnd; j++) {
+    hissSum += sliceSpectrums[minRmsIdx][j];
+  }
+  const hissNoiseFloor = hissSum / (binHissEnd - binHissStart + 1);
+  const hissNoiseFloorDb = 20 * Math.log10(hissNoiseFloor + 1e-6);
+
+  // Rumble estimation (amplitude average between 20Hz and 60Hz in the quietest block)
+  const binRumbleStart = Math.floor((20 * fftSize) / sampleRate);
+  const binRumbleEnd = Math.floor((60 * fftSize) / sampleRate);
+  let rumbleSum = 0;
+  for (let j = binRumbleStart; j <= binRumbleEnd; j++) {
+    rumbleSum += sliceSpectrums[minRmsIdx][j];
+  }
+  const rumbleNoiseFloor = rumbleSum / (binRumbleEnd - binRumbleStart + 1);
+  const rumbleNoiseFloorDb = 20 * Math.log10(rumbleNoiseFloor + 1e-6);
+
+  // Suggested values
+  let sugRumbleCut = false;
+  if (rumbleNoiseFloorDb > -48.0) {
+    sugRumbleCut = true;
+  }
+
+  let sugHissAmount = 0;
+  if (hissNoiseFloorDb > -56.0) {
+    // scale from 0% at -56dB to 80% at -36dB
+    sugHissAmount = Math.round(Math.max(0, Math.min(80, (hissNoiseFloorDb + 56.0) * 4.0)));
+  }
 
   // 3. 耳障りな高音域（シャリシャリした sibilance 帯域：5kHz 〜 12kHz）のマルチピーク走査
   const sibilanceMinBin = Math.floor((5000 * fftSize) / sampleRate);
@@ -1920,7 +2062,9 @@ function analyzeAudioResonances(buffer) {
       compRelease: basePreset.compRelease,
       stereoWidth: stereoWidth,
       sideHighPassFreq: basePreset.sideHighPassFreq || 110,
-      limiterBoost: limiterBoost
+      limiterBoost: limiterBoost,
+      rumbleCutEnabled: sugRumbleCut,
+      hissReductionAmount: sugHissAmount
     }
   };
 }
@@ -1955,6 +2099,9 @@ function loadGenrePreset(genreKey) {
   
   params.stereoWidth = p.stereoWidth;
   params.sideHighPassFreq = p.sideHighPassFreq || 110;
+  
+  params.rumbleCutEnabled = false;
+  params.hissReductionAmount = 0;
 
   // Preserve or set limiter boost based on loudness target selection
   const loudnessSelect = document.getElementById('loudness-select');
@@ -1985,6 +2132,7 @@ function loadGenrePreset(genreKey) {
   
   // 3. Update Audio DSP
   updateInputGainNode();
+  updateNoiseCutNodes();
   updateSaturatorNode();
   updateEqNodes();
   updateCompressorNode();
@@ -2255,6 +2403,20 @@ function updateGuiControls() {
       }
     }
   }
+
+  // Noise Cleaner
+  const rumbleCutEl = document.getElementById('rumble-cut-enable');
+  if (rumbleCutEl) {
+    rumbleCutEl.checked = params.rumbleCutEnabled;
+  }
+  const hissSliderEl = document.getElementById('hiss-reducer-slider');
+  if (hissSliderEl) {
+    hissSliderEl.value = params.hissReductionAmount;
+  }
+  const hissValEl = document.getElementById('hiss-reducer-val');
+  if (hissValEl) {
+    hissValEl.innerText = params.hissReductionAmount > 0 ? `${params.hissReductionAmount}%` : 'OFF';
+  }
 }
 
 function updatePlayButtonUI(playing) {
@@ -2284,6 +2446,21 @@ function registerGuiEvents() {
     params.ceiling = parseFloat(e.target.value);
     document.getElementById('ceiling-val').innerText = `${params.ceiling.toFixed(1)} dB`;
     updateCeilingNode();
+  });
+
+  // Noise Cleaner
+  document.getElementById('rumble-cut-enable').addEventListener('change', (e) => {
+    params.rumbleCutEnabled = e.target.checked;
+    selectCustomPreset();
+    updateNoiseCutNodes();
+  });
+
+  document.getElementById('hiss-reducer-slider').addEventListener('input', (e) => {
+    params.hissReductionAmount = parseInt(e.target.value);
+    document.getElementById('hiss-reducer-val').innerText = params.hissReductionAmount > 0 ? `${params.hissReductionAmount}%` : 'OFF';
+    selectCustomPreset();
+    updateNoiseCutNodes();
+    updateCorrectiveEqNodes();
   });
 
   // Saturator
@@ -2660,6 +2837,10 @@ function resetMasterSettings() {
     if (el) el.checked = false;
   });
   
+  // Reset Noise Cleaner
+  params.rumbleCutEnabled = false;
+  params.hissReductionAmount = 0;
+  
   // 2. Reset sibilance corrective notches
   params.correctiveNotches.forEach(n => {
     n.enabled = false;
@@ -2730,12 +2911,15 @@ function runAiAnalysis(showLog = true) {
       params.stereoWidth = sug.stereoWidth;
       params.sideHighPassFreq = sug.sideHighPassFreq || 110;
       params.limiterBoost = sug.limiterBoost;
+      params.rumbleCutEnabled = sug.rumbleCutEnabled;
+      params.hissReductionAmount = sug.hissReductionAmount;
       
       // UIスライダーコントロールの同期
       updateGuiControls();
       
       // 現在再生中の音声ノードにパラメーターを反映
       updateInputGainNode();
+      updateNoiseCutNodes();
       updateSaturatorNode();
       updateEqNodes();
       updateCompressorNode();
@@ -2798,9 +2982,13 @@ function runAiAnalysis(showLog = true) {
           <span>STEREO WIDTH:</span>
           <span style="color: #00f2fe; font-weight: 600;">${Math.round(sug.stereoWidth * 100)}%</span>
         </div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 2px; padding: 2px 4px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 2px; padding: 2px 4px; border-bottom: 1px solid rgba(255,255,255,0.03);">
           <span>MAXIMIZER LIMITER:</span>
           <span style="color: #00f2fe; font-weight: 600;">Boost: +${sug.limiterBoost.toFixed(1)} dB</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 2px; padding: 2px 4px;">
+          <span>NOISE CLEANER:</span>
+          <span style="color: #00f2fe; font-weight: 600;">Rumble: ${sug.rumbleCutEnabled ? 'CUT' : 'OFF'} / Hiss: ${sug.hissReductionAmount > 0 ? sug.hissReductionAmount + '%' : 'OFF'}</span>
         </div>
         <div style="text-align: right; font-size: 0.58rem; color: var(--text-muted); margin-top: -2px; padding: 0 4px 4px 0;">
           (Base: ${result.baseLoudnessDesc})

@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="styles.css?v=3.21.0">
+  <link rel="stylesheet" href="styles.css?v=3.21.4">
   <style>
     .doc-container {
       max-width: 900px;
@@ -208,6 +208,7 @@
           <li><span class="badge-change">改善</span><strong>超省電力設計（バッテリー消費の削減）</strong>：再生が一時停止（Pause）または停止（Stop）したタイミングで自動的に AudioContext をサスペンド状態にし、デバイスのオーディオ用ハードウェアをスリープさせます。これにより、アプリを開いたまま放置した際などの余計なバッテリー・電力量の消費を完全に防止します。</li>
           <li><span class="badge-add">追加</span><strong>オーディオ接続ルート切断（Bluetooth切断など）時の自動停止機能</strong>：Bluetoothイヤホン・スピーカーが切断されたり、ヘッドホンが抜かれたりした際のデバイス接続変更（`devicechange`）を検知し、自動的に再生を一時停止（Pause）する機能を搭載しました。予期せぬ端末スピーカーからの音漏れを防ぎ、車のエンジン停止時などのデバイス切断に連動して音楽をスマートに停止させます。</li>
           <li><span class="badge-fix">修正</span><strong>再生自然終了時のUIステートリセットバグの解消</strong>：楽曲が最後まで再生し終わった際に、浮動小数点数（ミリ秒単位の再生精度）の微小な誤差によって終了判定がバイパスされ、再生マーク（一時停止アイコン）のままUIがフリーズしてしまうバグを解消しました。曲が終わった時点で確実にシステムが停止（SYSTEM READY / 停止状態）へ復帰します。</li>
+          <li><span class="badge-add">追加</span><strong>専用コントロール「ノイズクリーナー（NOISE CLEANER）」の搭載</strong>：マスタリングコンソールに新セクションとして「NOISE CLEANER」を追加しました。低周波ノイズを物理遮断する「Rumble Cut」スイッチと、プロ用アナログ機器のように演奏レベルに連動して動的に動作する高性能VCF「Hiss Reducer」スライダー（0%-100%）を備え、原音のクリアさを極限まで保ったまま雑音を外科的に除去します。AI自動マスタリング実行時は、音源の無音部分のノイズフロア測定を科学的に行い、RumbleとHissの適用量を自動判定します。</li>
         </ul>
       </div>
 
