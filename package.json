@@ -1,0 +1,12 @@
+{
+  "name": "suno-master-player",
+  "version": "1.0.0",
+  "description": "Suno Music Player with AetherMaster Audio Enhancer",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
