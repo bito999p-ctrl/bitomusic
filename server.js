@@ -4,8 +4,8 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Serve static client files from the public directory
-app.use(express.static(path.join(__dirname, 'public')));
+// Serve static client files from the AETHER_PLAYER directory
+app.use(express.static(path.join(__dirname, 'AETHER_PLAYER')));
 
 /**
  * Route: GET /api/suno
