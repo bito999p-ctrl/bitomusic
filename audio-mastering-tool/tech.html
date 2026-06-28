@@ -303,6 +303,18 @@
     </section>
 
     <section>
+      <h2 class="section-title"><i class="fa-solid fa-shield-halved"></i> ノイズリダクション相互補正ロジック（高域オーバープロセス防止）</h2>
+      <p>HISS REDUCER（動的VCF）と 8連 AI Corrective EQ（ノッチEQ）が同時に高音域（5kHz〜15kHz）に作用した際、過剰な減衰によって原音の艶や明瞭度が失われる「オーバープロセス」を防止するため、以下の補正関係式を用いてノッチフィルターの減衰量（Gain）をリアルタイムに自動調整しています。</p>
+      
+      <div class="code-block">
+        // 相互補正後のノッチEQゲイン（減衰量）の算出式
+        ScaledNotchGain = OriginalNotchGain * (1.0 - (HissReductionAmount / 100) * 0.65)
+      </div>
+      
+      <p>これにより、HISS REDUCER が有効な場合、ノッチEQのカット深さは自動的に最大で <strong>35%（0.35倍）</strong> まで減衰（緩和）され、高音の艶やかさと自然なアンビエンス（空気感）が完璧に保護されます。</p>
+    </section>
+
+    <section>
       <h2 class="section-title"><i class="fa-solid fa-code"></i> テープ・チューブサチュレーションの数式シミュレーション</h2>
       <p>サチュレーターで使用されている `WaveShaper` 用の伝達関数（カーブ計算）は、以下の代数式を用いて対称・非対称の非線形歪みをリアルタイムに生成しています。</p>
       
