@@ -42,6 +42,25 @@
           <button class="quick-link-btn" data-url="@bito999">@bito999 (アーティスト)</button>
           <button class="quick-link-btn" data-url="20aa266e-cde7-4115-9795-30e75c164d01">歪み歪み (プレイリスト)</button>
         </div>
+
+        <!-- Recent History Section -->
+        <div id="history-container" class="history-container hidden">
+          <h3 class="history-title">最近再生した履歴</h3>
+          <div class="history-grid">
+            <div class="history-col">
+              <h4>👤 ユーザー</h4>
+              <div id="history-users-list" class="history-list"></div>
+            </div>
+            <div class="history-col">
+              <h4>💿 プレイリスト</h4>
+              <div id="history-playlists-list" class="history-list"></div>
+            </div>
+            <div class="history-col">
+              <h4>🎵 シングル曲</h4>
+              <div id="history-tracks-list" class="history-list"></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -55,6 +74,30 @@
           <span class="logo-subtitle">Active</span>
         </div>
         <div class="header-actions">
+          <!-- History Dropdown Trigger -->
+          <div class="history-dropdown-wrapper">
+            <button id="history-toggle-btn" class="btn btn-secondary">
+              <span>🕒 履歴</span>
+            </button>
+            <div id="header-history-dropdown" class="header-history-dropdown card hidden">
+              <h3 class="dropdown-title">最近再生した履歴</h3>
+              <div class="dropdown-history-grid">
+                <div class="dropdown-history-col">
+                  <h4>👤 ユーザー</h4>
+                  <div id="dropdown-history-users-list" class="dropdown-history-list"></div>
+                </div>
+                <div class="dropdown-history-col">
+                  <h4>💿 プレイリスト</h4>
+                  <div id="dropdown-history-playlists-list" class="dropdown-history-list"></div>
+                </div>
+                <div class="dropdown-history-col">
+                  <h4>🎵 曲</h4>
+                  <div id="dropdown-history-tracks-list" class="dropdown-history-list"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <button id="back-to-landing-btn" class="btn btn-secondary">
             <span>🔍 別のURLを読み込む</span>
           </button>
@@ -110,7 +153,12 @@
 
             <!-- Track Metadata -->
             <div class="track-details">
-              <h2 id="track-title">曲を選択してください</h2>
+              <div class="track-title-row">
+                <h2 id="track-title">曲を選択してください</h2>
+                <a id="suno-link" href="#" target="_blank" class="suno-external-link hidden" title="Sunoで開く">
+                  <span class="suno-link-icon">↗</span> Suno
+                </a>
+              </div>
               <p id="track-artist">Suno Artist</p>
             </div>
 

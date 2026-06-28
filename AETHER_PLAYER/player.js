@@ -12,6 +12,11 @@ let isPlaying = false;
 let isShuffle = false;
 let repeatMode = 'all'; // 'all', 'one', 'none'
 let loadedUrl = '';
+let userProfileData = null;
+
+// Pre-fetching Cache
+const analysisCache = new Map();
+let preFetchingUrl = '';
 
 // Background Analysis Coordination
 let currentAnalysisId = 0;
@@ -26,6 +31,7 @@ const landingBtnText = document.getElementById('landing-btn-text');
 const landingBtnLoader = document.getElementById('landing-btn-loader');
 const backToLandingBtn = document.getElementById('back-to-landing-btn');
 const shareBtn = document.getElementById('share-btn');
+const audioPlayer = document.getElementById('audio-player');
 
 // Sidebar Info
 const sourceCover = document.getElementById('source-cover');
@@ -81,6 +87,9 @@ document.addEventListener('DOMContentLoaded', () => {
   setupEventListeners();
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
+  
+  // Render recent history on startup
+  renderHistoryUI();
   
   // Check URL query parameters for auto-import
   checkUrlParams();
@@ -139,6 +148,23 @@ function setupEventListeners() {
   backToLandingBtn.addEventListener('click', showLandingView);
   shareBtn.addEventListener('click', copyShareLink);
 
+  // History Dropdown Toggle
+  const historyToggleBtn = document.getElementById('history-toggle-btn');
+  const headerHistoryDropdown = document.getElementById('header-history-dropdown');
+  if (historyToggleBtn && headerHistoryDropdown) {
+    historyToggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      headerHistoryDropdown.classList.toggle('hidden');
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!headerHistoryDropdown.contains(e.target) && e.target !== historyToggleBtn) {
+        headerHistoryDropdown.classList.add('hidden');
+      }
+    });
+  }
+
   // Player controls
   playPauseBtn.addEventListener('click', togglePlay);
   prevBtn.addEventListener('click', playPrev);
@@ -177,7 +203,7 @@ function setupEventListeners() {
 }
 
 // --- Import Suno Data & Screen Navigation ---
-async function importSunoUrl(urlStr) {
+async function importSunoUrl(urlStr, isSubRequest = false) {
   if (!urlStr.trim()) return;
 
   // Show loading state on landing button
@@ -192,6 +218,15 @@ async function importSunoUrl(urlStr) {
     if (data.error) {
       alert(`インポート失敗: ${data.error}`);
       return;
+    }
+
+    // Save profile data only if it is the main (parent) request
+    if (!isSubRequest) {
+      if (data.type === 'profile') {
+        userProfileData = data;
+      } else {
+        userProfileData = null;
+      }
     }
 
     tracks = data.tracks || [];
@@ -218,11 +253,19 @@ async function importSunoUrl(urlStr) {
       playlistsSection.classList.remove('hidden');
       renderPlaylistsList(data.playlists);
     } else {
-      playlistsSection.classList.add('hidden');
+      // If loading a playlist as a sub-request, keep the playlists section visible so we can return/switch!
+      if (!isSubRequest) {
+        playlistsSection.classList.add('hidden');
+      }
     }
 
     // Save imported URL state
     loadedUrl = urlStr.trim();
+
+    // Add to recent history (skip sub requests)
+    if (!isSubRequest) {
+      saveToHistory(data.type, loadedUrl, data.name || (data.type === 'profile' ? loadedUrl : 'Suno Item'));
+    }
 
     // Update query parameters in the address bar dynamically
     updateAddressBar(loadedUrl);
@@ -263,12 +306,27 @@ function showLandingView() {
     activeAbortController.abort();
   }
 
+  // Clear cache & prefetch values
+  analysisCache.clear();
+  preFetchingUrl = '';
+  userProfileData = null;
+
+  // Hide Suno link
+  const sunoLink = document.getElementById('suno-link');
+  if (sunoLink) {
+    sunoLink.classList.add('hidden');
+    sunoLink.href = '#';
+  }
+
   // Clear query parameters from browser URL
   window.history.replaceState({}, document.title, window.location.origin + window.location.pathname);
 
   // Transition Screens: Hide player, Show landing
   playerWorkspace.classList.add('hidden');
   landingScreen.classList.remove('hidden');
+
+  // Refresh history UI
+  renderHistoryUI();
 
   // Clear landing input
   landingInput.value = '';
@@ -277,6 +335,18 @@ function showLandingView() {
 // --- Render Sidebar Items ---
 function renderTracksList() {
   tracksList.innerHTML = '';
+
+  // If a sub-playlist is loaded but we have the parent profile in memory, render a return button!
+  if (userProfileData && loadedUrl && !loadedUrl.includes('/@') && !loadedUrl.includes('%40')) {
+    const backBtn = document.createElement('div');
+    backBtn.className = 'back-to-profile-item';
+    backBtn.innerHTML = `
+      <span class="back-icon">⬅</span>
+      <span class="back-text">${escapeHtml(userProfileData.name)} の公開曲に戻る</span>
+    `;
+    backBtn.addEventListener('click', restoreProfileView);
+    tracksList.appendChild(backBtn);
+  }
   
   if (tracks.length === 0) {
     tracksList.innerHTML = '<div class="empty-list">曲が読み込まれていません</div>';
@@ -319,14 +389,39 @@ function renderPlaylistsList(playlists) {
       <div class="playlist-name">${escapeHtml(pl.name)}</div>
     `;
     item.addEventListener('click', () => {
-      importSunoUrl(pl.url);
+      importSunoUrl(pl.url, true); // Pass true to preserve userProfileData!
     });
     playlistsList.appendChild(item);
   });
 }
 
-// --- Track Selection ---
-function selectTrack(idx) {
+function restoreProfileView() {
+  if (!userProfileData) return;
+
+  tracks = userProfileData.tracks;
+  currentTrackIndex = -1;
+  loadedUrl = userProfileData.url;
+
+  // Restore sidebar headers
+  sourceName.textContent = userProfileData.name;
+  sourceType.textContent = 'Artist Profile';
+  
+  if (tracks.length > 0 && tracks[0].image_url) {
+    sourceCover.src = tracks[0].image_url;
+  }
+
+  // Show playlists section again
+  playlistsSection.classList.remove('hidden');
+
+  // Render tracks
+  renderTracksList();
+
+  // Sync address bar back to profile URL
+  updateAddressBar(loadedUrl);
+}
+
+// --- Track Selection & Master Sync ---
+async function selectTrack(idx) {
   if (idx < 0 || idx >= tracks.length) return;
 
   initAudio();
@@ -348,6 +443,13 @@ function selectTrack(idx) {
   trackTitle.textContent = track.title;
   trackArtist.textContent = track.artist_name;
   trackArtwork.src = track.image_url;
+
+  // Set Suno external link
+  const sunoLink = document.getElementById('suno-link');
+  if (sunoLink) {
+    sunoLink.href = `https://suno.com/song/${track.id}`;
+    sunoLink.classList.remove('hidden');
+  }
   
   // Set Lyrics
   if (track.description) {
@@ -356,11 +458,96 @@ function selectTrack(idx) {
     lyricsText.innerHTML = '<div class="empty-list">インスト曲または歌詞が見つかりません。</div>';
   }
 
-  // Load stream
-  audioPlayer.src = track.audio_url;
+  // Stop current player first, ensuring no overlap
+  audioPlayer.pause();
+  audioPlayer.src = '';
+  isPlaying = false;
+  playPauseBtn.innerHTML = '<span class="icon-play">▶</span>';
+  artworkWrapper.classList.remove('playing');
+
+  // Trigger analysis or use cache
+  currentAnalysisId++;
+  const analysisId = currentAnalysisId;
+
+  const cachedResult = analysisCache.get(track.audio_url);
+  if (cachedResult) {
+    console.log(`[AI Auto] Using pre-analyzed cache for: ${track.title}`);
+    if (enhancer) {
+      enhancer.setMasteringParams(cachedResult.suggestedParams, cachedResult.notches);
+    }
+    updateAiHudUI(cachedResult);
+    updateAiStatus('active');
+    
+    // Play immediately with correct parameters applied!
+    startPlayback(track.audio_url);
+  } else {
+    // Show Analyzing loader UI in player, lock controls
+    updateAiStatus('analyzing');
+    playPauseBtn.disabled = true;
+    playPauseBtn.style.opacity = '0.5';
+    trackTitle.textContent = `${track.title} (AI分析中...)`;
+
+    try {
+      if (activeAbortController) {
+        activeAbortController.abort();
+      }
+      activeAbortController = new AbortController();
+
+      console.log(`[AI Auto] Fetching audio for analysis: ${track.audio_url}`);
+      const response = await fetch(track.audio_url, { signal: activeAbortController.signal });
+      if (!response.ok) throw new Error(`Fetch failed with status ${response.status}`);
+      
+      const arrayBuffer = await response.arrayBuffer();
+      if (analysisId !== currentAnalysisId) return;
+
+      console.log('[AI Auto] Decoding audio channel buffers...');
+      const decodedBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+      if (analysisId !== currentAnalysisId) return;
+
+      console.log('[AI Auto] Running AetherMaster spectral resonance & dynamics analysis...');
+      const result = analyzeAudioResonances(decodedBuffer);
+      if (analysisId !== currentAnalysisId) return;
+
+      // Cache the result for instant replay/gapless next transitions
+      analysisCache.set(track.audio_url, result);
+
+      // Apply the optimal dynamic mastering parameters to the Web Audio engine
+      if (enhancer) {
+        enhancer.setMasteringParams(result.suggestedParams, result.notches);
+      }
+
+      // Update AI HUD UI
+      updateAiHudUI(result);
+      updateAiStatus('active');
+
+      // Enable controls & Start Playback with mastered audio!
+      playPauseBtn.disabled = false;
+      playPauseBtn.style.opacity = '1';
+      trackTitle.textContent = track.title;
+      startPlayback(track.audio_url);
+
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        console.log('[AI Auto] Analysis aborted (track changed).');
+        return;
+      }
+      console.error('[AI Auto] AI Analysis failed:', err);
+      updateAiStatus('failed');
+
+      // Enable controls & Start default playback
+      playPauseBtn.disabled = false;
+      playPauseBtn.style.opacity = '1';
+      trackTitle.textContent = track.title;
+      applyDefaultAutoParams();
+      startPlayback(track.audio_url);
+    }
+  }
+}
+
+// --- Start Track Playback ---
+function startPlayback(url) {
+  audioPlayer.src = url;
   audioPlayer.volume = volumeSlider.value / 100;
-  
-  // Auto-play
   isPlaying = true;
   audioPlayer.play()
     .then(() => {
@@ -373,58 +560,56 @@ function selectTrack(idx) {
       playPauseBtn.innerHTML = '<span class="icon-play">▶</span>';
       artworkWrapper.classList.remove('playing');
     });
-
-  // Trigger background AI Auto Analysis
-  currentAnalysisId++;
-  analyzeAndApplyAutoMastering(track, currentAnalysisId);
 }
 
-// --- AI Auto Mastering Analysis ---
-async function analyzeAndApplyAutoMastering(track, analysisId) {
-  updateAiStatus('analyzing');
-  applyDefaultAutoParams(); // Load defaults immediately so audio plays enhanced
-
+// --- Pre-fetch & Pre-analyze Background workers ---
+async function runPreAnalysis(track) {
+  const url = track.audio_url;
   try {
-    if (activeAbortController) {
-      activeAbortController.abort();
-    }
-    activeAbortController = new AbortController();
-
-    console.log(`[AI Auto] Fetching audio file for analysis: ${track.audio_url}`);
-    const response = await fetch(track.audio_url, { signal: activeAbortController.signal });
-    if (!response.ok) throw new Error(`Fetch failed with status ${response.status}`);
-    
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
     const arrayBuffer = await response.arrayBuffer();
-
-    if (analysisId !== currentAnalysisId) return;
-
-    console.log('[AI Auto] Decoding audio channel buffers...');
     const decodedBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-
-    if (analysisId !== currentAnalysisId) return;
-
-    console.log('[AI Auto] Running AetherMaster spectral resonance & dynamics analysis...');
     const result = analyzeAudioResonances(decodedBuffer);
-    console.log('[AI Auto] Analysis complete. Parameters calculated:', result);
-
-    if (analysisId !== currentAnalysisId) return;
-
-    // Apply the optimal dynamic mastering parameters to the Web Audio engine
-    if (enhancer) {
-      enhancer.setMasteringParams(result.suggestedParams, result.notches);
-    }
-
-    // Update AI HUD UI
-    updateAiHudUI(result);
-    updateAiStatus('active');
-
+    
+    analysisCache.set(url, result);
+    console.log(`[Pre-Fetch] Pre-analysis complete and cached for: ${track.title}`);
   } catch (err) {
-    if (err.name === 'AbortError') {
-      console.log('[AI Auto] Analysis aborted (track changed).');
-      return;
+    console.warn(`[Pre-Fetch] Failed to pre-analyze ${track.title}:`, err.message);
+  } finally {
+    if (preFetchingUrl === url) {
+      preFetchingUrl = '';
     }
-    console.error('[AI Auto] AI Analysis failed:', err);
-    updateAiStatus('failed');
+  }
+}
+
+function checkAndPreFetchNextTrack() {
+  if (tracks.length <= 1) return;
+  if (!audioPlayer.duration || audioPlayer.paused) return;
+
+  const timeLeft = audioPlayer.duration - audioPlayer.currentTime;
+  // Trigger pre-fetch when less than 20 seconds remain or progress is > 85%
+  if (timeLeft < 20 || (audioPlayer.currentTime / audioPlayer.duration) > 0.85) {
+    let nextIdx = -1;
+    if (isShuffle) {
+      nextIdx = Math.floor(Math.random() * tracks.length);
+      if (nextIdx === currentTrackIndex) {
+        nextIdx = (nextIdx + 1) % tracks.length;
+      }
+    } else {
+      nextIdx = (currentTrackIndex + 1) % tracks.length;
+    }
+
+    if (nextIdx !== -1 && nextIdx < tracks.length) {
+      const nextTrack = tracks[nextIdx];
+      const url = nextTrack.audio_url;
+
+      if (!analysisCache.has(url) && preFetchingUrl !== url) {
+        preFetchingUrl = url;
+        console.log(`[Pre-Fetch] Starting background pre-analysis for: ${nextTrack.title}`);
+        runPreAnalysis(nextTrack);
+      }
+    }
   }
 }
 
@@ -618,6 +803,9 @@ function updateProgressBar() {
     const percentage = (audioPlayer.currentTime / audioPlayer.duration) * 100;
     progressBar.value = percentage;
     currentTimeEl.textContent = formatTime(audioPlayer.currentTime);
+
+    // Check and trigger pre-fetching in the background
+    checkAndPreFetchNextTrack();
   }
 }
 
@@ -681,17 +869,17 @@ function drawVisualizer() {
     const average = sum / bufferLength;
     const pulseFactor = 1.0 + (average / 255.0) * 0.15;
 
-    // Glowing circle
+    // Glowing circle (Rose Gold)
     canvasCtx.beginPath();
     canvasCtx.arc(centerX, centerY, baseRadius * pulseFactor, 0, 2 * Math.PI);
-    canvasCtx.strokeStyle = 'rgba(0, 242, 254, 0.4)';
+    canvasCtx.strokeStyle = 'rgba(232, 165, 148, 0.35)';
     canvasCtx.lineWidth = 4;
     canvasCtx.shadowBlur = 15;
-    canvasCtx.shadowColor = '#00f2fe';
+    canvasCtx.shadowColor = '#e8a598';
     canvasCtx.stroke();
     canvasCtx.shadowBlur = 0;
 
-    // Spikes
+    // Spikes (Rose Gold to Champagne Gold gradient)
     const spikeCount = 80;
     const step = (2 * Math.PI) / spikeCount;
     
@@ -707,8 +895,8 @@ function drawVisualizer() {
       const endY = centerY + Math.sin(angle) * (baseRadius * pulseFactor + spikeLength);
       
       const grad = canvasCtx.createLinearGradient(startX, startY, endX, endY);
-      grad.addColorStop(0, '#00f2fe');
-      grad.addColorStop(1, '#a100ff');
+      grad.addColorStop(0, '#e8a598');
+      grad.addColorStop(1, '#e6c594');
 
       canvasCtx.beginPath();
       canvasCtx.moveTo(startX, startY);
@@ -727,8 +915,8 @@ function drawVisualizer() {
       const barHeight = (val / 255.0) * (height / 2);
 
       const grad = canvasCtx.createLinearGradient(x, height, x, height - barHeight);
-      grad.addColorStop(0, '#00f2fe');
-      grad.addColorStop(1, 'rgba(161, 0, 255, 0.8)');
+      grad.addColorStop(0, '#e8a598');
+      grad.addColorStop(1, 'rgba(230, 197, 148, 0.7)');
 
       canvasCtx.fillStyle = grad;
       canvasCtx.fillRect(x, height - barHeight, barWidth - 2, barHeight);
@@ -738,9 +926,9 @@ function drawVisualizer() {
 
   } else if (mode === 'oscilloscope') {
     canvasCtx.lineWidth = 3;
-    canvasCtx.strokeStyle = '#00f2fe';
+    canvasCtx.strokeStyle = '#e8a598';
     canvasCtx.shadowBlur = 10;
-    canvasCtx.shadowColor = '#00f2fe';
+    canvasCtx.shadowColor = '#e8a598';
     canvasCtx.beginPath();
 
     const sliceWidth = width / bufferLength;
@@ -765,14 +953,62 @@ function drawVisualizer() {
   }
 }
 
+// Helper to extract username from URL
+function getUsernameFromUrl(url) {
+  if (!url) return '';
+  const match = url.match(/\/@([a-zA-Z0-9_\-]+)/i);
+  return match ? match[1] : '';
+}
+
 // --- Query Param Handler ---
-function checkUrlParams() {
+async function checkUrlParams() {
   const urlParams = new URLSearchParams(window.location.search);
   const user = urlParams.get('user');
   const playlist = urlParams.get('playlist');
   const exactUrl = urlParams.get('url');
 
-  if (playlist) {
+  if (user && playlist) {
+    console.log(`[Init] Loading profile @${user} and playlist ${playlist} concurrently`);
+    
+    // Show landing screen loader
+    landingBtnText.classList.add('hidden');
+    landingBtnLoader.classList.remove('hidden');
+    landingBtn.disabled = true;
+
+    try {
+      // 1. Fetch profile first to populate sidebar
+      const profileRes = await fetch(`/api/suno?url=${encodeURIComponent(`https://suno.com/@${user}`)}`);
+      const profileData = await profileRes.json();
+
+      if (!profileData.error) {
+        userProfileData = profileData;
+        
+        // Set source details in workspace sidebar
+        sourceName.textContent = profileData.name || 'Suno Catalog';
+        sourceType.textContent = 'Artist Profile';
+        
+        if (profileData.tracks && profileData.tracks.length > 0 && profileData.tracks[0].image_url) {
+          sourceCover.src = profileData.tracks[0].image_url;
+        } else {
+          sourceCover.src = 'https://cdn1.suno.ai/image_large_00000000-0000-0000-0000-000000000000.png';
+        }
+
+        // Populate user playlists
+        if (profileData.playlists && profileData.playlists.length > 0) {
+          playlistsSection.classList.remove('hidden');
+          renderPlaylistsList(profileData.playlists);
+        }
+      }
+
+      // 2. Fetch and load the playlist (passing isSubRequest = true to keep userProfileData)
+      await importSunoUrl(`https://suno.com/playlist/${playlist}`, true);
+
+    } catch (err) {
+      console.error('[Init] Failed to load dual params:', err);
+      // Fallback to loading playlist only
+      importSunoUrl(`https://suno.com/playlist/${playlist}`);
+    }
+  } else if (playlist) {
     importSunoUrl(`https://suno.com/playlist/${playlist}`);
   } else if (user) {
     importSunoUrl(`https://suno.com/@${user}`);
@@ -785,20 +1021,35 @@ function checkUrlParams() {
 function updateAddressBar(urlInput) {
   let shareParams = '';
 
-  if (urlInput.includes('/playlist/')) {
-    const plMatch = urlInput.match(/\/playlist\/([a-f0-9\-]{36})/i);
-    if (plMatch) shareParams = `?playlist=${plMatch[1]}`;
-    else shareParams = `?url=${encodeURIComponent(urlInput)}`;
-  } else if (urlInput.includes('/@')) {
-    const userMatch = urlInput.match(/\/@([a-zA-Z0-9_\-]+)/i);
-    if (userMatch) shareParams = `?user=${userMatch[1]}`;
-    else shareParams = `?url=${encodeURIComponent(urlInput)}`;
-  } else if (urlInput.startsWith('@')) {
-    shareParams = `?user=${urlInput.replace('@', '')}`;
-  } else if (/^[a-f0-9\-]{36}$/i.test(urlInput)) {
-    shareParams = `?playlist=${urlInput}`;
-  } else {
-    shareParams = `?url=${encodeURIComponent(urlInput)}`;
+  const plMatch = urlInput.match(/\/playlist\/([a-f0-9\-]{36})/i);
+  const isPlaylistId = /^[a-f0-9\-]{36}$/i.test(urlInput);
+  const activePlaylistId = plMatch ? plMatch[1] : (isPlaylistId ? urlInput : '');
+
+  // If a parent profile is loaded, keep the user parameter!
+  if (userProfileData) {
+    const username = getUsernameFromUrl(userProfileData.url || userProfileData.name);
+    if (username) {
+      if (activePlaylistId) {
+        shareParams = `?user=${username}&playlist=${activePlaylistId}`;
+      } else {
+        shareParams = `?user=${username}`;
+      }
+    }
+  }
+
+  // Fallback to single parameters
+  if (!shareParams) {
+    if (activePlaylistId) {
+      shareParams = `?playlist=${activePlaylistId}`;
+    } else if (urlInput.includes('/@')) {
+      const userMatch = urlInput.match(/\/@([a-zA-Z0-9_\-]+)/i);
+      if (userMatch) shareParams = `?user=${userMatch[1]}`;
+      else shareParams = `?url=${encodeURIComponent(urlInput)}`;
+    } else if (urlInput.startsWith('@')) {
+      shareParams = `?user=${urlInput.replace('@', '')}`;
+    } else {
+      shareParams = `?url=${encodeURIComponent(urlInput)}`;
+    }
   }
 
   const newUrl = window.location.origin + window.location.pathname + shareParams;
@@ -849,4 +1100,110 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+// --- Recent History Storage & UI ---
+function saveToHistory(type, id, name) {
+  let history = { users: [], playlists: [], tracks: [] };
+  try {
+    const saved = localStorage.getItem('suno_player_history_v2');
+    if (saved) history = JSON.parse(saved);
+  } catch (e) {
+    console.error('Failed to load history:', e);
+  }
+
+  let list = [];
+  if (type === 'profile' || type === 'user') {
+    list = history.users;
+  } else if (type === 'playlist') {
+    list = history.playlists;
+  } else {
+    list = history.tracks;
+  }
+
+  const cleanId = id.trim();
+  const cleanName = name || cleanId;
+
+  // Remove existing duplicate
+  const index = list.findIndex(item => item.id.toLowerCase() === cleanId.toLowerCase());
+  if (index !== -1) {
+    list.splice(index, 1);
+  }
+
+  // Push to front (newest first)
+  list.unshift({ id: cleanId, name: cleanName });
+
+  // Cap at 10 items
+  if (list.length > 10) {
+    list.length = 10;
+  }
+
+  try {
+    localStorage.setItem('suno_player_history_v2', JSON.stringify(history));
+  } catch (e) {
+    console.error('Failed to save history:', e);
+  }
+
+  renderHistoryUI();
+}
+
+function renderHistoryUI() {
+  let history = { users: [], playlists: [], tracks: [] };
+  try {
+    const saved = localStorage.getItem('suno_player_history_v2');
+    if (saved) history = JSON.parse(saved);
+  } catch (e) {
+    console.error('Failed to load history:', e);
+  }
+
+  const container = document.getElementById('history-container');
+  const usersList = document.getElementById('history-users-list');
+  const playlistsList = document.getElementById('history-playlists-list');
+  const tracksList = document.getElementById('history-tracks-list');
+
+  const dropUsersList = document.getElementById('dropdown-history-users-list');
+  const dropPlaylistsList = document.getElementById('dropdown-history-playlists-list');
+  const dropTracksList = document.getElementById('dropdown-history-tracks-list');
+
+  const hasHistory = history.users.length > 0 || history.playlists.length > 0 || history.tracks.length > 0;
+  if (!hasHistory) {
+    if (container) container.classList.add('hidden');
+    return;
+  }
+  if (container) container.classList.remove('hidden');
+
+  // Helper to render HTML list items
+  const getListHtml = (items, type) => {
+    if (items.length === 0) return '<div class="empty-history">履歴はありません</div>';
+    return items.map(item => `
+      <div class="history-item" data-url="${escapeHtml(item.id)}">
+        <span class="history-item-title">${escapeHtml(item.name)}</span>
+        <span class="history-item-sub">${escapeHtml(type === 'user' ? item.id : (item.id.length > 36 ? item.id.slice(0, 36) + '...' : item.id))}</span>
+      </div>
+    `).join('');
+  };
+
+  // Render Landing History
+  if (usersList) usersList.innerHTML = getListHtml(history.users, 'user');
+  if (playlistsList) playlistsList.innerHTML = getListHtml(history.playlists, 'playlist');
+  if (tracksList) tracksList.innerHTML = getListHtml(history.tracks, 'track');
+
+  // Render Dropdown History
+  if (dropUsersList) dropUsersList.innerHTML = getListHtml(history.users, 'user');
+  if (dropPlaylistsList) dropPlaylistsList.innerHTML = getListHtml(history.playlists, 'playlist');
+  if (dropTracksList) dropTracksList.innerHTML = getListHtml(history.tracks, 'track');
+
+  // Bind click listeners to all history items
+  document.querySelectorAll('.history-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const url = el.getAttribute('data-url');
+      landingInput.value = url;
+
+      // Hide dropdown if clicked inside dropdown
+      const dropdown = document.getElementById('header-history-dropdown');
+      if (dropdown) dropdown.classList.add('hidden');
+
+      importSunoUrl(url);
+    });
+  });
 }
