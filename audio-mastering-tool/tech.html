@@ -234,53 +234,67 @@
             <td>入力音源の音量を事前にゲイン調整し、マスタリングチェーンに入る前段のヘッドルームを確保します。</td>
           </tr>
           <tr>
-            <td><strong>2. Parallel Saturator</strong></td>
-            <td><span class="tag-cyan">WaveShaperNode</span> (並列), <span class="tag-cyan">GainNode</span> (Dry/Wet)</td>
-            <td>倍音を付加する飽和器。`WaveShaperNode`のカスタムシェイピングカーブを用いて、偶数・奇数倍音を生成。アナログテープ（Tape）や真空管（Tube）の質感をDry音にブレンドします。フィルター遅延による位相干渉を防ぐため、オーバーサンプリングは無効 (`none`) に設計されています。</td>
+            <td><strong>2. Noise Cleaner (Rumble & Hiss)</strong></td>
+            <td><span class="tag-cyan">BiquadFilterNode</span> &times; 2, <span class="tag-cyan">WaveShaperNode</span> (整流器), <span class="tag-cyan">GainNode</span> (変調量)</td>
+            <td>
+              定常的な背景雑音を除去するノイズクリーニング段。
+              <ul>
+                <li><strong>Rumble Cut (HPF)</strong>：80Hz以下の超低域空調ノイズや電源ハム音を急峻に物理遮断。</li>
+                <li><strong>Hiss Reducer (動的VCF)</strong>：4kHz以上の高域エネルギーを監視するサイドチェーン検知器（HPF＋絶対値整流器＋10Hz平滑フィルター）がメインラインのLPFカットオフ周波数をダイナミックに変調（0%〜100%可変）。無音部分では4kHz付近まで閉じてヒスノイズを消し去り、演奏時は20kHzまで全開にして艶を100%保護します。</li>
+              </ul>
+            </td>
           </tr>
           <tr>
-            <td><strong>3. 3-Band Equalizer</strong></td>
+            <td><strong>3. Parallel Saturator</strong></td>
+            <td><span class="tag-cyan">WaveShaperNode</span> (並列), <span class="tag-cyan">GainNode</span> (Dry/Wet)</td>
+            <td>倍音を付加する飽和器。`WaveShaperNode`の伝達関数（カスタムシェイピングカーブ）を用いて、偶数・奇数倍音を生成。アナログテープ（Tape）や真空管（Tube）の質感をDry音にブレンドします。フィルター遅延による位相干渉を防ぐため、オーバーサンプリングは無効 (`none`) に設計されています。</td>
+          </tr>
+          <tr>
+            <td><strong>4. 3-Band Equalizer</strong></td>
             <td><span class="tag-cyan">BiquadFilterNode</span> &times; 3</td>
             <td>`lowshelf` (低域 EQ)、`peaking` (中域 EQ, 可変 Q: 0.3〜5.0)、`highshelf` (高域 EQ) の3つのフィルターを直列に接続。ジャンル特性に応じた音楽的な周波数のブースト/カットに加え、中域のQ値（帯域幅）を調整可能です。</td>
           </tr>
           <tr>
-            <td><strong>4. AI Corrective Notches</strong></td>
+            <td><strong>5. AI Corrective Notches</strong></td>
             <td><span class="tag-cyan">BiquadFilterNode</span> &times; 8 (直列)</td>
-            <td>AI が検出した高音域の鋭い不快ピーク（耳障りなレゾナンス音）をピンポイントで除去する、鋭いQ値（Q=6.0）の直列ノッチフィルター。Suno AI 特有の `9kHz〜10kHz` 付近のハーシュネスを優先的に検出して深くカットするカスタム検知ロジックが組み込まれています。</td>
+            <td>
+              AI が検出した高音域の鋭い不快ピーク（耳障りなレゾナンス音）をピンポイントで除去する、鋭いQ値（Q=12.0）の直列ノッチフィルター。Suno AI 特有の `9kHz〜10kHz` 付近のハーシュネスを優先的に検出してカットします。
+              <strong>(v3.21.4以降)</strong>：HISS REDUCERの動作量とリアルタイムに自動連動し、ノイズ低減が多い曲ではノッチフィルターのカット深さを最大65%自動緩和（ダッキング）し、高音の過剰カットや曇りを完全に防止します。
+            </td>
           </tr>
           <tr>
-            <td><strong>5. Glue Compressor</strong></td>
+            <td><strong>6. Glue Compressor</strong></td>
             <td><span class="tag-cyan">DynamicsCompressorNode</span></td>
             <td>ゆるやかなコンプレッションによりダイナミクスを均一化。ソフトアタック（30ms前後）によりトランジェント（打楽器のアタック感）を残しつつ、全体をまとめ上げ（Glue）ます。</td>
           </tr>
           <tr>
-            <td><strong>6. M/S Stereo Imager</strong></td>
+            <td><strong>7. M/S Stereo Imager</strong></td>
             <td><span class="tag-cyan">ChannelSplitterNode</span>, <span class="tag-cyan">ChannelMergerNode</span>, <span class="tag-cyan">GainNode</span> (Mid/Side), <span class="tag-cyan">BiquadFilterNode</span> (Side HPF)</td>
             <td>
               音源のL/Rを Mid（センター）と Side（広がり）にマトリックス変換して独立処理。
               <ul>
                 <li><strong>Mid</strong>：センター定位のボーカル・キックの輪郭を維持するため、ゲインは完全に `1.0` に固定。</li>
-                <li><strong>Side</strong>：`width` スライダーで広がり幅を調整。さらに、低域の左右の位相干渉による低域のボヤけ（シュワシュワ音）を防ぐため、<strong>Side成分をカットする可変ハイパスフィルター（90Hz〜150Hz）</strong>を搭載。EDMやHipHopなどのクラブ系では150Hz、生楽器系では90Hzなど、ジャンル別で自動的に最適化されます。これにより低域はタイトに保たれつつ、豊かな空間表現を可能にしています。</li>
+                <li><strong>Side</strong>：`width` スライダーで広がり幅を調整。さらに、低域の左右の位相干渉による低域のボヤけ（シュワシュワ音）を防ぐため、<strong>Side成分をカットする可変ハイパスフィルター（90Hz〜150Hz）</strong>を搭載。EDMやHipHopなどのクラブ系では150Hz、生楽器系では90Hzなど、ジャンル別で自動的に最適化されます。これにより低域はモノラル付近にタイトに保たれつつ、豊かな空間表現を可能にしています。</li>
               </ul>
             </td>
           </tr>
           <tr>
-            <td><strong>7. Maximizer Pre-Gain</strong></td>
+            <td><strong>8. Maximizer Pre-Gain</strong></td>
             <td><span class="tag-cyan">GainNode</span></td>
             <td>Brickwall Limiter に対してどれだけ突っ込むか（音圧の押し上げ）をデシベル（`limiterBoost`）単位で調整する増幅段です。</td>
           </tr>
           <tr>
-            <td><strong>8. Brickwall Limiter</strong></td>
+            <td><strong>9. Brickwall Limiter</strong></td>
             <td><span class="tag-cyan">DynamicsCompressorNode</span></td>
             <td>マスタリングの最終段で音圧を押し出すリミッター。`threshold=0dB`、応答を滑らかにするため `knee=3.0dB`、`ratio=20.0:1` に設定し、超過エネルギーを滑らかに圧縮。アタックタイムは最速の `0.1ms`、リリースタイムは低域の歪みを防ぐ最適な `80ms` に設計されています。</td>
           </tr>
           <tr>
-            <td><strong>9. Safety Soft-Clipper</strong></td>
+            <td><strong>10. Safety Soft-Clipper</strong></td>
             <td><span class="tag-cyan">WaveShaperNode</span></td>
             <td>最終段で発生するデジタルクリッピング（ビビリ音）を完全に防止する安全装置。2倍オーバーサンプリングされたWaveShaperを使用し、振幅 `0.85` (-1.4dB) までは完全直線（透明）、それを超える瞬間的ピークのみを三次関数で滑らかにサチュレーションさせます。</td>
           </tr>
           <tr>
-            <td><strong>10. Ceiling Gain</strong></td>
+            <td><strong>11. Ceiling Gain</strong></td>
             <td><span class="tag-cyan">GainNode</span></td>
             <td>デジタル配信サービス（Spotify、YouTube 等）にアップロードした際、非可逆圧縮（AAC/MP3）への変換時に生じるクリッピングを回避するため、最終出力の上限（天井）を `-1.0dB` 前後に制御してマスタリング処理を完了します。</td>
           </tr>
