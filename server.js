@@ -13,6 +13,39 @@ app.use((req, res, next) => {
 // Serve static client files from the AETHER_PLAYER directory
 app.use(express.static(path.join(__dirname, 'AETHER_PLAYER')));
 
+function resolveRscReference(combined, ref) {
+  if (!ref || typeof ref !== 'string' || !ref.startsWith('$')) return ref;
+  
+  const key = ref.replace(/^\$L?/, '');
+  let searchStr = `\n${key}:`;
+  let idx = combined.indexOf(searchStr);
+  if (idx === -1) {
+    searchStr = `${key}:`;
+    if (combined.startsWith(searchStr)) {
+      idx = 0;
+    }
+  }
+  
+  if (idx !== -1) {
+    const lineStart = idx + searchStr.length;
+    // Find the end of this definition by looking for the next definition header
+    const nextDefRegex = /\n(?:[a-f0-9]+:|:)/gi;
+    nextDefRegex.lastIndex = lineStart;
+    const nextMatch = nextDefRegex.exec(combined);
+    
+    const lineEnd = nextMatch ? nextMatch.index : combined.length;
+    const lineContent = combined.slice(lineStart, lineEnd);
+    if (lineContent.startsWith('T')) {
+      const commaIdx = lineContent.indexOf(',');
+      if (commaIdx !== -1) {
+        return lineContent.slice(commaIdx + 1);
+      }
+    }
+    return lineContent;
+  }
+  return ref;
+}
+
 /**
  * Route: GET /api/suno
  * Fetches and parses a Suno playlist or profile URL.
@@ -216,7 +249,11 @@ app.get('/api/suno', async (req, res) => {
             const promptMatch = objStr.match(/"prompt"\s*:\s*"([^"]+)"/i);
             let description = '';
             if (promptMatch) {
-              description = promptMatch[1]
+              let rawPrompt = promptMatch[1];
+              // Resolve Next.js App Router reference (e.g. "$5f") if needed
+              rawPrompt = resolveRscReference(combined, rawPrompt);
+              
+              description = rawPrompt
                 .replace(/\\n/g, '\n')
                 .replace(/\\r/g, '\r')
                 .replace(/\\"/g, '"')
