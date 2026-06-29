@@ -417,14 +417,14 @@ function setupMasteringChain(context, sourceNode, parameters, customDestination 
   hissFilter.type = 'lowpass';
   
   const hissAmount = parameters.hissReductionAmount || 0;
-  const baseFreq = 20000.0 - (16000.0 * (hissAmount / 100.0));
+  const baseFreq = 20000.0 - (11000.0 * (hissAmount / 100.0)); // Minimum frequency is 9,000Hz to preserve vocal presence and midrange body.
   hissFilter.frequency.setValueAtTime(baseFreq, context.currentTime);
   hissFilter.Q.setValueAtTime(0.5, context.currentTime); // Gentle slope
 
   // Sidechain Envelope Follower for Hiss Filter
   const sidechainHpf = context.createBiquadFilter();
   sidechainHpf.type = 'highpass';
-  sidechainHpf.frequency.setValueAtTime(4000.0, context.currentTime);
+  sidechainHpf.frequency.setValueAtTime(2000.0, context.currentTime); // Lowered to 2,000Hz to detect vocal/midrange energy and open the filter.
   sidechainHpf.Q.setValueAtTime(0.707, context.currentTime);
 
   const rectifier = context.createWaveShaper();
@@ -444,7 +444,7 @@ function setupMasteringChain(context, sourceNode, parameters, customDestination 
   const satWetGain = context.createGain();
   const satHpf = context.createBiquadFilter(); // Crossover highpass filter to keep sub-bass saturation clean
   satHpf.type = 'highpass';
-  satHpf.frequency.setValueAtTime(65.0, context.currentTime); // Crossover at 65Hz to let kick punch/upper bass saturate while keeping sub-bass clean.
+  satHpf.frequency.setValueAtTime(40.0, context.currentTime); // Crossover at 40Hz to let kick punch/bass saturate while keeping ultra-low sub-bass clean.
   satHpf.Q.setValueAtTime(0.707, context.currentTime);
 
   const waveShaper = context.createWaveShaper();
@@ -496,13 +496,15 @@ function setupMasteringChain(context, sourceNode, parameters, customDestination 
   kickPeaking.frequency.setValueAtTime(55, context.currentTime); // 55Hz fundamental thump
   kickPeaking.gain.setValueAtTime(parameters.kickPeakingGain || 0.0, context.currentTime);
 
+  const setupHissAmount = parameters.hissReductionAmount || 0;
+  const setupMidGain = parameters.eqMidGain + (setupHissAmount / 100.0) * 1.0;
+
   const eqMid = context.createBiquadFilter();
   eqMid.type = 'peaking';
   eqMid.Q.setValueAtTime(parameters.eqMidQ, context.currentTime);
   eqMid.frequency.setValueAtTime(parameters.eqMidFreq, context.currentTime);
-  eqMid.gain.setValueAtTime(parameters.eqMidGain, context.currentTime);
+  eqMid.gain.setValueAtTime(setupMidGain, context.currentTime);
 
-  const setupHissAmount = parameters.hissReductionAmount || 0;
   const setupHighFreq = parameters.eqHighFreq - (parameters.eqHighFreq - 8000.0) * (setupHissAmount / 100.0);
   const setupHighGain = parameters.eqHighGain + (setupHissAmount / 100.0) * 2.5;
 
@@ -1478,7 +1480,7 @@ function updateNoiseCutNodes() {
     activeNodes.rumbleFilter.frequency.setTargetAtTime(targetRumbleFreq, audioContext.currentTime, 0.02);
     
     const hissAmount = params.hissReductionAmount || 0;
-    const baseFreq = 20000.0 - (16000.0 * (hissAmount / 100.0));
+    const baseFreq = 20000.0 - (11000.0 * (hissAmount / 100.0)); // Minimum frequency is 9,000Hz to preserve vocal presence and midrange body.
     activeNodes.hissFilter.frequency.setTargetAtTime(baseFreq, audioContext.currentTime, 0.02);
     
     const maxEnvGain = 35000.0 * (hissAmount / 100.0);
@@ -1506,6 +1508,8 @@ function updateSaturatorNode() {
 function updateEqNodes() {
   invalidatePeakCache();
   const p = getCombinedParams();
+  const hissAmount = params.hissReductionAmount || 0;
+
   if (activeNodes.eqLow) {
     activeNodes.eqLow.frequency.setTargetAtTime(p.eqLowFreq, audioContext.currentTime, 0.01);
     activeNodes.eqLow.gain.setTargetAtTime(p.eqLowGain, audioContext.currentTime, 0.01);
@@ -1514,14 +1518,16 @@ function updateEqNodes() {
     activeNodes.kickPeaking.gain.setTargetAtTime(p.kickPeakingGain, audioContext.currentTime, 0.01);
   }
   if (activeNodes.eqMid) {
+    // Dynamic Midrange Compensation:
+    // When Hiss Reducer is turned up, dynamically shift mid gain upwards by up to +1.0dB to prevent scooped midrange.
+    const targetMidGain = p.eqMidGain + (hissAmount / 100.0) * 1.0;
     activeNodes.eqMid.frequency.setTargetAtTime(p.eqMidFreq, audioContext.currentTime, 0.01);
-    activeNodes.eqMid.gain.setTargetAtTime(p.eqMidGain, audioContext.currentTime, 0.01);
+    activeNodes.eqMid.gain.setTargetAtTime(targetMidGain, audioContext.currentTime, 0.01);
     activeNodes.eqMid.Q.setTargetAtTime(p.eqMidQ, audioContext.currentTime, 0.01);
   }
   if (activeNodes.eqHigh) {
     // Dynamic Brilliance Compensation:
     // If Hiss Reducer is turned up, dynamically shift high shelf frequency towards 8000Hz and boost gain by up to +2.5dB
-    const hissAmount = params.hissReductionAmount || 0;
     const targetHighFreq = p.eqHighFreq - (p.eqHighFreq - 8000.0) * (hissAmount / 100.0);
     const targetHighGain = p.eqHighGain + (hissAmount / 100.0) * 2.5;
 
