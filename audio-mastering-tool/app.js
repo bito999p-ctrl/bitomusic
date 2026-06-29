@@ -409,7 +409,7 @@ function setupMasteringChain(context, sourceNode, parameters, customDestination 
   // Rumble Filter (HPF)
   const rumbleFilter = context.createBiquadFilter();
   rumbleFilter.type = 'highpass';
-  rumbleFilter.frequency.setValueAtTime(parameters.rumbleCutEnabled ? 80.0 : 10.0, context.currentTime);
+  rumbleFilter.frequency.setValueAtTime(parameters.rumbleCutEnabled ? 80.0 : 25.0, context.currentTime); // 25Hz subsonic filter when disabled, preventing subsonic mud from causing rattles.
   rumbleFilter.Q.setValueAtTime(0.707, context.currentTime);
 
   // Dynamic Hiss Filter (VCF Lowpass)
@@ -442,6 +442,11 @@ function setupMasteringChain(context, sourceNode, parameters, customDestination 
   // 2. Parallel Saturator Stage
   const satDryGain = context.createGain();
   const satWetGain = context.createGain();
+  const satHpf = context.createBiquadFilter(); // Crossover highpass filter to keep sub-bass saturation clean
+  satHpf.type = 'highpass';
+  satHpf.frequency.setValueAtTime(130.0, context.currentTime);
+  satHpf.Q.setValueAtTime(0.707, context.currentTime);
+
   const waveShaper = context.createWaveShaper();
   const satSumNode = context.createGain();
 
@@ -462,7 +467,8 @@ function setupMasteringChain(context, sourceNode, parameters, customDestination 
   rumbleFilter.connect(hissFilter);
   
   hissFilter.connect(satDryGain);
-  hissFilter.connect(waveShaper);
+  hissFilter.connect(satHpf);
+  satHpf.connect(waveShaper);
   waveShaper.connect(satWetGain);
 
   // Hook up sidechain envelope follower path (splits from rumbleFilter output)
@@ -496,13 +502,16 @@ function setupMasteringChain(context, sourceNode, parameters, customDestination 
   eqMid.frequency.setValueAtTime(parameters.eqMidFreq, context.currentTime);
   eqMid.gain.setValueAtTime(parameters.eqMidGain, context.currentTime);
 
+  const setupHissAmount = parameters.hissReductionAmount || 0;
+  const setupHighFreq = parameters.eqHighFreq - (parameters.eqHighFreq - 8000.0) * (setupHissAmount / 100.0);
+  const setupHighGain = parameters.eqHighGain + (setupHissAmount / 100.0) * 2.5;
+
   const eqHigh = context.createBiquadFilter();
   eqHigh.type = 'highshelf';
-  eqHigh.frequency.setValueAtTime(parameters.eqHighFreq, context.currentTime);
-  eqHigh.gain.setValueAtTime(parameters.eqHighGain, context.currentTime);
+  eqHigh.frequency.setValueAtTime(setupHighFreq, context.currentTime);
+  eqHigh.gain.setValueAtTime(setupHighGain, context.currentTime);
 
   // 8連 AI Corrective Notch Filters
-  const setupHissAmount = parameters.hissReductionAmount || 0;
   const setupHissFactor = Math.max(0.4, 1.0 - (setupHissAmount / 100.0) * 0.65);
 
   const eqCorrective1 = context.createBiquadFilter();
@@ -1465,7 +1474,7 @@ function updateCeilingNode() {
 function updateNoiseCutNodes() {
   invalidatePeakCache();
   if (activeNodes.rumbleFilter && activeNodes.hissFilter && activeNodes.hissEnvelopeGain) {
-    const targetRumbleFreq = params.rumbleCutEnabled ? 80.0 : 10.0;
+    const targetRumbleFreq = params.rumbleCutEnabled ? 80.0 : 25.0; // 25Hz subsonic filter when disabled, preventing subsonic mud from causing rattles.
     activeNodes.rumbleFilter.frequency.setTargetAtTime(targetRumbleFreq, audioContext.currentTime, 0.02);
     
     const hissAmount = params.hissReductionAmount || 0;
@@ -1510,8 +1519,14 @@ function updateEqNodes() {
     activeNodes.eqMid.Q.setTargetAtTime(p.eqMidQ, audioContext.currentTime, 0.01);
   }
   if (activeNodes.eqHigh) {
-    activeNodes.eqHigh.frequency.setTargetAtTime(p.eqHighFreq, audioContext.currentTime, 0.01);
-    activeNodes.eqHigh.gain.setTargetAtTime(p.eqHighGain, audioContext.currentTime, 0.01);
+    // Dynamic Brilliance Compensation:
+    // If Hiss Reducer is turned up, dynamically shift high shelf frequency towards 8000Hz and boost gain by up to +2.5dB
+    const hissAmount = params.hissReductionAmount || 0;
+    const targetHighFreq = p.eqHighFreq - (p.eqHighFreq - 8000.0) * (hissAmount / 100.0);
+    const targetHighGain = p.eqHighGain + (hissAmount / 100.0) * 2.5;
+
+    activeNodes.eqHigh.frequency.setTargetAtTime(targetHighFreq, audioContext.currentTime, 0.01);
+    activeNodes.eqHigh.gain.setTargetAtTime(targetHighGain, audioContext.currentTime, 0.01);
   }
 }
 
@@ -2461,6 +2476,7 @@ function registerGuiEvents() {
     selectCustomPreset();
     updateNoiseCutNodes();
     updateCorrectiveEqNodes();
+    updateEqNodes();
   });
 
   // Saturator
