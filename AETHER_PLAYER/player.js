@@ -213,6 +213,26 @@ async function importSunoUrl(urlStr, isSubRequest = false) {
 
   try {
     const res = await fetch(`/api/suno?url=${encodeURIComponent(urlStr)}`);
+    
+    // Check if the response is valid JSON
+    const contentType = res.headers.get('content-type');
+    if (!res.ok || !contentType || !contentType.includes('application/json')) {
+      const text = await res.text();
+      console.error('[Error] Server returned non-JSON response:', text);
+      
+      let errorMsg = `サーバーエラー (ステータス: ${res.status})`;
+      if (text.includes('502 Bad Gateway') || text.includes('502')) {
+        errorMsg += '\n\n【原因】Node.jsサーバー(server.js)が起動していない、またはNginxなどのリバースプロキシ設定が正しくありません。`node server.js`を起動してください。';
+      } else if (text.includes('<!DOCTYPE html>') || text.includes('<html')) {
+        errorMsg += '\n\n【原因】APIへのリクエストがHTMLページ(インデックスや404)にリダイレクトされています。静的ホスティング(GitHub Pagesなど)ではNode.jsバックエンドが動かないため、エラーになります。';
+      } else {
+        errorMsg += `:\n${text.slice(0, 150)}`;
+      }
+      
+      alert(errorMsg);
+      return;
+    }
+
     const data = await res.json();
 
     if (data.error) {
@@ -237,6 +257,16 @@ async function importSunoUrl(urlStr, isSubRequest = false) {
     // Update active UI details
     tracksCountEl.textContent = tracks.length;
     renderTracksList();
+
+    // Show/hide limit warning dynamically in sidebar
+    const limitWarning = document.getElementById('sidebar-limit-warning');
+    if (limitWarning) {
+      if ((data.type === 'profile' && tracks.length === 20) || (data.type === 'playlist' && tracks.length === 50)) {
+        limitWarning.classList.remove('hidden');
+      } else {
+        limitWarning.classList.add('hidden');
+      }
+    }
 
     // Set source details in workspace sidebar
     sourceName.textContent = data.name || 'Suno Catalog';

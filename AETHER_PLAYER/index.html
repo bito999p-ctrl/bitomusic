@@ -37,6 +37,11 @@
           </button>
         </div>
 
+        <p class="landing-helper-text">
+          💡 <b>Suno仕様上の最大読込数</b>: アーティスト: <b>20曲</b> / プレイリスト: <b>50曲</b>
+          <span class="helper-sub">(それ以上の曲がある場合はプレイリストを分割して読み込んでください)</span>
+        </p>
+
         <div class="quick-links">
           <span class="quick-label">クイック試聴:</span>
           <button class="quick-link-btn" data-url="@bito999">@bito999 (アーティスト)</button>
@@ -132,7 +137,10 @@
 
             <!-- Tracks List -->
             <div class="tracks-section">
-              <h3>トラック一覧 (<span id="tracks-count">0</span>)</h3>
+              <div class="tracks-section-header">
+                <h3>トラック一覧 (<span id="tracks-count">0</span>)</h3>
+                <div id="sidebar-limit-warning" class="limit-warning hidden">⚠️ 読込上限に達しました (分割読込を推奨)</div>
+              </div>
               <div id="tracks-list" class="tracks-list">
                 <div class="empty-list">曲が読み込まれていません</div>
               </div>
