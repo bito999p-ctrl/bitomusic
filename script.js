@@ -317,8 +317,8 @@ function setupParallax() {
 }
 
 function setupMagneticButtons() {
-    // Target all icon links and mastering tool button
-    const buttons = document.querySelectorAll('.icon-link, .mastering-tool-btn');
+    // Target all icon links, mastering tool button, and aether player button
+    const buttons = document.querySelectorAll('.icon-link, .mastering-tool-btn, .aether-player-btn');
 
     buttons.forEach(btn => {
         btn.addEventListener('mousemove', (e) => {

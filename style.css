@@ -645,3 +645,32 @@ footer {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(0, 255, 204, 0.2);
 }
+
+.nav-player-link {
+    color: #ff5e97 !important;
+}
+
+.nav-player-link:hover {
+    color: #ff85a2 !important;
+}
+
+.aether-player-btn {
+    color: #ff5e97;
+    text-decoration: none;
+    border: 1px solid rgba(255, 94, 151, 0.3);
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    transition: all 0.3s var(--transition-smooth);
+    display: inline-block;
+    background: rgba(255, 94, 151, 0.05);
+    font-weight: 500;
+}
+
+.aether-player-btn:hover {
+    background: rgba(255, 94, 151, 0.15);
+    border-color: rgba(255, 94, 151, 0.6);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 94, 151, 0.2);
+}
