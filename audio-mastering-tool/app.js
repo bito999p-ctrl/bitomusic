@@ -409,7 +409,7 @@ function setupMasteringChain(context, sourceNode, parameters, customDestination 
   // Rumble Filter (HPF)
   const rumbleFilter = context.createBiquadFilter();
   rumbleFilter.type = 'highpass';
-  rumbleFilter.frequency.setValueAtTime(parameters.rumbleCutEnabled ? 80.0 : 25.0, context.currentTime); // 25Hz subsonic filter when disabled, preventing subsonic mud from causing rattles.
+  rumbleFilter.frequency.setValueAtTime(parameters.rumbleCutEnabled ? 80.0 : 18.0, context.currentTime); // 18Hz subsonic filter when disabled, protecting deep sub-bass while removing DC offset/infrasound mud.
   rumbleFilter.Q.setValueAtTime(0.707, context.currentTime);
 
   // Dynamic Hiss Filter (VCF Lowpass)
@@ -444,7 +444,7 @@ function setupMasteringChain(context, sourceNode, parameters, customDestination 
   const satWetGain = context.createGain();
   const satHpf = context.createBiquadFilter(); // Crossover highpass filter to keep sub-bass saturation clean
   satHpf.type = 'highpass';
-  satHpf.frequency.setValueAtTime(130.0, context.currentTime);
+  satHpf.frequency.setValueAtTime(65.0, context.currentTime); // Crossover at 65Hz to let kick punch/upper bass saturate while keeping sub-bass clean.
   satHpf.Q.setValueAtTime(0.707, context.currentTime);
 
   const waveShaper = context.createWaveShaper();
@@ -1474,7 +1474,7 @@ function updateCeilingNode() {
 function updateNoiseCutNodes() {
   invalidatePeakCache();
   if (activeNodes.rumbleFilter && activeNodes.hissFilter && activeNodes.hissEnvelopeGain) {
-    const targetRumbleFreq = params.rumbleCutEnabled ? 80.0 : 25.0; // 25Hz subsonic filter when disabled, preventing subsonic mud from causing rattles.
+    const targetRumbleFreq = params.rumbleCutEnabled ? 80.0 : 18.0; // 18Hz subsonic filter when disabled, protecting deep sub-bass while removing DC offset/infrasound mud.
     activeNodes.rumbleFilter.frequency.setTargetAtTime(targetRumbleFreq, audioContext.currentTime, 0.02);
     
     const hissAmount = params.hissReductionAmount || 0;
