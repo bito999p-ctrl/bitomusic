@@ -44,8 +44,8 @@ function getNormalizedArtist(name) {
   return name;
 }
 
-// Version: 2.6.3 (Re-deployed to ensure complete file sync)
-import { AetherEnhancer, analyzeAudioResonances, GENRE_PRESETS } from './audio-engine.js?v=2.6.3';
+// Version: 2.6.4 (Re-deployed to ensure complete file sync)
+import { AetherEnhancer, analyzeAudioResonances, GENRE_PRESETS } from './audio-engine.js?v=2.6.4';
 
 // --- State Variables ---
 let audioCtx = null;
@@ -1025,8 +1025,10 @@ async function selectTrack(idx) {
         const decodedBuffer = await audioCtx.decodeAudioData(arrayBuffer);
         if (analysisId !== currentAnalysisId) return;
 
+        console.log(`[AI Auto] Audio Decoded: Duration ${decodedBuffer.duration.toFixed(2)}s, SampleRate ${decodedBuffer.sampleRate}Hz, Channels ${decodedBuffer.numberOfChannels}, Bytes ${arrayBuffer.byteLength}`);
         console.log('[AI Auto] Running AetherMaster spectral resonance & dynamics analysis...');
-        const result = analyzeAudioResonances(decodedBuffer);
+        const result = analyzeAudioResonances(decodedBuffer, 'auto');
+        console.log('[AI Auto] Analysis Result:', JSON.stringify(result.suggestedParams));
         if (analysisId !== currentAnalysisId) return;
 
         // Cache the result and buffer for instant replay/gapless next transitions
@@ -1117,7 +1119,9 @@ async function runPreAnalysis(track) {
     }
     const arrayBuffer = await response.arrayBuffer();
     const decodedBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-    const result = analyzeAudioResonances(decodedBuffer);
+    console.log(`[Pre-Fetch] Audio Decoded for ${track.title}: Duration ${decodedBuffer.duration.toFixed(2)}s, SampleRate ${decodedBuffer.sampleRate}Hz, Bytes ${arrayBuffer.byteLength}`);
+    const result = analyzeAudioResonances(decodedBuffer, 'auto');
+    console.log(`[Pre-Fetch] Pre-Analysis Result for ${track.title}:`, JSON.stringify(result.suggestedParams));
     
     analysisCache.set(url, { result, buffer: decodedBuffer });
     console.log(`[Pre-Fetch] Pre-analysis complete and cached for: ${track.title}`);
