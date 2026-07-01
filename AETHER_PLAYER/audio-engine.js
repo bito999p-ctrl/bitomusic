@@ -428,27 +428,27 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
   const basePreset = GENRE_PRESETS[genreKey] || GENRE_PRESETS.auto;
 
   const genreTargets = {
-    auto: { low: 2.8, high: 0.14, presence: 0.45 },
-    pops: { low: 2.6, high: 0.16, presence: 0.48 },
-    rnb: { low: 3.2, high: 0.15, presence: 0.43 },
-    rock: { low: 2.9, high: 0.13, presence: 0.46 },
-    metal: { low: 3.0, high: 0.15, presence: 0.45 },
-    edm: { low: 3.2, high: 0.16, presence: 0.42 },
-    hiphop: { low: 3.3, high: 0.13, presence: 0.40 },
-    lofi: { low: 3.1, high: 0.08, presence: 0.38 },
-    hardcore: { low: 3.2, high: 0.18, presence: 0.44 },
-    ambient: { low: 2.9, high: 0.20, presence: 0.48 },
-    podcast: { low: 1.6, high: 0.10, presence: 0.50 },
-    classic: { low: 2.2, high: 0.11, presence: 0.42 },
-    jazz: { low: 2.7, high: 0.12, presence: 0.44 },
-    acoustic: { low: 2.4, high: 0.13, presence: 0.46 },
-    custom: { low: 2.8, high: 0.14, presence: 0.45 }
+    auto: { low: 2.8, high: 0.14, presence: 0.42 },
+    pops: { low: 2.6, high: 0.16, presence: 0.44 },
+    rnb: { low: 3.2, high: 0.15, presence: 0.41 },
+    rock: { low: 2.9, high: 0.13, presence: 0.43 },
+    metal: { low: 3.0, high: 0.15, presence: 0.42 },
+    edm: { low: 3.2, high: 0.16, presence: 0.40 },
+    hiphop: { low: 3.3, high: 0.13, presence: 0.38 },
+    lofi: { low: 3.1, high: 0.08, presence: 0.36 },
+    hardcore: { low: 3.2, high: 0.18, presence: 0.42 },
+    ambient: { low: 2.9, high: 0.20, presence: 0.44 },
+    podcast: { low: 1.6, high: 0.10, presence: 0.47 },
+    classic: { low: 2.2, high: 0.11, presence: 0.39 },
+    jazz: { low: 2.7, high: 0.12, presence: 0.41 },
+    acoustic: { low: 2.4, high: 0.13, presence: 0.43 },
+    custom: { low: 2.8, high: 0.14, presence: 0.42 }
   };
   const target = genreTargets[genreKey] || genreTargets.auto;
 
   const lowDiffDb = 20 * Math.log10(actualLowMidRatio / target.low);
   const highDiffDb = 20 * Math.log10(actualHighMidRatio / target.high);
-  const targetPresence = target.presence || 0.45;
+  const targetPresence = target.presence || 0.42;
   const presenceDiffDb = 20 * Math.log10(actualPresenceRatio / targetPresence);
 
   let eqLowAdjustment = 0;
@@ -461,11 +461,11 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
 
   let eqMidAdjustment = 0;
   if (presenceDiffDb > 0.5) {
-    eqMidAdjustment = -Math.min(2.5, presenceDiffDb * 0.7);
+    eqMidAdjustment = -Math.min(1.8, presenceDiffDb * 0.5); // 派手すぎる場合は中域を抑えてマイルドに（最大-1.8dB）
   } else if (presenceDiffDb < -0.5) {
-    eqMidAdjustment = Math.min(2.5, -presenceDiffDb * 0.7);
+    eqMidAdjustment = Math.min(1.2, -presenceDiffDb * 0.45); // こもっている場合はマイルドに補強（最大+1.2dB）
   }
-  const eqMidGain = Math.max(-4.0, Math.min(3.0, Math.round((basePreset.eqMidGain + eqMidAdjustment) * 2) / 2));
+  const eqMidGain = Math.max(-4.0, Math.min(1.5, Math.round((basePreset.eqMidGain + eqMidAdjustment) * 2) / 2)); // 中音域が強くなりすぎないよう最大値を+1.5dBにクランプ
 
   let eqHighAdjustment = 0;
   if (highDiffDb > 0.5) {
