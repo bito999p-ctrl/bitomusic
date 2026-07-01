@@ -44,8 +44,8 @@ function getNormalizedArtist(name) {
   return name;
 }
 
-// Version: 2.7.6 (Re-deployed to ensure complete file sync)
-import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=2.7.6';
+// Version: 2.7.7 (Re-deployed to ensure complete file sync)
+import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=2.7.7';
 
 // --- State Variables ---
 let audioCtx = null;
@@ -66,6 +66,7 @@ let userProfileData = null;
 const analysisCache = new Map();
 let preFetchingUrl = '';
 let currentTrackPreFetchTriggered = false;
+let isLoadingAnalysis = false;
 
 // Background Analysis Coordination
 let currentAnalysisId = 0;
@@ -980,6 +981,8 @@ async function selectTrack(idx) {
     // Play immediately with correct parameters applied!
     startPlayback(track.audio_url);
   } else {
+    isLoadingAnalysis = true; // Mark as loading to prevent ended events from silent WAV
+    
     // Play a silent 1ms audio to instantly unlock the audio element under the user gesture (prevents mobile Safari autoplay block)
     audioPlayer.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
     audioPlayer.play().catch(() => {});
@@ -1059,6 +1062,7 @@ async function selectTrack(idx) {
         }
 
         // Enable UI buttons and start actual playback now!
+        isLoadingAnalysis = false;
         playPauseBtn.disabled = false;
         playPauseBtn.style.opacity = '1';
         startPlayback(track.audio_url);
@@ -1074,6 +1078,7 @@ async function selectTrack(idx) {
           analyzingIndicator.classList.add('hidden');
         }
         // Enable UI buttons and start playback as fallback (unmastered)
+        isLoadingAnalysis = false;
         playPauseBtn.disabled = false;
         playPauseBtn.style.opacity = '1';
         startPlayback(track.audio_url);
@@ -1374,6 +1379,10 @@ function toggleRepeat() {
 }
 
 function onTrackEnded() {
+  if (isLoadingAnalysis) {
+    console.log('[Playback] Silent WAV ended during loading, ignoring event.');
+    return;
+  }
   if (repeatMode === 'one') {
     audioPlayer.currentTime = 0;
     audioPlayer.play();
