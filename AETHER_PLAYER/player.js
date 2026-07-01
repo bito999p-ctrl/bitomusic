@@ -44,8 +44,8 @@ function getNormalizedArtist(name) {
   return name;
 }
 
-// Version: 2.7.2 (Re-deployed to ensure complete file sync)
-import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=2.7.2';
+// Version: 2.7.3 (Re-deployed to ensure complete file sync)
+import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=2.7.3';
 
 // --- State Variables ---
 let audioCtx = null;
@@ -1205,12 +1205,24 @@ function updateAiHudUI(result) {
   hudEqLowEl.textContent = `${sug.eqLowGain > 0 ? '+' : ''}${sug.eqLowGain.toFixed(1)} dB`;
   hudEqHighEl.textContent = `${sug.eqHighGain > 0 ? '+' : ''}${sug.eqHighGain.toFixed(1)} dB`;
   hudWidthEl.textContent = `${sug.stereoWidth.toFixed(2)}x`;
-  hudHissEl.textContent = `${sug.hissReductionAmount}%`;
+  
+  const hissAmount = sug.hissReductionAmount || 0;
+  const ceilFreq = 20000.0 - (7000.0 * (hissAmount / 100.0));
+  hudHissEl.textContent = `${hissAmount}% (${Math.round(ceilFreq)}Hz)`;
 
   // Dynamics
   hudCompThreshEl.textContent = `${sug.compThreshold.toFixed(1)} dB`;
   hudCompRatioEl.textContent = `${sug.compRatio.toFixed(2)}:1`;
   hudLimiterBoostEl.textContent = `+${sug.limiterBoost.toFixed(1)} dB`;
+
+  // Loudness target and genre
+  const loudnessDesc = document.getElementById('hud-loudness-desc');
+  if (loudnessDesc) {
+    const crest = result.crestDesc || 'BALANCED';
+    const correlation = result.correlationDesc || 'STEREO';
+    const genre = result.detectedGenre ? result.detectedGenre.toUpperCase() : 'OPTIMIZED';
+    loudnessDesc.textContent = `${crest} / ${correlation} (${genre})`;
+  }
 
   // Notch Filters
   notchesListEl.innerHTML = '';
@@ -1218,9 +1230,11 @@ function updateAiHudUI(result) {
     result.notches.forEach((notch, idx) => {
       const el = document.createElement('div');
       el.className = 'notch-item';
+      const peakType = notch.isBroad ? "Hump" : "Whistle";
+      const qVal = notch.q ? notch.q.toFixed(1) : "15.0";
       el.innerHTML = `
-        <span>Notch #${idx + 1} (${notch.freq} Hz)</span>
-        <span>${notch.cut.toFixed(1)} dB</span>
+        <span>#${idx + 1} ${notch.freq}Hz [${peakType}]</span>
+        <span>${notch.cut.toFixed(1)}dB (Q=${qVal})</span>
       `;
       notchesListEl.appendChild(el);
     });
