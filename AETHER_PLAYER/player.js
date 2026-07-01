@@ -44,8 +44,8 @@ function getNormalizedArtist(name) {
   return name;
 }
 
-// Version: 2.8.1 (Re-deployed to ensure complete file sync)
-import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=2.8.1';
+// Version: 2.8.2 (Re-deployed to ensure complete file sync)
+import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=2.8.2';
 
 // --- State Variables ---
 let audioCtx = null;
@@ -1288,7 +1288,7 @@ function applyDefaultAutoParams() {
     eqMidFreq: 1000,
     eqMidQ: 1.0,
     eqHighGain: 0.0,
-    eqHighFreq: 12500,
+    eqHighFreq: 9000,
     compEnabled: true,
     compThreshold: -8.0,
     compRatio: 1.35,

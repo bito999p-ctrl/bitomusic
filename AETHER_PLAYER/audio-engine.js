@@ -831,6 +831,12 @@ export class AetherEnhancer {
     this.eqHigh.type = 'highshelf';
     this.eqHigh.frequency.setValueAtTime(10000.0, context.currentTime);
 
+    // Dynamic sibilance tamer (de-esser): dynamically tames highs by connecting envelopeSmoother to eqHigh.gain
+    this.eqHighDynamicGain = context.createGain();
+    this.eqHighDynamicGain.gain.setValueAtTime(0.0, context.currentTime);
+    this.envelopeSmoother.connect(this.eqHighDynamicGain);
+    this.eqHighDynamicGain.connect(this.eqHigh.gain);
+
     // 6. Corrective Notch Filters (8-band cascade)
     for (let i = 1; i <= 8; i++) {
       this[`eqCorrective${i}`] = context.createBiquadFilter();
@@ -986,6 +992,12 @@ export class AetherEnhancer {
 
     this.eqHigh.frequency.setTargetAtTime(params.eqHighFreq || 10000.0, t, 0.05);
     this.eqHigh.gain.setTargetAtTime(params.eqHighGain, t, 0.05);
+
+    // Dynamically scale dynamic sibilance tamer (de-esser) gain: cuts up to -3.5dB when hissReductionAmount is 100%
+    if (this.eqHighDynamicGain) {
+      const dynamicCut = -3.5 * (hissAmount / 100.0);
+      this.eqHighDynamicGain.gain.setTargetAtTime(dynamicCut, t, 0.05);
+    }
 
     // 6. Corrective Notch Filters
     this.setCorrectiveNotches(notches, hissAmount);
