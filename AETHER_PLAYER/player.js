@@ -44,8 +44,8 @@ function getNormalizedArtist(name) {
   return name;
 }
 
-// Version: 3.0.3 (Re-deployed to ensure complete file sync)
-import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=3.0.3';
+// Version: 3.0.4 (Re-deployed to ensure complete file sync)
+import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=3.0.4';
 
 // --- State Variables ---
 let audioCtx = null;
@@ -1257,21 +1257,23 @@ function updateAiHudUI(result) {
   if (genreDesc) genreDesc.textContent = styleText;
 
   // Notch Filters
-  notchesListEl.innerHTML = '';
-  if (result.notches && result.notches.length > 0) {
-    result.notches.forEach((notch, idx) => {
-      const el = document.createElement('div');
-      el.className = 'notch-item';
-      const peakType = notch.isBroad ? "Hump" : "Whistle";
-      const qVal = notch.q ? notch.q.toFixed(1) : "15.0";
-      el.innerHTML = `
-        <span>#${idx + 1} ${notch.freq}Hz [${peakType}]</span>
-        <span>${notch.cut.toFixed(1)}dB (Q=${qVal})</span>
-      `;
-      notchesListEl.appendChild(el);
-    });
-  } else {
-    notchesListEl.innerHTML = '<div class="empty-notches">位相整合とトランジェント保護のためバイパス中</div>';
+  if (notchesListEl) {
+    notchesListEl.innerHTML = '';
+    if (result.notches && result.notches.length > 0) {
+      result.notches.forEach((notch, idx) => {
+        const el = document.createElement('div');
+        el.className = 'notch-item';
+        const peakType = notch.isBroad ? "Hump" : "Whistle";
+        const qVal = notch.q ? notch.q.toFixed(1) : "15.0";
+        el.innerHTML = `
+          <span>#${idx + 1} ${notch.freq}Hz [${peakType}]</span>
+          <span>${notch.cut.toFixed(1)}dB (Q=${qVal})</span>
+        `;
+        notchesListEl.appendChild(el);
+      });
+    } else {
+      notchesListEl.innerHTML = '<div class="empty-notches">位相整合とトランジェント保護のためバイパス中</div>';
+    }
   }
 }
 
@@ -1318,7 +1320,7 @@ function applyDefaultAutoParams() {
   hudCompThreshEl.textContent = '-8.0 dB';
   hudCompRatioEl.textContent = '1.35:1';
   hudLimiterBoostEl.textContent = '+3.5 dB';
-  notchesListEl.innerHTML = '<div class="empty-notches">分析待ち...</div>';
+  if (notchesListEl) notchesListEl.innerHTML = '<div class="empty-notches">分析待ち...</div>';
 
   const dynamicsDesc = document.getElementById('hud-dynamics-desc');
   const stereoDesc = document.getElementById('hud-stereo-desc');
