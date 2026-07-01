@@ -12,7 +12,7 @@ export const GENRE_PRESETS = {
     satEnabled: true, satType: 'tube', satDrive: 12, satMix: 10,
     eqLowGain: 0.0, eqLowFreq: 90,
     eqMidGain: 0.0, eqMidFreq: 1000, eqMidQ: 1.0,
-    eqHighGain: 0.0, eqHighFreq: 12500,
+    eqHighGain: 0.0, eqHighFreq: 9000,
     compEnabled: true, compThreshold: -8.0, compRatio: 1.35, compAttack: 0.04, compRelease: 0.20,
     stereoWidth: 1.15, limiterBoost: 3.5, sideHighPassFreq: 110
   },
@@ -328,23 +328,23 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
   const rumbleNoiseFloor = rumbleSum / (binRumbleEnd - binRumbleStart + 1);
   const rumbleNoiseFloorDb = 20 * Math.log10(rumbleNoiseFloor + 1e-6);
 
-  // Suggested values (ノイズクリーナーの感度を引き上げ、より的確にノイズを除去するよう最適化)
+  // Suggested values (ノイズ検出時にのみONにし、ノイズ未検出時は完全にOFFのままにする仕様へ復元)
   let sugRumbleCut = false;
-  if (rumbleNoiseFloorDb > -55.0) { // -48dB から -55dB へ引き下げ、微小な超低域ハムノイズも確実にカット
+  if (rumbleNoiseFloorDb > -58.0) {
     sugRumbleCut = true;
   }
 
   let sugHissAmount = 0;
-  if (hissNoiseFloorDb > -62.0) { // -56dB から -62dB へ引き下げ、微細なヒスノイズも検出
-    // -62dB で 0%、-38dB で最大 90% になるよう感度比率を強化（3.75倍スケール）
-    const rawHiss = Math.round(Math.max(0, Math.min(90, (hissNoiseFloorDb + 62.0) * 3.75)));
+  if (hissNoiseFloorDb > -68.0) { // -62dB から -68dB へ緩やかに感度を引き下げ、ヘッドホンで聴こえるノイズ成分を自動検出
+    // -68dB で 0%、-40dB で最大 90% になるよう比率を調整（3.2倍スケール）
+    const rawHiss = Math.round(Math.max(0, Math.min(90, (hissNoiseFloorDb + 68.0) * 3.2)));
     
     // 静寂区間（最も静かな1秒間）のRMS音量が比較的高い場合、それはヒスではなく楽曲の音（シンセパッドやエフェクトの残響等）である可能性が高いため
-    // 高域の過剰な低域カット（LPF）を防ぐため、Hiss Reducerの適用度を減衰・または完全にOFFにする安全スケーラー
+    // LPFの過剰カットを防ぐため、Hiss Reducerの適用度を減衰する安全スケーラー
     let quietnessScale = 1.0;
     if (minRmsVal > 0.03) {
-      // 最低RMSが 0.03（約-30dBFS）〜0.12（約-18dBFS）の間で、スケール値を 1.0 から 0.0 まで滑らかに減衰
-      quietnessScale = Math.max(0, 1.0 - (minRmsVal - 0.03) / 0.09);
+      // 最低RMSが 0.03（約-30dBFS）〜0.12（約-18dBFS）の間で、スケール値を 1.0 から 0.35 まで滑らかに減衰（完全に0%になるのを防ぎ、マイルドなノイズ除去を最低限残す）
+      quietnessScale = Math.max(0.35, 1.0 - (minRmsVal - 0.03) / 0.09);
     }
     sugHissAmount = Math.round(rawHiss * quietnessScale);
   }
@@ -538,12 +538,12 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
   if (highDiffDb > 0.5) {
     eqHighAdjustment = -Math.min(3.0, highDiffDb * 0.8);
   } else if (highDiffDb < -0.5) {
-    eqHighAdjustment = Math.min(2.0, -highDiffDb * 0.6); // 高音の硬さを防ぐため、最大補正幅を+3.0dBから+2.0dBに緩和し、スロープをマイルドに（0.8から0.6倍に）調整
+    eqHighAdjustment = Math.min(3.0, -highDiffDb * 0.8);
   }
 
-  const eqHighGain = Math.max(-5.0, Math.min(3.0, Math.round((basePreset.eqHighGain + eqHighAdjustment) * 2) / 2)); // 高域ブーストの上限を+4.0dBから+3.0dBに抑える
+  const eqHighGain = Math.max(-5.0, Math.min(4.0, Math.round((basePreset.eqHighGain + eqHighAdjustment) * 2) / 2));
 
-  // 中域はジャンルの特性を維持 (Treble adjustments completed)
+  // 中域はジャンルの特性を維持
   const eqMidGain = basePreset.eqMidGain;
 
   // 現在選択されているラウドネス・ターゲットの取得と基準ブースト値の設定

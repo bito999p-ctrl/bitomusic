@@ -44,8 +44,8 @@ function getNormalizedArtist(name) {
   return name;
 }
 
-// Version: 2.8.0 (Re-deployed to ensure complete file sync)
-import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=2.8.0';
+// Version: 2.8.1 (Re-deployed to ensure complete file sync)
+import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=2.8.1';
 
 // --- State Variables ---
 let audioCtx = null;
@@ -1279,21 +1279,21 @@ function applyDefaultAutoParams() {
   const defaultParams = {
     inputGainDb: 0.0,
     satEnabled: true,
-    satType: 'tape',
-    satDrive: 10,
+    satType: 'tube',
+    satDrive: 12,
     satMix: 10,
     eqLowGain: 0.0,
-    eqLowFreq: 120,
+    eqLowFreq: 90,
     eqMidGain: 0.0,
     eqMidFreq: 1000,
     eqMidQ: 1.0,
     eqHighGain: 0.0,
-    eqHighFreq: 10000,
+    eqHighFreq: 12500,
     compEnabled: true,
-    compThreshold: -15.0,
-    compRatio: 1.6,
-    compAttack: 0.03,
-    compRelease: 0.15,
+    compThreshold: -8.0,
+    compRatio: 1.35,
+    compAttack: 0.04,
+    compRelease: 0.20,
     stereoWidth: 1.15,
     sideHighPassFreq: 110,
     limiterBoost: 3.5,
@@ -1310,13 +1310,13 @@ function applyDefaultAutoParams() {
     analyzingIndicator.classList.add('hidden');
   }
 
-  // Set default HUD display values
+  // Set default HUD display values to match auto preset
   hudEqLowEl.textContent = '0.0 dB';
   hudEqHighEl.textContent = '0.0 dB';
   hudWidthEl.textContent = '1.15x';
   hudHissEl.textContent = '0%';
-  hudCompThreshEl.textContent = '-15.0 dB';
-  hudCompRatioEl.textContent = '1.60:1';
+  hudCompThreshEl.textContent = '-8.0 dB';
+  hudCompRatioEl.textContent = '1.35:1';
   hudLimiterBoostEl.textContent = '+3.5 dB';
   notchesListEl.innerHTML = '<div class="empty-notches">分析待ち...</div>';
 
