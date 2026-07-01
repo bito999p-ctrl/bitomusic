@@ -326,7 +326,7 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
     rumbleSum += sliceSpectrums[minRmsIdx][j];
   }
   const rumbleNoiseFloor = rumbleSum / (binRumbleEnd - binRumbleStart + 1);
-  const rumbleNoiseFloorDb = 20 * Math.log10(rumbleNoiseFloor + 1e-6);
+  const rumbleNoiseFloorDb = 20 * Math.log10(rumbleNoiseFloor + 1e-6) + 26.0; // Added FFT bin bandwidth gain correction factor (+26dB) to align bin average with broadband level
 
   // Suggested values (ノイズ検出時にのみONにし、ノイズ未検出時は完全にOFFのままにする仕様へ復元)
   let sugRumbleCut = false;
@@ -371,7 +371,12 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
       const ratio = val / (localFloor + 1e-9);
       
       const isSunoRange = (peakFreq >= 8800 && peakFreq <= 10200);
-      const thresholdMultiplier = isSunoRange ? 1.20 : 1.25;
+      // ライブ音源やリバーブのシュワシュワ音を防ぐため、ステレオ相関（avgCorrelation）が低い（広がった歓声やリバーブが多い）場合はしきい値を上げ、余計なノッチを抑制
+      let baseThreshold = isSunoRange ? 1.20 : 1.25;
+      if (avgCorrelation < 0.72) {
+        baseThreshold += 0.08;
+      }
+      const thresholdMultiplier = baseThreshold;
       
       let isBroad = false;
       let peakQ = 15.0;
@@ -395,11 +400,15 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
         const wideFloor = wideSum / (wideCount || 1);
         const ratioWide = val / (wideFloor + 1e-9);
         
-        if (ratioWide > 1.30) { // 周辺の広い平均より30%（約2.3dB）以上盛り上がっている場合
+        let humpThreshold = 1.30;
+        if (avgCorrelation < 0.72) {
+          humpThreshold = 1.45; // 歓声やリバーブがある場合は広帯域ハンプカットを大幅に抑制
+        }
+        if (ratioWide > humpThreshold) { // 周辺の広い平均より盛り上がっている場合
           isBroad = true;
           peakQ = 6.0; // 緩やかなノッチ（Q=6.0）で膨らみを滑らかに補正する
           ratioToUse = ratioWide;
-          thresholdToUse = 1.30;
+          thresholdToUse = humpThreshold;
         }
       }
       
@@ -557,7 +566,7 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
     eqHighGain = Math.min(-1.5, eqHighGain);
   }
 
-  // 中域はジャンルの特性を維持 (Dynamic sibilance de-esser integrated)
+  // 中域はジャンルの特性を維持 (Dynamic sibilance de-esser and satHpf integrated)
   const eqMidGain = basePreset.eqMidGain;
 
   // 現在選択されているラウドネス・ターゲットの取得と基準ブースト値の設定
@@ -638,14 +647,18 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
   let stereoWidth = basePreset.stereoWidth;
   let corrDesc = "Balanced";
   
-  if (avgCorrelation > 0.8) {
+  if (avgCorrelation > 0.82) {
     // 位相がほぼセンターに集まっている（モノラルに近い）-> ステレオ感を拡張
     stereoWidth = Math.min(2.0, basePreset.stereoWidth + 0.2);
     corrDesc = "Mono-leaning (Expanded)";
-  } else if (avgCorrelation < 0.45) {
-    // 左右に広がりすぎている、または逆位相成分が多い -> 位相干渉による打ち消しを防ぐため、Widthを狭める
-    stereoWidth = Math.max(1.0, basePreset.stereoWidth - 0.15);
-    corrDesc = "Wide/Phasey (Reduced)";
+  } else if (avgCorrelation < 0.72) {
+    // ライブ音源やリバーブで既に左右に広がりすぎている -> 歪みやコムフィルター現象を防ぐため、1.0（等倍）以下にクランプする
+    stereoWidth = Math.min(1.0, basePreset.stereoWidth - 0.2);
+    // さらに極端に逆位相・拡散している場合はモノラル側へ少し寄せる
+    if (avgCorrelation < 0.45) {
+      stereoWidth = Math.max(0.9, stereoWidth - 0.1);
+    }
+    corrDesc = "Wide/Phasey (Clamped)";
   } else {
     corrDesc = "Balanced Stereo";
   }
@@ -793,7 +806,7 @@ export class AetherEnhancer {
 
     this.envelopeSmoother = context.createBiquadFilter();
     this.envelopeSmoother.type = 'lowpass';
-    this.envelopeSmoother.frequency.setValueAtTime(10.0, context.currentTime);
+    this.envelopeSmoother.frequency.setValueAtTime(2.0, context.currentTime); // Slowed down from 10Hz to 2Hz to smooth out dynamic filter sweeps and eliminate swirling/phasing artifacts on reverb tails and cheers.
     this.envelopeSmoother.Q.setValueAtTime(0.707, context.currentTime);
 
     this.hissEnvelopeGain = context.createGain();
@@ -813,6 +826,12 @@ export class AetherEnhancer {
     this.waveShaper = context.createWaveShaper();
     this.satSumNode = context.createGain();
 
+    // High-pass filter for Saturator Wet path to prevent low-end intermodulation mud (ボワボワ)
+    this.satHpf = context.createBiquadFilter();
+    this.satHpf.type = 'highpass';
+    this.satHpf.frequency.setValueAtTime(150.0, context.currentTime); // Cut sub-bass/bass saturation
+    this.satHpf.Q.setValueAtTime(0.707, context.currentTime);
+
     this.waveShaper.curve = this._generateSaturatorCurve('tape', 10.0);
     this.waveShaper.oversample = 'none';
 
@@ -822,7 +841,8 @@ export class AetherEnhancer {
     this.rumbleFilter.connect(this.hissFilter);
 
     this.hissFilter.connect(this.satDryGain);
-    this.hissFilter.connect(this.waveShaper);
+    this.hissFilter.connect(this.satHpf);
+    this.satHpf.connect(this.waveShaper); // Feed highpassed signal to waveshaper to keep low end clean
     this.waveShaper.connect(this.satWetGain);
 
     this.satDryGain.connect(this.satSumNode);
