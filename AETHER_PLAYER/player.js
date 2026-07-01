@@ -44,8 +44,8 @@ function getNormalizedArtist(name) {
   return name;
 }
 
-// Version: 2.8.6 (Re-deployed to ensure complete file sync)
-import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=2.8.6';
+// Version: 2.9.0 (Re-deployed to ensure complete file sync)
+import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=2.9.0';
 
 // --- State Variables ---
 let audioCtx = null;
@@ -1271,7 +1271,7 @@ function updateAiHudUI(result) {
       notchesListEl.appendChild(el);
     });
   } else {
-    notchesListEl.innerHTML = '<div class="empty-notches">耳障りな周波数は検出されませんでした</div>';
+    notchesListEl.innerHTML = '<div class="empty-notches">位相整合とトランジェント保護のためバイパス中</div>';
   }
 }
 
