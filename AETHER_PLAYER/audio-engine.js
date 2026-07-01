@@ -12,7 +12,7 @@ export const GENRE_PRESETS = {
     satEnabled: true, satType: 'tube', satDrive: 12, satMix: 10,
     eqLowGain: 0.0, eqLowFreq: 90,
     eqMidGain: 0.0, eqMidFreq: 1000, eqMidQ: 1.0,
-    eqHighGain: 0.0, eqHighFreq: 11000,
+    eqHighGain: 0.0, eqHighFreq: 12500,
     compEnabled: true, compThreshold: -8.0, compRatio: 1.35, compAttack: 0.04, compRelease: 0.20,
     stereoWidth: 1.15, limiterBoost: 3.5, sideHighPassFreq: 110
   },
@@ -538,12 +538,12 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
   if (highDiffDb > 0.5) {
     eqHighAdjustment = -Math.min(3.0, highDiffDb * 0.8);
   } else if (highDiffDb < -0.5) {
-    eqHighAdjustment = Math.min(3.0, -highDiffDb * 0.8);
+    eqHighAdjustment = Math.min(2.0, -highDiffDb * 0.6); // 高音の硬さを防ぐため、最大補正幅を+3.0dBから+2.0dBに緩和し、スロープをマイルドに（0.8から0.6倍に）調整
   }
 
-  const eqHighGain = Math.max(-5.0, Math.min(4.0, Math.round((basePreset.eqHighGain + eqHighAdjustment) * 2) / 2));
+  const eqHighGain = Math.max(-5.0, Math.min(3.0, Math.round((basePreset.eqHighGain + eqHighAdjustment) * 2) / 2)); // 高域ブーストの上限を+4.0dBから+3.0dBに抑える
 
-  // 中域はジャンルの特性を維持
+  // 中域はジャンルの特性を維持 (Treble adjustments completed)
   const eqMidGain = basePreset.eqMidGain;
 
   // 現在選択されているラウドネス・ターゲットの取得と基準ブースト値の設定
