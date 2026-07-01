@@ -44,8 +44,8 @@ function getNormalizedArtist(name) {
   return name;
 }
 
-// Version: 2.6.7 (Re-deployed to ensure complete file sync)
-import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=2.6.7';
+// Version: 2.6.8 (Re-deployed to ensure complete file sync)
+import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=2.6.8';
 
 // --- State Variables ---
 let audioCtx = null;
@@ -266,7 +266,8 @@ function initAudio() {
   enhancer.outputNode.connect(analyser);
   analyser.connect(masterGainNode);
 
-  if ('createMediaStreamDestination' in audioCtx) {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (isIOS && 'createMediaStreamDestination' in audioCtx) {
     mediaStreamDest = audioCtx.createMediaStreamDestination();
     masterGainNode.connect(mediaStreamDest);
     
@@ -279,6 +280,7 @@ function initAudio() {
     console.log('[AudioEngine] MediaStreamDestination routing initialized for iOS background support.');
   } else {
     masterGainNode.connect(audioCtx.destination);
+    console.log('[AudioEngine] Direct destination routing initialized.');
   }
 
   console.log('[AudioEngine] Web Audio graph initialized.');
@@ -1072,7 +1074,6 @@ function updateVolume() {
   const vol = volumeSlider ? volumeSlider.value / 100 : 0.8;
   if (masterGainNode && audioCtx) {
     masterGainNode.gain.setValueAtTime(vol, audioCtx.currentTime);
-    if (audioPlayer) audioPlayer.volume = 1.0;
   } else {
     if (audioPlayer) audioPlayer.volume = vol;
   }
