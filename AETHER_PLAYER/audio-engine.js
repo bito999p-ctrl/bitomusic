@@ -1021,7 +1021,7 @@ export class AetherEnhancer {
       if (notches && notches[i]) {
         filter.frequency.setTargetAtTime(notches[i].freq, t, 0.05);
         filter.gain.setTargetAtTime(notches[i].cut * setupHissFactor, t, 0.05);
-        filter.Q.setTargetAtTime(18.0, t, 0.05);
+        filter.Q.setTargetAtTime(notches[i].q || 15.0, t, 0.05);
       } else {
         filter.gain.setTargetAtTime(0.0, t, 0.05);
       }
