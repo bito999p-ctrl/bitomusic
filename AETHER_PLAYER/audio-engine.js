@@ -451,6 +451,15 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
     }
   }
 
+  // 8kHz〜11kHzのキンキン音（サ行やシンバルの鋭いピーク）をスキャン（ブースト判定クランプで先に使用するため上部で定義）
+  let sibilanceDynamicFreq = 0;
+  const sunoRangePeaks = rawPeaks.filter(p => p.freq >= 8000 && p.freq <= 11000);
+  if (sunoRangePeaks.length > 0) {
+    // スコア（共鳴の鋭さ・目立ち具合）が最大のピークを特定
+    sunoRangePeaks.sort((a, b) => b.score - a.score);
+    sibilanceDynamicFreq = sunoRangePeaks[0].freq;
+  }
+
   // 3.5. AIジャンル自動判定 (Heuristic Genre Classifier - お勧め提案用)
 
   // 3.5. AIジャンル自動判定 (Heuristic Genre Classifier)
@@ -541,9 +550,14 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
     eqHighAdjustment = Math.min(3.0, -highDiffDb * 0.8);
   }
 
-  const eqHighGain = Math.max(-5.0, Math.min(4.0, Math.round((basePreset.eqHighGain + eqHighAdjustment) * 2) / 2));
+  let eqHighGain = Math.max(-5.0, Math.min(4.0, Math.round((basePreset.eqHighGain + eqHighAdjustment) * 2) / 2));
 
-  // 中域はジャンルの特性を維持
+  // キンキン共鳴音 (sibilanceDynamicFreq > 0) が検知されている場合、高域EQのブーストを禁止し、安全のために少なくとも-1.5dB以下の減衰量にクランプ
+  if (sibilanceDynamicFreq > 0) {
+    eqHighGain = Math.min(-1.5, eqHighGain);
+  }
+
+  // 中域はジャンルの特性を維持 (Dynamic sibilance de-esser integrated)
   const eqMidGain = basePreset.eqMidGain;
 
   // 現在選択されているラウドネス・ターゲットの取得と基準ブースト値の設定
@@ -653,6 +667,8 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
   const originalPeakDb = 20 * Math.log10(maxAbsSample + 1e-6);
   const suggestedInputGainDb = Math.max(-12.0, Math.min(12.0, -6.0 - originalPeakDb));
 
+  // 8kHz〜11kHzのキンキン音（サ行やシンバルの鋭いピーク）は上部で検出し変数に格納済み
+
   return {
     detected: filteredPeaks.length > 0,
     notches: filteredPeaks,
@@ -686,7 +702,8 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
       sideHighPassFreq: basePreset.sideHighPassFreq || 110,
       limiterBoost: limiterBoost,
       rumbleCutEnabled: sugRumbleCut,
-      hissReductionAmount: sugHissAmount
+      hissReductionAmount: sugHissAmount,
+      sibilanceDynamicFreq: sibilanceDynamicFreq
     }
   };
 }
@@ -831,11 +848,17 @@ export class AetherEnhancer {
     this.eqHigh.type = 'highshelf';
     this.eqHigh.frequency.setValueAtTime(10000.0, context.currentTime);
 
-    // Dynamic sibilance tamer (de-esser): dynamically tames highs by connecting envelopeSmoother to eqHigh.gain
-    this.eqHighDynamicGain = context.createGain();
-    this.eqHighDynamicGain.gain.setValueAtTime(0.0, context.currentTime);
-    this.envelopeSmoother.connect(this.eqHighDynamicGain);
-    this.eqHighDynamicGain.connect(this.eqHigh.gain);
+    // Dedicated Dynamic Sibilance Notch (9000Hz De-esser)
+    this.sibilanceNotch = context.createBiquadFilter();
+    this.sibilanceNotch.type = 'peaking';
+    this.sibilanceNotch.frequency.setValueAtTime(9000.0, context.currentTime);
+    this.sibilanceNotch.Q.setValueAtTime(5.0, context.currentTime); // surgical Q targeting sibilance peak
+    this.sibilanceNotch.gain.setValueAtTime(0.0, context.currentTime); // default neutral
+
+    this.sibilanceNotchDynamicGain = context.createGain();
+    this.sibilanceNotchDynamicGain.gain.setValueAtTime(0.0, context.currentTime);
+    this.envelopeSmoother.connect(this.sibilanceNotchDynamicGain);
+    this.sibilanceNotchDynamicGain.connect(this.sibilanceNotch.gain);
 
     // 6. Corrective Notch Filters (8-band cascade)
     for (let i = 1; i <= 8; i++) {
@@ -853,7 +876,8 @@ export class AetherEnhancer {
     this.eqMid.connect(this.eqHigh);
 
     // Cascade corrective filters
-    this.eqHigh.connect(this.eqCorrective1);
+    this.eqHigh.connect(this.sibilanceNotch);
+    this.sibilanceNotch.connect(this.eqCorrective1);
     this.eqCorrective1.connect(this.eqCorrective2);
     this.eqCorrective2.connect(this.eqCorrective3);
     this.eqCorrective3.connect(this.eqCorrective4);
@@ -993,10 +1017,12 @@ export class AetherEnhancer {
     this.eqHigh.frequency.setTargetAtTime(params.eqHighFreq || 10000.0, t, 0.05);
     this.eqHigh.gain.setTargetAtTime(params.eqHighGain, t, 0.05);
 
-    // Dynamically scale dynamic sibilance tamer (de-esser) gain: cuts up to -3.5dB when hissReductionAmount is 100%
-    if (this.eqHighDynamicGain) {
-      const dynamicCut = -3.5 * (hissAmount / 100.0);
-      this.eqHighDynamicGain.gain.setTargetAtTime(dynamicCut, t, 0.05);
+    // Decoupled from hissAmount: always active at -6.0dB max if sibilance is detected
+    if (this.sibilanceNotch && this.sibilanceNotchDynamicGain) {
+      const isSibilant = (params.sibilanceDynamicFreq && params.sibilanceDynamicFreq > 0);
+      const dynamicCut = isSibilant ? -6.0 : 0.0;
+      this.sibilanceNotch.frequency.setTargetAtTime(params.sibilanceDynamicFreq || 9000, t, 0.05);
+      this.sibilanceNotchDynamicGain.gain.setTargetAtTime(dynamicCut, t, 0.05);
     }
 
     // 6. Corrective Notch Filters
