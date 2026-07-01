@@ -44,8 +44,8 @@ function getNormalizedArtist(name) {
   return name;
 }
 
-// Version: 2.7.3 (Re-deployed to ensure complete file sync)
-import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=2.7.3';
+// Version: 2.7.4 (Re-deployed to ensure complete file sync)
+import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=2.7.4';
 
 // --- State Variables ---
 let audioCtx = null;
@@ -978,19 +978,21 @@ async function selectTrack(idx) {
     // Play immediately with correct parameters applied!
     startPlayback(track.audio_url);
   } else {
-    // Play IMMEDIATELY (unmastered) to prevent background autoplay blocks in mobile browsers!
+    // Play a silent 1ms audio to instantly unlock the audio element under the user gesture (prevents mobile Safari autoplay block)
+    audioPlayer.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+    audioPlayer.play().catch(() => {});
+
     applyDefaultAutoParams();
     updateAiStatus('loading');
-    startPlayback(track.audio_url);
 
-    // Show Loading loader UI in player, but don't disable playback!
-    playPauseBtn.disabled = false;
-    playPauseBtn.style.opacity = '1';
+    // Show Loading loader UI in player and suspend play button until mastering is ready!
+    playPauseBtn.disabled = true;
+    playPauseBtn.style.opacity = '0.5';
     trackTitle.textContent = track.title;
     
     const analyzingIndicator = document.getElementById('ai-analyzing-indicator');
     if (analyzingIndicator) {
-      analyzingIndicator.innerHTML = '<span class="pulse-dot"></span> ファイル読み込み中...';
+      analyzingIndicator.innerHTML = '<span class="pulse-dot"></span> AIマスタリング分析中...';
       analyzingIndicator.classList.remove('hidden');
     }
 
@@ -1054,6 +1056,11 @@ async function selectTrack(idx) {
           analyzingIndicator.classList.add('hidden');
         }
 
+        // Enable UI buttons and start actual playback now!
+        playPauseBtn.disabled = false;
+        playPauseBtn.style.opacity = '1';
+        startPlayback(track.audio_url);
+
       } catch (err) {
         if (err.name === 'AbortError') {
           console.log('[AI Auto] Analysis aborted (track changed).');
@@ -1064,6 +1071,10 @@ async function selectTrack(idx) {
         if (analyzingIndicator) {
           analyzingIndicator.classList.add('hidden');
         }
+        // Enable UI buttons and start playback as fallback (unmastered)
+        playPauseBtn.disabled = false;
+        playPauseBtn.style.opacity = '1';
+        startPlayback(track.audio_url);
       }
     })();
   }
