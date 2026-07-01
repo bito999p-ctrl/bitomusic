@@ -249,10 +249,11 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
     // FFT実行
     fft(re, im);
     
-    // スペクトラム強度の算出と累積
+    // スペクトラム強度の算出と累積（FFTサイズで正規化して正確なdBFSレベルにする）
     const spec = new Float32Array(fftSize / 2);
+    const normFactor = fftSize / 2; // Cooley-Tukey FFTの振幅正規化係数 (N/2)
     for (let j = 0; j < fftSize / 2; j++) {
-      const mag = Math.sqrt(re[j] * re[j] + im[j] * im[j]);
+      const mag = Math.sqrt(re[j] * re[j] + im[j] * im[j]) / normFactor;
       avgSpectrum[j] += mag / numSlices;
       spec[j] = mag;
     }
@@ -336,7 +337,16 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
   let sugHissAmount = 0;
   if (hissNoiseFloorDb > -62.0) { // -56dB から -62dB へ引き下げ、微細なヒスノイズも検出
     // -62dB で 0%、-38dB で最大 90% になるよう感度比率を強化（3.75倍スケール）
-    sugHissAmount = Math.round(Math.max(0, Math.min(90, (hissNoiseFloorDb + 62.0) * 3.75)));
+    const rawHiss = Math.round(Math.max(0, Math.min(90, (hissNoiseFloorDb + 62.0) * 3.75)));
+    
+    // 静寂区間（最も静かな1秒間）のRMS音量が比較的高い場合、それはヒスではなく楽曲の音（シンセパッドやエフェクトの残響等）である可能性が高いため
+    // 高域の過剰な低域カット（LPF）を防ぐため、Hiss Reducerの適用度を減衰・または完全にOFFにする安全スケーラー
+    let quietnessScale = 1.0;
+    if (minRmsVal > 0.03) {
+      // 最低RMSが 0.03（約-30dBFS）〜0.12（約-18dBFS）の間で、スケール値を 1.0 から 0.0 まで滑らかに減衰
+      quietnessScale = Math.max(0, 1.0 - (minRmsVal - 0.03) / 0.09);
+    }
+    sugHissAmount = Math.round(rawHiss * quietnessScale);
   }
 
   // 3. 耳障りな高音域（シャリシャリした sibilance 帯域：7.0kHz 〜 20kHz）のマルチピーク走査（上限撤廃）
@@ -352,24 +362,64 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
     
     // 極大値（ピーク）判定
     if (val > avgSpectrum[j - 1] && val > avgSpectrum[j + 1]) {
-      // 周辺のローカルノイズフロア（ピークの直近2ビンを除いた左右5ビンの平均）を計算
+      // 1. 鋭いホイッスル共鳴の検出（直近2ビンを除いた左右5ビンの平均）
       const localBins = [
         avgSpectrum[j - 5], avgSpectrum[j - 4], avgSpectrum[j - 3], avgSpectrum[j - 2],
         avgSpectrum[j + 2], avgSpectrum[j + 3], avgSpectrum[j + 4], avgSpectrum[j + 5]
       ];
       const localFloor = localBins.reduce((sum, v) => sum + v, 0) / localBins.length;
-      
       const ratio = val / (localFloor + 1e-9);
       
-      // Suno AIの音源で特に耳に刺やすく 9kHz〜10kHz 帯域（マージンを取り8800Hz〜10200Hz）の判定
       const isSunoRange = (peakFreq >= 8800 && peakFreq <= 10200);
-      const thresholdMultiplier = isSunoRange ? 1.20 : 1.25; // 20% / 25% の突出度（約1.6dB〜1.9dB）で検出し、残存する微細なキンキン音も漏らさず補足
+      const thresholdMultiplier = isSunoRange ? 1.20 : 1.25;
+      
+      let isBroad = false;
+      let peakQ = 15.0;
+      let ratioToUse = ratio;
+      let thresholdToUse = thresholdMultiplier;
       
       if (ratio > thresholdMultiplier) {
-        // 超過度合い（比率）に基づき減衰幅をダイナミックに算出（Q=15.0の鋭さにより原音を活かしつつ確実にトゲを抜くため、最大 -6.0dB まで深くカット）
-        let cutDb = -Math.min(6.0, Math.max(1.5, (ratio - thresholdMultiplier) * 8.0 + 1.5));
+        // 鋭い金属音（WHISTLE）として検知
+        isBroad = false;
+        peakQ = 15.0;
+      } else {
+        // 2. 広範囲な高音の盛り上がり（HUMP：例: 10kHz〜12kHz帯域の膨らみ）を検知するために広い近傍フロアと比較
+        let wideSum = 0;
+        let wideCount = 0;
+        for (let k = j - 30; k <= j + 30; k++) {
+          if (k >= sibilanceMinBin && k <= sibilanceMaxBin && (k < j - 8 || k > j + 8)) {
+            wideSum += avgSpectrum[k];
+            wideCount++;
+          }
+        }
+        const wideFloor = wideSum / (wideCount || 1);
+        const ratioWide = val / (wideFloor + 1e-9);
         
-        // 8500Hz未満のカットは、極度に痩せるのを防ぎつつもしっかり金属音を除去できる安全ライン（85%）に緩和
+        if (ratioWide > 1.30) { // 周辺の広い平均より30%（約2.3dB）以上盛り上がっている場合
+          isBroad = true;
+          peakQ = 6.0; // 緩やかなノッチ（Q=6.0）で膨らみを滑らかに補正する
+          ratioToUse = ratioWide;
+          thresholdToUse = 1.30;
+        }
+      }
+      
+      if (ratio > thresholdMultiplier || isBroad) {
+        // Hiss Reducer (LPF) の遮断天井より高い周波数は、既にLPFで十分減衰されるため
+        // イコライザーでの過剰な削り（ダブルカット）を防ぐためにノッチ対象から除外する
+        const ceilFreq = 20000.0 - (7000.0 * (sugHissAmount / 100.0));
+        if (peakFreq > ceilFreq - 500) {
+          continue;
+        }
+
+        // 減衰幅の算出
+        let cutDb = 0;
+        if (isBroad) {
+          cutDb = -Math.min(4.5, Math.max(1.5, (ratioToUse - thresholdToUse) * 6.0 + 1.5));
+        } else {
+          cutDb = -Math.min(6.0, Math.max(1.5, (ratioToUse - thresholdToUse) * 8.0 + 1.5));
+        }
+        
+        // 8500Hz未満のカットは緩和
         if (peakFreq < 8500) {
           cutDb *= 0.85;
         }
@@ -377,10 +427,12 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
         rawPeaks.push({
           freq: peakFreq,
           cut: cutDb,
+          q: peakQ,
           val: val,
           isSunoRange: isSunoRange,
-          // 突出度（ratio）を優先度スコアにする（Suno帯域は1.5倍の優先度）
-          score: ratio * (isSunoRange ? 1.5 : 1.0)
+          isBroad: isBroad,
+          // スコア計算：鋭い共鳴（ホイッスル）を最優先にしつつ、広範囲の盛り上がり（ハンプ）もカバー
+          score: ratioToUse * (isSunoRange ? 1.5 : 1.0) * (isBroad ? 0.9 : 1.0)
         });
       }
     }
@@ -395,7 +447,7 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
     if (filteredPeaks.length >= 6) break;
     const tooClose = filteredPeaks.some(p => Math.abs(p.freq - peak.freq) < 400);
     if (!tooClose) {
-      filteredPeaks.push({ freq: peak.freq, cut: peak.cut });
+      filteredPeaks.push({ freq: peak.freq, cut: peak.cut, q: peak.q, isBroad: peak.isBroad });
     }
   }
 
@@ -943,7 +995,7 @@ export class AetherEnhancer {
       this.compressor.threshold.setTargetAtTime(params.compThreshold, t, 0.05);
       this.compressor.ratio.setTargetAtTime(params.compRatio, t, 0.05);
       if (params.compAttack) this.compressor.attack.setTargetAtTime(params.compAttack, t, 0.05);
-      if (params.compReleas.compressor.release.setTargetAtTime(params.compRelease, t, 0.05);
+      if (params.compRelease) this.compressor.release.setTargetAtTime(params.compRelease, t, 0.05);
     } else {
       this.compressor.threshold.setTargetAtTime(0.0, t, 0.05);
       this.compressor.ratio.setTargetAtTime(1.0, t, 0.05);
