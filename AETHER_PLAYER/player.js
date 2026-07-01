@@ -44,8 +44,8 @@ function getNormalizedArtist(name) {
   return name;
 }
 
-// Version: 2.7.5 (Re-deployed to ensure complete file sync)
-import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=2.7.5';
+// Version: 2.7.6 (Re-deployed to ensure complete file sync)
+import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=2.7.6';
 
 // --- State Variables ---
 let audioCtx = null;
@@ -65,6 +65,7 @@ let userProfileData = null;
 // Pre-fetching Cache
 const analysisCache = new Map();
 let preFetchingUrl = '';
+let currentTrackPreFetchTriggered = false;
 
 // Background Analysis Coordination
 let currentAnalysisId = 0;
@@ -895,6 +896,7 @@ async function selectTrack(idx) {
   }
 
   currentTrackIndex = idx;
+  currentTrackPreFetchTriggered = false;
 
   // On mobile, auto open full-screen player modal
   if (window.innerWidth <= 768) {
@@ -1148,12 +1150,14 @@ async function runPreAnalysis(track) {
 
 function checkAndPreFetchNextTrack() {
   if (tracks.length <= 1) return;
+  if (currentTrackPreFetchTriggered) return;
   const duration = getDuration();
   if (duration === 0 || audioPlayer.paused) return;
 
   const timeLeft = duration - audioPlayer.currentTime;
   // Trigger pre-fetch when less than 20 seconds remain or progress is > 85%
   if (timeLeft < 20 || (audioPlayer.currentTime / duration) > 0.85) {
+    currentTrackPreFetchTriggered = true;
     let nextIdx = -1;
     if (isShuffle) {
       nextIdx = Math.floor(Math.random() * tracks.length);
