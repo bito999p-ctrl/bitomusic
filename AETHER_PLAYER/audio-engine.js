@@ -7,7 +7,7 @@
 const baseLoudnessTarget = 'genre';
 const params = { limiterBoost: 3.5 };
 
-export const GENRE_PRESETS = {
+const GENRE_PRESETS = {
   auto: {
     satEnabled: true, satType: 'tube', satDrive: 12, satMix: 10,
     eqLowGain: 0.0, eqLowFreq: 90,
@@ -911,7 +911,10 @@ export class AetherEnhancer {
     const hissAmount = params.hissReductionAmount || 0;
     const baseFreq = 20000.0 - (16250.0 * (hissAmount / 100.0)); // Maps 80% to 7,000Hz and 100% to 3,750Hz
     this.hissFilter.frequency.setTargetAtTime(baseFreq, t, 0.05);
-    const maxEnvGain = 35000.0 * (hissAmount / 100.0);
+    
+    // 高域ヒスノイズ（13kHz〜20kHz）が楽曲再生中も完全に消え去るよう、上限遮断周波数（天井）を制限
+    const ceilFreq = 20000.0 - (7000.0 * (hissAmount / 100.0)); // hissAmount=100%で最大天井を13,000Hzに固定
+    const maxEnvGain = Math.max(0, ceilFreq - baseFreq);
     this.hissEnvelopeGain.gain.setTargetAtTime(maxEnvGain, t, 0.05);
 
     // 4. Parallel Saturation
@@ -940,7 +943,7 @@ export class AetherEnhancer {
       this.compressor.threshold.setTargetAtTime(params.compThreshold, t, 0.05);
       this.compressor.ratio.setTargetAtTime(params.compRatio, t, 0.05);
       if (params.compAttack) this.compressor.attack.setTargetAtTime(params.compAttack, t, 0.05);
-      if (params.compRelease) this.compressor.release.setTargetAtTime(params.compRelease, t, 0.05);
+      if (params.compReleas.compressor.release.setTargetAtTime(params.compRelease, t, 0.05);
     } else {
       this.compressor.threshold.setTargetAtTime(0.0, t, 0.05);
       this.compressor.ratio.setTargetAtTime(1.0, t, 0.05);
@@ -1059,4 +1062,6 @@ export class AetherEnhancer {
     }
     return curve;
   }
+}
+ }
 }
