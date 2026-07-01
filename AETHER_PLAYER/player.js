@@ -44,8 +44,8 @@ function getNormalizedArtist(name) {
   return name;
 }
 
-// Version: 2.7.8 (Re-deployed to ensure complete file sync)
-import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=2.7.8';
+// Version: 2.7.9 (Re-deployed to ensure complete file sync)
+import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=2.7.9';
 
 // --- State Variables ---
 let audioCtx = null;
@@ -506,6 +506,7 @@ function setupEventListeners() {
       if (mobileEnhancerToggle) {
         mobileEnhancerToggle.checked = enhancerToggle.checked;
       }
+      updateAiStatus(enhancerToggle.checked ? 'active' : 'bypass');
     });
   }
 
@@ -516,6 +517,7 @@ function setupEventListeners() {
         enhancer.setBypass(!mobileEnhancerToggle.checked);
       }
       enhancerToggle.checked = mobileEnhancerToggle.checked;
+      updateAiStatus(mobileEnhancerToggle.checked ? 'active' : 'bypass');
     });
   }
 
@@ -976,7 +978,7 @@ async function selectTrack(idx) {
       enhancer.setMasteringParams(currentAnalysisResult.suggestedParams, currentAnalysisResult.notches);
     }
     updateAiHudUI(currentAnalysisResult);
-    updateAiStatus('active');
+    updateAiStatus(enhancerToggle.checked ? 'active' : 'bypass');
     
     // Play immediately with correct parameters applied!
     startPlayback(track.audio_url);
@@ -1055,7 +1057,7 @@ async function selectTrack(idx) {
 
         // Update AI HUD UI
         updateAiHudUI(result);
-        updateAiStatus('active');
+        updateAiStatus(enhancerToggle.checked ? 'active' : 'bypass');
         
         if (analyzingIndicator) {
           analyzingIndicator.classList.add('hidden');
@@ -1195,6 +1197,8 @@ function updateAiStatus(status) {
     aiStatusEl.textContent = 'ANALYZING...';
   } else if (status === 'active') {
     aiStatusEl.textContent = 'ACTIVE';
+  } else if (status === 'bypass') {
+    aiStatusEl.textContent = 'BYPASS';
   } else if (status === 'failed') {
     aiStatusEl.textContent = 'FAILED (STD)';
   } else {
@@ -1242,7 +1246,15 @@ function updateAiHudUI(result) {
 
   if (dynamicsDesc) dynamicsDesc.textContent = result.crestDesc || 'Normal (Balanced)';
   if (stereoDesc) stereoDesc.textContent = result.correlationDesc || 'Balanced Stereo';
-  if (genreDesc) genreDesc.textContent = result.detectedGenre ? result.detectedGenre.toUpperCase() : 'OPTIMIZED';
+  
+  const selectedPreset = (presetSelect ? presetSelect.value : 'auto');
+  let styleText = 'OPTIMIZED';
+  if (selectedPreset === 'custom') {
+    styleText = 'MANUAL CUSTOM';
+  } else if (selectedPreset !== 'auto') {
+    styleText = selectedPreset.toUpperCase();
+  }
+  if (genreDesc) genreDesc.textContent = styleText;
 
   // Notch Filters
   notchesListEl.innerHTML = '';

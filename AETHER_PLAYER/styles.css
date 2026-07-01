@@ -1,4 +1,4 @@
-/* Version: 2.7.8 (Re-deployed to ensure complete file sync) */
+/* Version: 2.7.9 (Re-deployed to ensure complete file sync) */
 /* ==========================================================================
    AetherPlayer CSS - Premium Dark Glassmorphic Design
    ========================================================================== */
@@ -1041,6 +1041,18 @@ input:checked + .switch-slider:before {
   border: 1px solid var(--border-glass-active);
   box-shadow: 0 0 10px rgba(0, 242, 254, 0.15);
   animation: pulse-glow-cyan 2s infinite ease-in-out;
+}
+
+.status-badge.bypass {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.status-badge.failed {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.25);
 }
 
 @keyframes pulse-glow-orange {
