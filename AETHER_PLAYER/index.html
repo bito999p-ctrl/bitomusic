@@ -1,16 +1,31 @@
+<!-- Version: 2.6.3 (Re-deployed to ensure complete file sync) -->
 <!DOCTYPE html>
 <html lang="ja" data-theme="dark">
 <head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-C8CLCFDVX2"></script>
+  <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { dataLayer.push(arguments); }
+      gtag('js', new Date());
+
+      gtag('config', 'G-C8CLCFDVX2');
+  </script>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>AetherPlayer - Suno & AetherMaster Enhancer</title>
   <meta name="description" content="Sunoの楽曲をAetherMasterの高音質化・ノイズ除去エンジンで再生するプレミアム音楽プレイヤー。">
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="https://bito999p-ctrl.github.io/bitomusic/favicon.png">
   <!-- Google Fonts Outfit & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- CSS Stylesheet -->
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=2.6.3">
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
   <div class="app-container">
@@ -18,9 +33,19 @@
     <!-- 1. Landing Screen (Shown when no parameter is present) -->
     <div id="landing-screen" class="landing-container">
       <div class="landing-card card">
+        
+        <!-- Portal Nav Buttons at the very top -->
+        <div class="portal-links">
+          <a href="https://bito999p-ctrl.github.io/bitomusic" class="portal-link-btn"><i data-lucide="home"></i> Bito Music Portal</a>
+          <a href="https://bito999p-ctrl.github.io/aether_master/" class="portal-link-btn" target="_blank"><i data-lucide="sliders"></i> AetherMaster Engine</a>
+        </div>
+
         <div class="logo landing-logo">
-          <span class="logo-icon">✦</span>
-          <h1>AetherPlayer</h1>
+          <span class="logo-icon"><i data-lucide="sparkles"></i></span>
+          <div class="logo-text-group" style="align-items: center;">
+            <h1>AetherPlayer</h1>
+            <span class="brand-credit">by Bito Music</span>
+          </div>
         </div>
         <p class="landing-subtitle">Sunoの公開曲やプレイリストを、AetherMasterの高音質AI AUTOマスタリング技術で再生する専用プレイヤー</p>
         
@@ -38,14 +63,14 @@
         </div>
 
         <p class="landing-helper-text">
-          💡 <b>Suno仕様上の最大読込数</b>: アーティスト: <b>20曲</b> / プレイリスト: <b>50曲</b>
+          💡 Suno仕様上の最大読込数: アーティスト: <b>20曲</b> / プレイリスト: <b>50曲</b>
           <span class="helper-sub">(それ以上の曲がある場合はプレイリストを分割して読み込んでください)</span>
         </p>
 
         <div class="quick-links">
-          <span class="quick-label">クイック試聴:</span>
-          <button class="quick-link-btn" data-url="@bito999">@bito999 (アーティスト)</button>
-          <button class="quick-link-btn" data-url="20aa266e-cde7-4115-9795-30e75c164d01">歪み歪み (プレイリスト)</button>
+          <span class="quick-label">サンプルアクセス:</span>
+          <button class="quick-link-btn" data-url="@bito999">サンプル・アーティスト (@bito999)</button>
+          <button class="quick-link-btn" data-url="a9ee0f0f-61cf-428d-8e26-d4407b951b63">サンプル・プレイリスト (Electro Flood Parade)</button>
         </div>
 
         <!-- Recent History Section -->
@@ -53,18 +78,41 @@
           <h3 class="history-title">最近再生した履歴</h3>
           <div class="history-grid">
             <div class="history-col">
-              <h4>👤 ユーザー</h4>
+              <h4><i data-lucide="user" class="icon-inline"></i> ユーザー</h4>
               <div id="history-users-list" class="history-list"></div>
             </div>
             <div class="history-col">
-              <h4>💿 プレイリスト</h4>
+              <h4><i data-lucide="disc" class="icon-inline"></i> プレイリスト</h4>
               <div id="history-playlists-list" class="history-list"></div>
             </div>
             <div class="history-col">
-              <h4>🎵 シングル曲</h4>
+              <h4><i data-lucide="music" class="icon-inline"></i> シングル曲</h4>
               <div id="history-tracks-list" class="history-list"></div>
             </div>
           </div>
+        </div>
+
+        <!-- Favorites (お気に入り) Section -->
+        <div id="favorites-container" class="favorites-container hidden">
+          <h3 class="favorites-title"><i data-lucide="heart" class="title-icon-inline"></i> お気に入り一覧</h3>
+          <div class="favorites-grid">
+            <div class="favorites-col">
+              <h4><i data-lucide="user" class="icon-inline"></i> ユーザー</h4>
+              <div id="favorites-users-list" class="favorites-list"></div>
+            </div>
+            <div class="favorites-col">
+              <h4><i data-lucide="disc" class="icon-inline"></i> プレイリスト</h4>
+              <div id="favorites-playlists-list" class="favorites-list"></div>
+            </div>
+            <div class="favorites-col">
+              <h4><i data-lucide="music" class="icon-inline"></i> お気に入り曲</h4>
+              <div id="favorites-tracks-list" class="favorites-list"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="landing-copyright-note">
+          Unauthorized reproduction, reprinting, or redistribution of this web tool is strictly prohibited. © 2026 Bito Music | v2.6.3.
         </div>
       </div>
     </div>
@@ -74,37 +122,72 @@
       <!-- Top Nav / Control Bar -->
       <header class="app-header">
         <div class="logo">
-          <span class="logo-icon">✦</span>
-          <h1>AetherPlayer</h1>
+          <span class="logo-icon"><i data-lucide="sparkles"></i></span>
+          <div class="logo-text-group">
+            <h1>AetherPlayer</h1>
+            <span class="logo-credit">by Bito Music</span>
+          </div>
           <span class="logo-subtitle">Active</span>
         </div>
+        
+        <!-- Header Portal Navigation Links -->
+        <div class="header-portal-links desktop-only-flex">
+          <a href="https://bito999p-ctrl.github.io/bitomusic" class="portal-link-item"><i data-lucide="home"></i> Bito Music Portal</a>
+          <a href="https://bito999p-ctrl.github.io/aether_master/" class="portal-link-item" target="_blank"><i data-lucide="sliders"></i> AetherMaster Engine</a>
+        </div>
+
         <div class="header-actions">
           <!-- History Dropdown Trigger -->
           <div class="history-dropdown-wrapper">
             <button id="history-toggle-btn" class="btn btn-secondary">
-              <span>🕒 履歴</span>
+              <span><i data-lucide="history" class="icon-inline"></i> 履歴 / お気に入り</span>
             </button>
             <div id="header-history-dropdown" class="header-history-dropdown card hidden">
-              <h3 class="dropdown-title">最近再生した履歴</h3>
-              <div class="dropdown-history-grid">
-                <div class="dropdown-history-col">
-                  <h4>👤 ユーザー</h4>
-                  <div id="dropdown-history-users-list" class="dropdown-history-list"></div>
+              <div class="dropdown-tab-headers">
+                <button id="drop-tab-history" class="dropdown-tab-btn active"><i data-lucide="history" class="dropdown-tab-icon"></i> 最近の履歴</button>
+                <button id="drop-tab-favorites" class="dropdown-tab-btn"><i data-lucide="heart" class="dropdown-tab-icon"></i> お気に入り</button>
+              </div>
+              
+              <!-- 1. History Tab Content -->
+              <div id="drop-content-history" class="dropdown-tab-content">
+                <div class="dropdown-history-grid">
+                  <div class="dropdown-history-col">
+                    <h4><i data-lucide="user" class="icon-inline"></i> ユーザー</h4>
+                    <div id="dropdown-history-users-list" class="dropdown-history-list"></div>
+                  </div>
+                  <div class="dropdown-history-col">
+                    <h4><i data-lucide="disc" class="icon-inline"></i> プレイリスト</h4>
+                    <div id="dropdown-history-playlists-list" class="dropdown-history-list"></div>
+                  </div>
+                  <div class="dropdown-history-col">
+                    <h4><i data-lucide="music" class="icon-inline"></i> 曲</h4>
+                    <div id="dropdown-history-tracks-list" class="dropdown-history-list"></div>
+                  </div>
                 </div>
-                <div class="dropdown-history-col">
-                  <h4>💿 プレイリスト</h4>
-                  <div id="dropdown-history-playlists-list" class="dropdown-history-list"></div>
-                </div>
-                <div class="dropdown-history-col">
-                  <h4>🎵 曲</h4>
-                  <div id="dropdown-history-tracks-list" class="dropdown-history-list"></div>
+              </div>
+
+              <!-- 2. Favorites Tab Content -->
+              <div id="drop-content-favorites" class="dropdown-tab-content hidden">
+                <div class="dropdown-history-grid">
+                  <div class="dropdown-history-col">
+                    <h4><i data-lucide="user" class="icon-inline"></i> ユーザー</h4>
+                    <div id="dropdown-favorites-users-list" class="dropdown-history-list"></div>
+                  </div>
+                  <div class="dropdown-history-col">
+                    <h4><i data-lucide="disc" class="icon-inline"></i> プレイリスト</h4>
+                    <div id="dropdown-favorites-playlists-list" class="dropdown-history-list"></div>
+                  </div>
+                  <div class="dropdown-history-col">
+                    <h4><i data-lucide="music" class="icon-inline"></i> 曲</h4>
+                    <div id="dropdown-favorites-tracks-list" class="dropdown-history-list"></div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
           <button id="back-to-landing-btn" class="btn btn-secondary">
-            <span>🔍 別のURLを読み込む</span>
+            <span><i data-lucide="search" class="icon-inline"></i> 別のURLを読み込む</span>
           </button>
           <button id="share-btn" class="btn btn-primary" title="共有用リンクをコピー">
             <span>共有URLをコピー</span>
@@ -118,10 +201,22 @@
         <!-- Left Sidebar: Playlist & Songs list -->
         <section class="workspace-sidebar card">
           <div class="sidebar-header">
+            <div class="sidebar-nav-buttons">
+              <button id="sidebar-back-btn" class="sidebar-back-btn" title="ホームに戻る">
+                <span class="desktop-only-inline"><i data-lucide="arrow-left" class="icon-inline"></i> ホームに戻る</span>
+                <span class="mobile-only-inline"><i data-lucide="home" class="icon-inline"></i> ホーム</span>
+              </button>
+              <button id="sidebar-to-player-btn" class="sidebar-to-player-btn mobile-only-inline" title="プレイヤーに戻る">
+                <i data-lucide="arrow-up" class="icon-inline"></i> プレイヤー
+              </button>
+            </div>
             <div id="source-info" class="source-info-container">
               <img id="source-cover" src="" alt="Cover" class="source-cover">
               <div class="source-text">
-                <h2 id="source-name">Suno Playlist</h2>
+                <div class="source-title-row">
+                  <h2 id="source-name">Suno Playlist</h2>
+                  <button id="source-like-btn" class="source-like-btn" title="お気に入りに追加"><i data-lucide="heart"></i></button>
+                </div>
                 <span id="source-type">Playlist</span>
               </div>
             </div>
@@ -138,18 +233,31 @@
             <!-- Tracks List -->
             <div class="tracks-section">
               <div class="tracks-section-header">
-                <h3>トラック一覧 (<span id="tracks-count">0</span>)</h3>
-                <div id="sidebar-limit-warning" class="limit-warning hidden">⚠️ 読込上限に達しました (分割読込を推奨)</div>
+                <div class="tracks-section-title-row">
+                  <h3>トラック一覧 (<span id="tracks-count">0</span>)</h3>
+                  <span class="limit-spec-note">※アーティスト: 最大20曲 / プレイリスト: 最大50曲</span>
+                </div>
               </div>
               <div id="tracks-list" class="tracks-list">
                 <div class="empty-list">曲が読み込まれていません</div>
               </div>
+            </div>
+
+            <div class="sidebar-copyright-note">
+              Unauthorized reproduction or redistribution of this web tool is strictly prohibited. © 2026 Bito Music | v2.6.3.
             </div>
           </div>
         </section>
 
         <!-- Center Panel: Vinyl Player Hub & Visualizer -->
         <section class="workspace-player card">
+          <div class="player-modal-header">
+            <button id="close-player-btn" class="close-player-btn" title="プレイヤーを閉じる"><i data-lucide="chevron-down"></i> 閉じる</button>
+            <div class="header-right-actions">
+              <button id="open-playlist-btn" class="open-playlist-btn" title="プレイリストを表示"><i data-lucide="list-music"></i> リスト</button>
+              <button id="open-lyrics-btn" class="open-lyrics-btn" title="歌詞を表示"><i data-lucide="file-text"></i> 歌詞</button>
+            </div>
+          </div>
           <div class="player-hud">
             <!-- Audio Visualizer Canvas Container -->
             <div class="visualizer-container">
@@ -163,11 +271,15 @@
             <div class="track-details">
               <div class="track-title-row">
                 <h2 id="track-title">曲を選択してください</h2>
+                <button id="like-btn" class="like-btn" title="お気に入りに追加"><i data-lucide="heart"></i></button>
                 <a id="suno-link" href="#" target="_blank" class="suno-external-link hidden" title="Sunoで開く">
-                  <span class="suno-link-icon">↗</span> Suno
+                  <span class="suno-link-icon"><i data-lucide="external-link" class="icon-inline"></i></span> Suno
                 </a>
               </div>
               <p id="track-artist">Suno Artist</p>
+              <div id="ai-analyzing-indicator" class="ai-analyzing-indicator hidden">
+                <span class="pulse-dot"></span> AIマスタリング分析中...
+              </div>
             </div>
 
             <!-- Progress / Seek Bar -->
@@ -179,26 +291,85 @@
 
             <!-- Player Controls -->
             <div class="player-controls">
-              <button id="shuffle-btn" class="ctrl-btn" title="シャッフル"><span class="icon">🔀</span></button>
-              <button id="prev-btn" class="ctrl-btn" title="前の曲"><span class="icon">⏮</span></button>
-              <button id="play-pause-btn" class="ctrl-btn play-btn" title="再生"><span class="icon-play">▶</span></button>
-              <button id="next-btn" class="ctrl-btn" title="次の曲"><span class="icon">⏭</span></button>
-              <button id="repeat-btn" class="ctrl-btn" title="リピート"><span class="icon">🔁</span></button>
+              <button id="shuffle-btn" class="ctrl-btn" title="シャッフル"><i data-lucide="shuffle"></i></button>
+              <button id="prev-btn" class="ctrl-btn" title="前の曲"><i data-lucide="skip-back"></i></button>
+              <button id="play-pause-btn" class="ctrl-btn play-btn" title="再生"><i data-lucide="play" id="play-pause-icon"></i></button>
+              <button id="next-btn" class="ctrl-btn" title="次の曲"><i data-lucide="skip-forward"></i></button>
+              <button id="repeat-btn" class="ctrl-btn" title="リピート"><i data-lucide="repeat"></i></button>
             </div>
 
             <!-- Footer Volume & Mode controls -->
             <div class="player-footer">
               <div class="volume-control">
-                <span class="volume-icon">🔊</span>
+                <i data-lucide="volume-2" class="volume-icon-svg"></i>
                 <input type="range" id="volume-slider" min="0" max="100" value="80">
               </div>
-              <div class="visualizer-mode">
-                <select id="vis-mode-select">
-                  <option value="pulse-ring">✦ Neon Rings (標準)</option>
-                  <option value="bars">✦ Waves (バー表示)</option>
-                  <option value="oscilloscope">✦ Oscilloscope (波形)</option>
-                </select>
+              <div class="player-footer-extra">
+                <!-- Dropdowns row -->
+                <div class="footer-dropdowns-row">
+                  <div class="visualizer-mode">
+                    <select id="vis-mode-select">
+                      <option value="pulse-ring">✦ Neon Rings (標準)</option>
+                      <option value="bars">✦ Waves (バー表示)</option>
+                      <option value="oscilloscope">✦ Oscilloscope (波形)</option>
+                      <option value="off">✦ OFF (消灯 / 省電力)</option>
+                    </select>
+                  </div>
+                  <div class="mobile-preset-mode">
+                    <select id="mobile-preset-select">
+                      <option value="auto">✦ AI Auto (標準)</option>
+                      <option value="pops">✦ Pops</option>
+                      <option value="rnb">✦ R&B / Soul</option>
+                      <option value="rock">✦ Rock / Alt</option>
+                      <option value="metal">✦ Heavy Metal</option>
+                      <option value="edm">✦ EDM / Club</option>
+                      <option value="hiphop">✦ Hip-Hop</option>
+                      <option value="lofi">✦ Lo-Fi Chill</option>
+                      <option value="hardcore">✦ Gabber</option>
+                      <option value="ambient">✦ Ambient</option>
+                      <option value="podcast">✦ Podcast</option>
+                      <option value="classic">✦ Classical</option>
+                      <option value="jazz">✦ Jazz</option>
+                      <option value="acoustic">✦ Acoustic</option>
+                    </select>
+                  </div>
+                </div>
+                <!-- Mastering switch row -->
+                <div class="player-mastering-control">
+                  <span class="pm-label">✦ AetherMastering</span>
+                  <label class="switch-container small-switch">
+                    <input type="checkbox" id="mobile-enhancer-toggle" checked>
+                    <span class="switch-slider"></span>
+                  </label>
+                </div>
               </div>
+            </div>
+          </div>
+
+          <!-- Slide-up Lyrics Sheet Overlay -->
+          <div id="player-lyrics-overlay" class="player-lyrics-overlay">
+            <div class="lyrics-overlay-header">
+              <h3><i data-lucide="file-text"></i> 歌詞 / トラック紹介</h3>
+              <button id="close-lyrics-btn" class="close-lyrics-btn"><i data-lucide="x"></i></button>
+            </div>
+            <div id="mobile-lyrics-text" class="mobile-lyrics-text">
+              曲を選択すると歌詞が表示されます。
+            </div>
+          </div>
+
+          <!-- Slide-up Playlist Sheet Overlay -->
+          <div id="player-playlist-overlay" class="player-playlist-overlay">
+            <div class="playlist-overlay-header">
+              <div class="playlist-overlay-title-group">
+                <h3>📋 トラック一覧 (<span id="overlay-tracks-count">0</span>)</h3>
+                <span class="limit-spec-note-mobile">※アーティスト: 最大20曲 / プレイリスト: 最大50曲</span>
+              </div>
+              <div class="playlist-overlay-header-actions">
+                <button id="close-playlist-btn" class="close-playlist-btn"><i data-lucide="x"></i></button>
+              </div>
+            </div>
+            <div id="mobile-overlay-tracks-list" class="mobile-overlay-tracks-list">
+              <div class="empty-list">曲が読み込まれていません</div>
             </div>
           </div>
         </section>
@@ -224,6 +395,27 @@
                   <input type="checkbox" id="enhancer-toggle" checked>
                   <span class="switch-slider"></span>
                 </label>
+              </div>
+
+              <!-- Genre Preset Selection -->
+              <div class="preset-selection-row">
+                <span class="preset-label">マスタリング・プリセット</span>
+                <select id="preset-select" class="preset-select">
+                  <option value="auto">✦ AI Auto-Optimized (標準)</option>
+                  <option value="pops">✦ Pops</option>
+                  <option value="rnb">✦ R&B / Soul</option>
+                  <option value="rock">✦ Rock / Alternative</option>
+                  <option value="metal">✦ Heavy Metal / Hard Rock</option>
+                  <option value="edm">✦ EDM / Club Electronic</option>
+                  <option value="hiphop">✦ Hip-Hop / Rap</option>
+                  <option value="lofi">✦ Lo-Fi Chill</option>
+                  <option value="hardcore">✦ Hardcore Techno / Gabber</option>
+                  <option value="ambient">✦ Ambient / Cinematic</option>
+                  <option value="podcast">✦ Podcast / Voice Enhancer</option>
+                  <option value="classic">✦ Classical / Orchestral</option>
+                  <option value="jazz">✦ Jazz / Smooth Brass</option>
+                  <option value="acoustic">✦ Acoustic / Folk Singer</option>
+                </select>
               </div>
 
               <!-- AI Status HUD -->
@@ -321,7 +513,35 @@
   <!-- Audio Element (hidden) -->
   <audio id="audio-player" crossorigin="anonymous"></audio>
 
+  <!-- Mini Player (Mobile Only) -->
+  <div id="mini-player" class="mini-player hidden">
+    <div class="mini-player-content">
+      <img id="mini-artwork" src="https://cdn1.suno.ai/image_large_00000000-0000-0000-0000-000000000000.png" alt="Artwork" class="mini-artwork">
+      <div class="mini-track-info">
+        <div id="mini-title" class="mini-title">曲を選択してください</div>
+        <div id="mini-artist" class="mini-artist">Suno Artist</div>
+      </div>
+      <div class="mini-player-actions">
+        <button id="mini-like-btn" class="mini-like-btn" title="お気に入りに追加"><i data-lucide="heart"></i></button>
+        <button id="mini-play-btn" class="mini-play-btn" title="再生"><i data-lucide="play" id="mini-play-icon"></i></button>
+        <button id="mini-next-btn" class="mini-next-btn" title="次の曲"><i data-lucide="skip-forward"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Bottom Navigation Bar -->
+  <div id="mobile-nav-bar" class="mobile-nav-bar hidden">
+    <button id="nav-btn-library" class="nav-btn active">
+      <span class="nav-btn-icon"><i data-lucide="list-music"></i></span>
+      <span class="nav-btn-text">ライブラリ</span>
+    </button>
+    <button id="nav-btn-utility" class="nav-btn">
+      <span class="nav-btn-icon"><i data-lucide="sliders"></i></span>
+      <span class="nav-btn-text">音質・歌詞</span>
+    </button>
+  </div>
+
   <!-- JS Scripts -->
-  <script type="module" src="player.js"></script>
+  <script type="module" src="player.js?v=2.6.3"></script>
 </body>
 </html>

@@ -338,6 +338,66 @@ app.get('/api/suno', async (req, res) => {
   }
 });
 
+
+/**
+ * Route: GET /api/proxy-audio
+ * Proxies audio file requests from Suno CDNs to support HTTP range seeking and bypass CORS.
+ */
+app.get('/api/proxy-audio', (req, res) => {
+  const audioUrl = req.query.url;
+  if (!audioUrl) {
+    return res.status(400).send('Missing url parameter');
+  }
+  const https = require('https');
+  const url = require('url');
+
+  const parsedUrl = url.parse(audioUrl);
+  const hostname = parsedUrl.hostname || '';
+  const isSunoDomain = hostname.endsWith('.suno.ai') || hostname.endsWith('.suno.com') || hostname === 'suno.ai' || hostname === 'suno.com';
+  
+  if (!isSunoDomain) {
+    return res.status(403).send('Forbidden: Only Suno domains are permitted to be proxied.');
+  }
+
+  const reqHeaders = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Referer': 'https://suno.com/',
+    'Origin': 'https://suno.com'
+  };
+
+  if (req.headers.range) {
+    reqHeaders['Range'] = req.headers.range;
+  }
+
+  const options = {
+    hostname: parsedUrl.hostname,
+    path: parsedUrl.path,
+    headers: reqHeaders
+  };
+
+  https.get(options, (proxyRes) => {
+    if (proxyRes.headers['content-range']) {
+      res.setHeader('Content-Range', proxyRes.headers['content-range']);
+    }
+    if (proxyRes.headers['accept-ranges']) {
+      res.setHeader('Accept-Ranges', proxyRes.headers['accept-ranges']);
+    }
+    if (proxyRes.headers['content-length']) {
+      res.setHeader('Content-Length', proxyRes.headers['content-length']);
+    }
+
+    res.status(proxyRes.statusCode || 200);
+    res.setHeader('Content-Type', proxyRes.headers['content-type'] || 'audio/mpeg');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+
+    proxyRes.pipe(res);
+  }).on('error', (err) => {
+    console.error('[Proxy Audio Error] Failed to stream audio:', err.message);
+    res.status(500).send(`Internal server error: ${err.message}`);
+  });
+});
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`[Server] Suno Player backend running on http://localhost:${PORT}`);

@@ -1,9 +1,135 @@
 /**
  * AetherEnhancer - Web Audio API Mastering Engine
- * Adapted from AetherMaster AI AUTO engine.
+ * Automatically synced from audio-mastering-tool/app.js.
  */
 
-// Cooley-Tukey Radix-2 FFT (Fast Fourier Transform)
+// Global mock state required by analyzeAudioResonances
+const baseLoudnessTarget = 'genre';
+const params = { limiterBoost: 3.5 };
+
+const GENRE_PRESETS = {
+  auto: {
+    satEnabled: true, satType: 'tube', satDrive: 12, satMix: 10,
+    eqLowGain: 0.0, eqLowFreq: 90,
+    eqMidGain: 0.0, eqMidFreq: 1000, eqMidQ: 1.0,
+    eqHighGain: 0.0, eqHighFreq: 11000,
+    compEnabled: true, compThreshold: -8.0, compRatio: 1.35, compAttack: 0.04, compRelease: 0.20,
+    stereoWidth: 1.15, limiterBoost: 3.5, sideHighPassFreq: 110
+  },
+  pops: {
+    satEnabled: true, satType: 'tube', satDrive: 15, satMix: 10,
+    eqLowGain: 1.5, eqLowFreq: 100,
+    eqMidGain: 1.2, eqMidFreq: 1800, eqMidQ: 1.0,
+    eqHighGain: 2.2, eqHighFreq: 12000,
+    compEnabled: true, compThreshold: -8.0, compRatio: 1.35, compAttack: 0.035, compRelease: 0.16,
+    stereoWidth: 1.22, limiterBoost: 4.2, sideHighPassFreq: 110
+  },
+  rnb: {
+    satEnabled: true, satType: 'tape', satDrive: 15, satMix: 12,
+    eqLowGain: 2.2, eqLowFreq: 75,
+    eqMidGain: -0.8, eqMidFreq: 1000, eqMidQ: 1.0,
+    eqHighGain: 2.0, eqHighFreq: 10000,
+    compEnabled: true, compThreshold: -8.0, compRatio: 1.35, compAttack: 0.04, compRelease: 0.20,
+    stereoWidth: 1.25, limiterBoost: 4.2, sideHighPassFreq: 110
+  },
+  rock: {
+    satEnabled: true, satType: 'tape', satDrive: 22, satMix: 12,
+    eqLowGain: 2.0, eqLowFreq: 90,
+    eqMidGain: 1.5, eqMidFreq: 2800, eqMidQ: 1.2,
+    eqHighGain: 1.5, eqHighFreq: 8000,
+    compEnabled: true, compThreshold: -7.5, compRatio: 1.35, compAttack: 0.05, compRelease: 0.15,
+    stereoWidth: 1.15, limiterBoost: 4.8, sideHighPassFreq: 110
+  },
+  metal: {
+    satEnabled: true, satType: 'tape', satDrive: 25, satMix: 14,
+    eqLowGain: 2.2, eqLowFreq: 85,
+    eqMidGain: -1.8, eqMidFreq: 400, eqMidQ: 0.8,
+    eqHighGain: 2.5, eqHighFreq: 8500,
+    compEnabled: true, compThreshold: -7.5, compRatio: 1.40, compAttack: 0.02, compRelease: 0.10,
+    stereoWidth: 1.28, limiterBoost: 5.2, sideHighPassFreq: 120
+  },
+  edm: {
+    satEnabled: true, satType: 'tape', satDrive: 18, satMix: 20,
+    eqLowGain: 1.8, eqLowFreq: 90,
+    eqMidGain: -0.5, eqMidFreq: 800, eqMidQ: 1.0,
+    eqHighGain: 2.0, eqHighFreq: 11000,
+    compEnabled: true, compThreshold: -8.5, compRatio: 1.45, compAttack: 0.02, compRelease: 0.12,
+    stereoWidth: 1.30, limiterBoost: 5.5, sideHighPassFreq: 150
+  },
+  hiphop: {
+    satEnabled: true, satType: 'tape', satDrive: 15, satMix: 14,
+    eqLowGain: 1.8, eqLowFreq: 65,
+    eqMidGain: -0.8, eqMidFreq: 350, eqMidQ: 1.0,
+    eqHighGain: 1.2, eqHighFreq: 10000,
+    compEnabled: true, compThreshold: -8.0, compRatio: 1.40, compAttack: 0.035, compRelease: 0.15,
+    stereoWidth: 1.20, limiterBoost: 4.8, sideHighPassFreq: 150
+  },
+  lofi: {
+    satEnabled: true, satType: 'tape', satDrive: 45, satMix: 30,
+    eqLowGain: 3.5, eqLowFreq: 150,
+    eqMidGain: 1.5, eqMidFreq: 1200, eqMidQ: 1.0,
+    eqHighGain: -4.5, eqHighFreq: 7000,
+    compEnabled: true, compThreshold: -10.0, compRatio: 1.5, compAttack: 0.06, compRelease: 0.30,
+    stereoWidth: 0.92, limiterBoost: 3.2, sideHighPassFreq: 110
+  },
+  hardcore: {
+    satEnabled: true, satType: 'hardcore', satDrive: 28, satMix: 22,
+    eqLowGain: 3.0, eqLowFreq: 80,
+    eqMidGain: -1.2, eqMidFreq: 800, eqMidQ: 1.0,
+    eqHighGain: 3.0, eqHighFreq: 12000,
+    compEnabled: true, compThreshold: -8.5, compRatio: 1.45, compAttack: 0.015, compRelease: 0.10,
+    stereoWidth: 1.38, limiterBoost: 6.0, sideHighPassFreq: 150
+  },
+  ambient: {
+    satEnabled: true, satType: 'tube', satDrive: 8, satMix: 6,
+    eqLowGain: 2.0, eqLowFreq: 80,
+    eqMidGain: 0.0, eqMidFreq: 1000, eqMidQ: 0.7,
+    eqHighGain: 3.0, eqHighFreq: 12000,
+    compEnabled: true, compThreshold: -6.0, compRatio: 1.2, compAttack: 0.12, compRelease: 0.40,
+    stereoWidth: 1.55, limiterBoost: 2.2, sideHighPassFreq: 90
+  },
+  podcast: {
+    satEnabled: true, satType: 'tube', satDrive: 5, satMix: 5,
+    eqLowGain: -2.0, eqLowFreq: 120,
+    eqMidGain: 1.2, eqMidFreq: 1600, eqMidQ: 1.0,
+    eqHighGain: 0.8, eqHighFreq: 8000,
+    compEnabled: true, compThreshold: -10.0, compRatio: 1.3, compAttack: 0.02, compRelease: 0.15,
+    stereoWidth: 1.00, limiterBoost: 3.0, sideHighPassFreq: 150
+  },
+  classic: {
+    satEnabled: false, satType: 'tube', satDrive: 0, satMix: 0,
+    eqLowGain: 0.5, eqLowFreq: 100,
+    eqMidGain: 0.0, eqMidFreq: 1000, eqMidQ: 0.7,
+    eqHighGain: 0.5, eqHighFreq: 10000,
+    compEnabled: true, compThreshold: -4.0, compRatio: 1.15, compAttack: 0.15, compRelease: 0.50,
+    stereoWidth: 1.30, limiterBoost: 1.8, sideHighPassFreq: 90
+  },
+  jazz: {
+    satEnabled: true, satType: 'tube', satDrive: 10, satMix: 8,
+    eqLowGain: 1.2, eqLowFreq: 110,
+    eqMidGain: 0.5, eqMidFreq: 1500, eqMidQ: 1.0,
+    eqHighGain: 1.0, eqHighFreq: 10000,
+    compEnabled: true, compThreshold: -7.5, compRatio: 1.25, compAttack: 0.06, compRelease: 0.25,
+    stereoWidth: 1.20, limiterBoost: 2.8, sideHighPassFreq: 90
+  },
+  acoustic: {
+    satEnabled: true, satType: 'tube', satDrive: 8, satMix: 8,
+    eqLowGain: 1.0, eqLowFreq: 120,
+    eqMidGain: 0.8, eqMidFreq: 2000, eqMidQ: 1.0,
+    eqHighGain: 1.8, eqHighFreq: 11000,
+    compEnabled: true, compThreshold: -7.5, compRatio: 1.25, compAttack: 0.045, compRelease: 0.22,
+    stereoWidth: 1.25, limiterBoost: 3.0, sideHighPassFreq: 90
+  }
+}
+
+const LOUDNESS_TARGETS = {
+  genre: { boost: null },     // Genre Default (follows selected preset)
+  streaming: { boost: 4.0 },  // Standard Streaming -14 LUFS target
+  club: { boost: 7.0 },       // Standard Club -9 LUFS target
+  loud: { boost: 10.0 },      // Standard Heavy -7 LUFS target
+  pure: { boost: 0.0 }        // High Dynamic Range -18 LUFS target
+}
+
 function fft(re, im) {
   const n = re.length;
   if (n <= 1) return;
@@ -38,10 +164,9 @@ function fft(re, im) {
   }
 }
 
-// AI Spectral Analysis & Auto-EQ algorithm from AetherMaster
 export function analyzeAudioResonances(buffer) {
   const fftSize = 2048;
-  const numSlices = 32; // Analyze 32 slices across the buffer
+  const numSlices = 32; // サンプリング精度を高めるため、32箇所を走査
   const sampleRate = buffer.sampleRate;
   const chL = buffer.getChannelData(0);
   const chR = buffer.numberOfChannels > 1 ? buffer.getChannelData(1) : chL;
@@ -50,7 +175,7 @@ export function analyzeAudioResonances(buffer) {
   const re = new Float32Array(fftSize);
   const im = new Float32Array(fftSize);
   
-  // Calculate slice points (skip first and last 10% to avoid silent intro/outro)
+  // 1. サンプリングポイントの算出（前後10%はブレや静音部回避のため避ける）
   const slicePoints = [];
   const startOffset = Math.floor(buffer.length * 0.1);
   const endOffset = Math.floor(buffer.length * 0.9);
@@ -67,6 +192,7 @@ export function analyzeAudioResonances(buffer) {
   let totalDotProduct = 0;
   let maxAbsSample = 0.0;
   let sumRMS2 = 0.0;
+  let sampleCount = 0;
 
   for (const startIdx of slicePoints) {
     let sliceMax = 0.0;
@@ -76,6 +202,7 @@ export function analyzeAudioResonances(buffer) {
     let sliceSumL2 = 0;
     let sliceSumR2 = 0;
 
+    // 左右チャネルの平均を窓に格納しつつ、各種統計データを集計
     for (let j = 0; j < fftSize; j++) {
       const idx = startIdx + j;
       if (idx >= buffer.length) break;
@@ -84,35 +211,45 @@ export function analyzeAudioResonances(buffer) {
       const r = chR[idx];
       const mid = (l + r) * 0.5;
 
+      // FFT用データ
       re[j] = mid;
       im[j] = 0;
 
-      const absMid = Math.abs(mid);
-      if (absMid > sliceMax) sliceMax = absMid;
+      // True peak estimation using L/R channels to prevent input overload on wide stereo tracks
+      const absL = Math.abs(l);
+      const absR = Math.abs(r);
+      if (absL > sliceMax) sliceMax = absL;
+      if (absR > sliceMax) sliceMax = absR;
       sliceSumSq += mid * mid;
 
+      // ステレオ相関用
       sliceDotProduct += l * r;
       sliceSumL2 += l * l;
       sliceSumR2 += r * r;
     }
     
+    // 最大ピークの更新
     if (sliceMax > maxAbsSample) maxAbsSample = sliceMax;
     
+    // RMS集計
     const sliceRMS = Math.sqrt(sliceSumSq / fftSize);
     sumRMS2 += sliceRMS * sliceRMS;
 
+    // ステレオ相関の加算
     totalDotProduct += sliceDotProduct;
     totalEnergyL2 += sliceSumL2;
     totalEnergyR2 += sliceSumR2;
 
-    // Apply Hanning Window
+    // ハニング窓（Hanning window）を適用
     for (let j = 0; j < fftSize; j++) {
       const windowVal = 0.5 * (1 - Math.cos((2 * Math.PI * j) / (fftSize - 1)));
       re[j] *= windowVal;
     }
     
+    // FFT実行
     fft(re, im);
     
+    // スペクトラム強度の算出と累積
     const spec = new Float32Array(fftSize / 2);
     for (let j = 0; j < fftSize / 2; j++) {
       const mag = Math.sqrt(re[j] * re[j] + im[j] * im[j]);
@@ -123,19 +260,20 @@ export function analyzeAudioResonances(buffer) {
     sliceRMSList.push(sliceRMS);
   }
 
-  // Crest Factor (dB)
+  // クレストファクター (dB)
   const avgRMS = Math.sqrt(sumRMS2 / numSlices);
   const crestRatio = maxAbsSample / (avgRMS + 1e-6);
   const crestFactorDb = Math.max(0.0, 20 * Math.log10(crestRatio));
 
-  // Stereo Correlation (-1.0 to 1.0)
+  // ステレオ相関値 (-1.0 〜 +1.0)
   let avgCorrelation = 1.0;
   if (totalEnergyL2 > 0 && totalEnergyR2 > 0) {
     avgCorrelation = totalDotProduct / Math.sqrt(totalEnergyL2 * totalEnergyR2);
     avgCorrelation = Math.max(-1.0, Math.min(1.0, avgCorrelation));
   }
 
-  // Energy by bands
+  // 2. 周波数帯域別エネルギーの集計
+  // 低域: 20Hz - 250Hz, 中域: 250Hz - 4kHz, 高域: 4kHz - 20kHz
   const binLowStart = Math.floor((20 * fftSize) / sampleRate);
   const binLowEnd = Math.floor((250 * fftSize) / sampleRate);
   const binMidStart = binLowEnd + 1;
@@ -155,10 +293,11 @@ export function analyzeAudioResonances(buffer) {
   for (let j = binHighStart; j <= binHighEnd; j++) highSum += avgSpectrum[j];
   const highEnergy = highSum / (binHighEnd - binHighStart + 1);
 
+  // 実際のエネルギー比率
   const actualLowMidRatio = lowEnergy / (midEnergy + 1e-6);
   const actualHighMidRatio = highEnergy / (midEnergy + 1e-6);
 
-  // Noise Floor Estimation
+  // Noise Floor Estimation in the quietest segment
   let minRmsIdx = 0;
   let minRmsVal = 1.0;
   for (let i = 0; i < sliceRMSList.length; i++) {
@@ -168,6 +307,7 @@ export function analyzeAudioResonances(buffer) {
     }
   }
 
+  // Hiss estimation (amplitude average between 6kHz and 15kHz in the quietest block)
   const binHissStart = Math.floor((6000 * fftSize) / sampleRate);
   const binHissEnd = Math.floor((15000 * fftSize) / sampleRate);
   let hissSum = 0;
@@ -177,6 +317,7 @@ export function analyzeAudioResonances(buffer) {
   const hissNoiseFloor = hissSum / (binHissEnd - binHissStart + 1);
   const hissNoiseFloorDb = 20 * Math.log10(hissNoiseFloor + 1e-6);
 
+  // Rumble estimation (amplitude average between 20Hz and 60Hz in the quietest block)
   const binRumbleStart = Math.floor((20 * fftSize) / sampleRate);
   const binRumbleEnd = Math.floor((60 * fftSize) / sampleRate);
   let rumbleSum = 0;
@@ -186,54 +327,69 @@ export function analyzeAudioResonances(buffer) {
   const rumbleNoiseFloor = rumbleSum / (binRumbleEnd - binRumbleStart + 1);
   const rumbleNoiseFloorDb = 20 * Math.log10(rumbleNoiseFloor + 1e-6);
 
+  // Suggested values
   let sugRumbleCut = false;
-  if (rumbleNoiseFloorDb > -48.0) sugRumbleCut = true;
+  if (rumbleNoiseFloorDb > -48.0) {
+    sugRumbleCut = true;
+  }
 
   let sugHissAmount = 0;
   if (hissNoiseFloorDb > -56.0) {
+    // scale from 0% at -56dB to 80% at -36dB
     sugHissAmount = Math.round(Math.max(0, Math.min(80, (hissNoiseFloorDb + 56.0) * 4.0)));
   }
 
-  // Sibilance peak scanning (5kHz - 12kHz)
-  const sibilanceMinBin = Math.floor((5000 * fftSize) / sampleRate);
-  const sibilanceMaxBin = Math.floor((12000 * fftSize) / sampleRate);
-  let sumRegion = 0;
-  for (let j = sibilanceMinBin; j <= sibilanceMaxBin; j++) {
-    sumRegion += avgSpectrum[j];
-  }
-  const sibilanceBaseline = sumRegion / (sibilanceMaxBin - sibilanceMinBin + 1);
+  // 3. 耳障りな高音域（シャリシャリした sibilance 帯域：6.5kHz 〜 20kHz）のマルチピーク走査（上限撤廃）
+  const sibilanceMinBin = Math.floor((6500 * fftSize) / sampleRate);
+  const sibilanceMaxBin = Math.min(fftSize / 2 - 1, Math.floor((20000 * fftSize) / sampleRate));
   
+  // ローカルピーク（極大値かつ周辺のローカルノイズフロアより著しく高いピーク）をすべて検出
   const rawPeaks = [];
-  for (let j = sibilanceMinBin + 1; j < sibilanceMaxBin; j++) {
+  // 周辺5ビン（左右に約120Hz幅）の平均と比較するために安全なマージンを確保
+  for (let j = sibilanceMinBin + 5; j < sibilanceMaxBin - 5; j++) {
     const val = avgSpectrum[j];
     const peakFreq = Math.round((j * sampleRate) / fftSize);
     
-    // Suno AI sibilance range 9kHz - 10kHz
-    const isSunoRange = (peakFreq >= 8800 && peakFreq <= 10200);
-    const thresholdMultiplier = isSunoRange ? 1.16 : 1.32;
-    
-    if (val > sibilanceBaseline * thresholdMultiplier && val > avgSpectrum[j - 1] && val > avgSpectrum[j + 1]) {
-      const ratio = val / sibilanceBaseline;
-      let cutDb;
-      if (isSunoRange) {
-        cutDb = -Math.min(3.5, Math.max(1.5, (ratio - 1.16) * 6.0 + 1.5));
-      } else {
-        cutDb = -Math.min(2.5, Math.max(1.0, (ratio - 1.32) * 4.0 + 1.0));
-      }
-      if (peakFreq < 8500) cutDb *= 0.5;
+    // 極大値（ピーク）判定
+    if (val > avgSpectrum[j - 1] && val > avgSpectrum[j + 1]) {
+      // 周辺のローカルノイズフロア（ピークの直近2ビンを除いた左右5ビンの平均）を計算
+      const localBins = [
+        avgSpectrum[j - 5], avgSpectrum[j - 4], avgSpectrum[j - 3], avgSpectrum[j - 2],
+        avgSpectrum[j + 2], avgSpectrum[j + 3], avgSpectrum[j + 4], avgSpectrum[j + 5]
+      ];
+      const localFloor = localBins.reduce((sum, v) => sum + v, 0) / localBins.length;
       
-      rawPeaks.push({
-        freq: peakFreq,
-        cut: cutDb,
-        val: val,
-        isSunoRange: isSunoRange,
-        score: ratio * (isSunoRange ? 2.0 : 1.0)
-      });
+      const ratio = val / (localFloor + 1e-9);
+      
+      // Suno AIの音源で特に耳に刺さりやすい 9kHz〜10kHz 帯域（マージンを取り8800Hz〜10200Hz）の判定
+      const isSunoRange = (peakFreq >= 8800 && peakFreq <= 10200);
+      const thresholdMultiplier = isSunoRange ? 1.28 : 1.34; // 28% / 34% の突出度（約2.1dB〜2.5dB）で検出し、中程度のキンキン音も的確に補足
+      
+      if (ratio > thresholdMultiplier) {
+        // 超過度合い（比率）に基づき減衰幅をダイナミックに算出（極端なこもりを防ぐため最大 -3.2dB までに制限）
+        let cutDb = -Math.min(3.2, Math.max(0.8, (ratio - thresholdMultiplier) * 4.0 + 0.8));
+        
+        // 8500Hz未満のカットは、極度に痩せるのを防ぎつつもしっかり金属音を除去できる安全ライン（85%）に緩和
+        if (peakFreq < 8500) {
+          cutDb *= 0.85;
+        }
+        
+        rawPeaks.push({
+          freq: peakFreq,
+          cut: cutDb,
+          val: val,
+          isSunoRange: isSunoRange,
+          // 突出度（ratio）を優先度スコアにする（Suno帯域は1.5倍の優先度）
+          score: ratio * (isSunoRange ? 1.5 : 1.0)
+        });
+      }
     }
   }
 
+  // 優先度スコアの高い順にソート
   rawPeaks.sort((a, b) => b.score - a.score);
 
+  // 互いに400Hz以上離れた上位最大4個のピークを抽出（削りすぎを防止）
   const filteredPeaks = [];
   for (const peak of rawPeaks) {
     if (filteredPeaks.length >= 4) break;
@@ -243,83 +399,205 @@ export function analyzeAudioResonances(buffer) {
     }
   }
 
-  // Base preset for AI AUTO
-  const basePreset = {
-    satEnabled: true, satType: 'tape', satDrive: 10, satMix: 10,
-    eqLowGain: 0.0, eqLowFreq: 120,
-    eqMidGain: 0.0, eqMidFreq: 1000, eqMidQ: 1.0,
-    eqHighGain: 0.0, eqHighFreq: 10000,
-    compEnabled: true, compThreshold: -15.0, compRatio: 1.6, compAttack: 0.03, compRelease: 0.15,
-    stereoWidth: 1.15, limiterBoost: 3.5, sideHighPassFreq: 110
+  // 3.5. AIジャンル自動判定 (Heuristic Genre Classifier - お勧め提案用)
+
+  // 3.5. AIジャンル自動判定 (Heuristic Genre Classifier)
+  let detectedGenre = 'pops';
+  if (actualLowMidRatio > 3.2 && actualHighMidRatio > 0.16 && crestFactorDb < 12.8) {
+    detectedGenre = 'edm';
+  } else if (actualLowMidRatio > 3.1 && actualHighMidRatio <= 0.16 && crestFactorDb < 12.8) {
+    detectedGenre = 'hiphop';
+  } else if (actualLowMidRatio >= 1.6 && actualLowMidRatio <= 3.3 && crestFactorDb < 15.5) {
+    // ロック・メタル・ポップス・ジャズの中間帯域グループ（ステレオ相関と高音特性で詳細分類）
+    if (crestFactorDb >= 12.8) {
+      // ダイナミクスが広い生音系構成の場合
+      if (actualLowMidRatio >= 2.4 && actualLowMidRatio <= 3.1 && avgCorrelation > 0.75 && actualHighMidRatio < 0.12) {
+        detectedGenre = 'jazz';
+      } else if (actualLowMidRatio < 2.4 && avgCorrelation > 0.75 && actualHighMidRatio < 0.12) {
+        detectedGenre = 'acoustic';
+      } else {
+        // ステレオ幅が広い（avgCorrelation <= 0.75）または高域が明るい場合は、ダイナミックなロック/メタルと判定
+        detectedGenre = (actualHighMidRatio > 0.14) ? 'metal' : 'rock';
+      }
+    } else {
+      // 音圧が高い商業系構成の場合
+      if (actualHighMidRatio >= 0.11) {
+        detectedGenre = (actualHighMidRatio > 0.14) ? 'metal' : 'rock';
+      } else {
+        detectedGenre = 'pops';
+      }
+    }
+  } else if (crestFactorDb >= 13.0) {
+    // 高ダイナミクス極端帯域（クラシック・アンビエント等）
+    if (actualLowMidRatio < 2.2 && actualHighMidRatio < 0.12) {
+      detectedGenre = 'classic';
+    } else if (actualHighMidRatio > 0.18 && actualLowMidRatio < 2.8) {
+      detectedGenre = 'ambient';
+    } else {
+      detectedGenre = 'acoustic';
+    }
+  } else if (actualLowMidRatio < 2.0 && actualHighMidRatio < 0.10) {
+    detectedGenre = 'podcast';
+  } else {
+    detectedGenre = 'pops';
+  }  // 4. 最適マスタリングパラメーターの動的算出（ターゲット比率への収束）
+  // 設計変更: AI AUTO（auto）またはカスタム（custom）の場合は中立なフラット特性（auto）をベースにする。
+  // それ以外の個別プリセット（edm, rock等）が選ばれている場合は、そのプリセットをベースにAIが動的に最適化する。
+  const genreSelect = document.getElementById('preset-select');
+  const userGenreKey = genreSelect ? genreSelect.value : 'auto';
+  const genreKey = (userGenreKey === 'auto' || userGenreKey === 'custom') ? 'auto' : userGenreKey;
+  const basePreset = GENRE_PRESETS[genreKey] || GENRE_PRESETS.auto;
+  const genreTargets = {
+    auto: { low: 3.1, high: 0.17 }, // AI AUTO: 豊かな低域の伸びとシルキーな高域の空気感
+    pops: { low: 2.8, high: 0.18 }, // POPS: 明瞭なボーカルと煌びやかな高域
+    rnb: { low: 3.4, high: 0.18 },   // R&B: ディープなサブベースと滑らかな広がり
+    rock: { low: 3.1, high: 0.15 },  // ROCK: 厚みのあるキックとエッジの効いた中高域
+    metal: { low: 3.3, high: 0.18 }, // METAL: 重低音とScoop-Midギターの壁、鋭いエッジ
+    edm: { low: 3.3, high: 0.19 },   // EDM: パワフルなキックとパンチのあるシンセ高域
+    hiphop: { low: 3.5, high: 0.16 }, // HIPHOP: 極太の超低域とタイトなアタック
+    lofi: { low: 3.5, high: 0.08 },   // LOFI: 温かみのあるローミッドとくすんだビンテージ高域
+    hardcore: { low: 3.4, high: 0.20 }, // HARDCORE: 極限のクラブ音圧とサチュレーション
+    ambient: { low: 3.2, high: 0.24 },  // AMBIENT: 超ワイドで広がりのある空気感
+    podcast: { low: 1.8, high: 0.11 },  // ポッドキャスト: 低域カットと会話明瞭度
+    classic: { low: 2.4, high: 0.12 },  // CLASSIC: 生楽器のナチュラルな強弱と奥行き
+    jazz: { low: 3.0, high: 0.14 },     // JAZZ: ウッディなベースと有機的なホーン中域
+    acoustic: { low: 2.5, high: 0.15 }, // ACOUSTIC: 繊細な弦のピッキングと豊かな生音ボディ
+    custom: { low: 3.1, high: 0.17 }
   };
+  const target = genreTargets[genreKey] || genreTargets.auto;
 
-  // AI AUTO target ratio: standard studio reference values
-  const target = { low: 2.8, high: 0.15 };
-
-  // energy difference in dB
+  // 各帯域のエネルギー差分（dB換算）
   const lowDiffDb = 20 * Math.log10(actualLowMidRatio / target.low);
   const highDiffDb = 20 * Math.log10(actualHighMidRatio / target.high);
 
+  // 3バンドEQ補正量の算出 (元のプリセット値に対して緩やかに補正)
+  // 低域: Bassが多すぎる場合は下げ、足りない場合は持ち上げる
   let eqLowAdjustment = 0;
   if (lowDiffDb > 0.5) {
-    eqLowAdjustment = -Math.min(3.5, lowDiffDb * 0.75);
+    eqLowAdjustment = -Math.min(3.5, lowDiffDb * 0.75); // マイルドに下げる
   } else if (lowDiffDb < -0.5) {
-    eqLowAdjustment = Math.min(3.0, -lowDiffDb * 0.75);
+    eqLowAdjustment = Math.min(2.2, -lowDiffDb * 0.75); // 不足分を足す（低域割れ防止のため最大+2.2dBに制限）
   }
-  const eqLowGain = Math.max(-5.0, Math.min(3.5, Math.round((basePreset.eqLowGain + eqLowAdjustment) * 2) / 2));
+  // 低域EQブーストを最大 +3.0 dB、カットを最大 -5.0 dB に制限して割れを防止
+  const eqLowGain = Math.max(-5.0, Math.min(3.0, Math.round((basePreset.eqLowGain + eqLowAdjustment) * 2) / 2));
 
+  // 高域: Highが派手すぎる場合は下げ、こもっている場合は持ち上げる
   let eqHighAdjustment = 0;
   if (highDiffDb > 0.5) {
     eqHighAdjustment = -Math.min(3.0, highDiffDb * 0.8);
   } else if (highDiffDb < -0.5) {
     eqHighAdjustment = Math.min(3.0, -highDiffDb * 0.8);
   }
+
   const eqHighGain = Math.max(-5.0, Math.min(4.0, Math.round((basePreset.eqHighGain + eqHighAdjustment) * 2) / 2));
 
+  // 中域はジャンルの特性を維持
   const eqMidGain = basePreset.eqMidGain;
-  const baseBoost = 3.5; // Limiter default boost for auto preset
 
-  // Crest factor analysis
+  // 現在選択されているラウドネス・ターゲットの取得と基準ブースト値の設定
+  // バグ修正: AIオートコレクトの重複加算を防ぐため、スライダー変更で 'custom' になる前の基準ターゲット (baseLoudnessTarget) を参照
+  const loudnessKey = typeof baseLoudnessTarget !== 'undefined' ? baseLoudnessTarget : (document.getElementById('loudness-select')?.value || 'genre');
+  let baseBoost = 4.0;
+  let baseLoudnessDesc = "STREAMING (-14 LUFS)";
+  
+  if (loudnessKey === 'genre') {
+    baseBoost = basePreset.limiterBoost;
+    const genreName = genreKey.toUpperCase();
+    baseLoudnessDesc = `GENRE DEFAULT (${genreName}: +${baseBoost.toFixed(1)} dB)`;
+  } else if (LOUDNESS_TARGETS[loudnessKey] && LOUDNESS_TARGETS[loudnessKey].boost !== null) {
+    baseBoost = LOUDNESS_TARGETS[loudnessKey].boost;
+    const targetNames = {
+      streaming: "STREAMING (-14 LUFS)",
+      club: "CLUB/MODERN (-9 LUFS)",
+      loud: "LOUD (-7 LUFS)",
+      pure: "PURE (-18 LUFS)"
+    };
+    baseLoudnessDesc = targetNames[loudnessKey] || `TARGET (+${baseBoost.toFixed(1)} dB)`;
+  } else {
+    baseBoost = params.limiterBoost;
+    baseLoudnessDesc = `CUSTOM (+${baseBoost.toFixed(1)} dB)`;
+  }
+
+  // ダイナミクス補正 (クレストファクター分析)
   let compThreshold = basePreset.compThreshold;
   let compRatio = basePreset.compRatio;
   let limiterBoost = baseBoost;
+  let crestDesc = "Normal (Balanced)";
 
-  const targetCrest = 11.0; // AI AUTO target crest factor
+  // ジャンル別理想ターゲット・クレストファクター（強弱の幅）
+  const genreTargetCrest = {
+    auto: 11.0, // AI AUTO: バランスの良い適度なダイナミクス幅
+    pops: 12.5,
+    rnb: 11.5,   // R&B: 滑らかで心地よいダイナミクス
+    rock: 10.0,
+    metal: 8.5,   // メタル: 音圧が高く手数が速いドラムに合わせた狭い幅
+    edm: 8.0,
+    hiphop: 9.0,
+    lofi: 12.0,
+    hardcore: 7.5,
+    ambient: 13.5,
+    podcast: 10.5, // ポッドキャスト: 会話が聞き取りやすい圧縮率
+    classic: 15.0,
+    jazz: 12.0,
+    acoustic: 14.0, // アコースティック: 生楽器の強弱を最大限活かす
+    custom: 11.0
+  };
+  const targetCrest = genreTargetCrest[genreKey] || genreTargetCrest.auto;
+
   const crestDiff = crestFactorDb - targetCrest;
   if (crestDiff > 1.5) {
-    compThreshold = -14.0;
-    compRatio = 1.8;
-    const bonus = Math.min(1.0, crestDiff * 0.25);
+    // 音源が非常にダイナミックな場合（強弱の幅が広い） -> コンプレッサーを少し深めに設定、音圧ブーストも多めに許容
+    compThreshold = Math.max(-10.0, basePreset.compThreshold - 1.5); // マイルドに下げる（最大でも-10.0dBまでに抑制）
+    compRatio = Math.min(1.45, basePreset.compRatio + 0.1);         // 低めの比率に抑制してポンピング（ほわほわ音）を防止
+    crestDesc = "High (Highly Dynamic)";
+    const bonus = Math.min(1.0, crestDiff * 0.25); // マイルドな加算に調整
     limiterBoost = baseBoost + bonus;
   } else if (crestDiff < -1.5) {
-    compThreshold = -8.0;
-    compRatio = 1.25;
-    const penalty = Math.min(2.5, -crestDiff * 0.40);
+    // 音源が既に圧縮されている場合 -> 二重圧縮による歪みを防ぐため、圧縮を極めて浅くし、ブーストを適度に抑制
+    compThreshold = Math.min(-6.0, basePreset.compThreshold + 1.5); // 圧縮しすぎないように浅いしきい値
+    compRatio = Math.max(1.15, basePreset.compRatio - 0.15);       // 低い圧縮比率
+    crestDesc = "Low (Highly Compressed)";
+    const penalty = Math.min(2.5, -crestDiff * 0.40); // マイルドな減衰に調整
     limiterBoost = baseBoost - penalty;
+  } else {
+    // 標準的なダイナミクス -> 基準ブースト値に追従
+    crestDesc = "Normal (Balanced)";
+    limiterBoost = baseBoost;
   }
 
+  // 0.0〜10.0dB の範囲に制限し（歪み防止のため最大値を10dBに抑制）、小数点第一位に丸める
   limiterBoost = Math.max(0.0, Math.min(10.0, Math.round(limiterBoost * 10) / 10));
 
-  // Stereo Width adjustment
+  // ステレオ幅の補正 (相関値分析)
   let stereoWidth = basePreset.stereoWidth;
+  let corrDesc = "Balanced";
+  
   if (avgCorrelation > 0.8) {
+    // 位相がほぼセンターに集まっている（モノラルに近い）-> ステレオ感を拡張
     stereoWidth = Math.min(2.0, basePreset.stereoWidth + 0.2);
+    corrDesc = "Mono-leaning (Expanded)";
   } else if (avgCorrelation < 0.45) {
+    // 左右に広がりすぎている、または逆位相成分が多い -> 位相干渉による打ち消しを防ぐため、Widthを狭める
     stereoWidth = Math.max(1.0, basePreset.stereoWidth - 0.15);
+    corrDesc = "Wide/Phasey (Reduced)";
+  } else {
+    corrDesc = "Balanced Stereo";
   }
 
-  // Saturator adjustment
+  // サチュレーター微調整 (高域の量に応じて歪みの強さを補正)
   let satDrive = basePreset.satDrive;
   let satMix = basePreset.satMix;
   if (highDiffDb > 1.5) {
+    // 元々高域がかなり明るい（またはうるさい）曲の場合、サチュレーションを抑えて金属的なキツさを防ぐ
     satDrive = Math.max(1, basePreset.satDrive - 5);
     satMix = Math.max(0, basePreset.satMix - 8);
   } else if (highDiffDb < -1.5) {
+    // 高域がこもっている曲の場合、サチュレーターのブレンド率とドライブを少し上げて倍音を付加する
     satDrive = Math.min(100, basePreset.satDrive + 5);
     satMix = Math.min(100, basePreset.satMix + 5);
   }
 
-  // Gain staging
+  // 入力音量の自動ゲインステージング（ピークを-6.0dBに合わせることで歪みを防ぎ、ヘッドルームを確保する）
   const originalPeakDb = 20 * Math.log10(maxAbsSample + 1e-6);
   const suggestedInputGainDb = Math.max(-12.0, Math.min(12.0, -6.0 - originalPeakDb));
 
@@ -327,9 +605,13 @@ export function analyzeAudioResonances(buffer) {
     detected: filteredPeaks.length > 0,
     notches: filteredPeaks,
     crestFactor: crestFactorDb,
+    crestDesc: crestDesc,
     correlation: avgCorrelation,
+    correlationDesc: corrDesc,
     bassDiff: lowDiffDb,
     trebleDiff: highDiffDb,
+    baseLoudnessDesc: baseLoudnessDesc,
+    detectedGenre: detectedGenre,
     suggestedParams: {
       inputGainDb: Math.round(suggestedInputGainDb * 10) / 10,
       satEnabled: basePreset.satEnabled,
@@ -386,6 +668,7 @@ export class AetherEnhancer {
     // Set default parameters (neutral start)
     this.setMasteringParams({
       inputGainDb: 0.0,
+      ceiling: -1.0,
       satEnabled: true,
       satType: 'tape',
       satDrive: 10,
@@ -406,7 +689,8 @@ export class AetherEnhancer {
       sideHighPassFreq: 110,
       limiterBoost: 3.5,
       rumbleCutEnabled: false,
-      hissReductionAmount: 0
+      hissReductionAmount: 0,
+      kickPeakingGain: 0.0
     }, []);
   }
 
@@ -420,7 +704,7 @@ export class AetherEnhancer {
     // 2. Rumble high-pass filter
     this.rumbleFilter = context.createBiquadFilter();
     this.rumbleFilter.type = 'highpass';
-    this.rumbleFilter.frequency.setValueAtTime(10.0, context.currentTime);
+    this.rumbleFilter.frequency.setValueAtTime(18.0, context.currentTime); // 18Hz subsonic filter when disabled
     this.rumbleFilter.Q.setValueAtTime(0.707, context.currentTime);
 
     // 3. Dynamic Hiss Filter (VCF Lowpass)
@@ -429,10 +713,10 @@ export class AetherEnhancer {
     this.hissFilter.frequency.setValueAtTime(20000.0, context.currentTime);
     this.hissFilter.Q.setValueAtTime(0.5, context.currentTime);
 
-    // 3b. Sidechain Envelope Follower
+    // 3b. Sidechain Envelope Follower (Lowered crossover to 2kHz for vocal body)
     this.sidechainHpf = context.createBiquadFilter();
     this.sidechainHpf.type = 'highpass';
-    this.sidechainHpf.frequency.setValueAtTime(4000.0, context.currentTime);
+    this.sidechainHpf.frequency.setValueAtTime(2000.0, context.currentTime);
     this.sidechainHpf.Q.setValueAtTime(0.707, context.currentTime);
 
     this.rectifier = context.createWaveShaper();
@@ -456,6 +740,7 @@ export class AetherEnhancer {
     // 4. Parallel Saturation
     this.satDryGain = context.createGain();
     this.satWetGain = context.createGain();
+    
     this.waveShaper = context.createWaveShaper();
     this.satSumNode = context.createGain();
 
@@ -479,10 +764,11 @@ export class AetherEnhancer {
     this.eqLow.type = 'lowshelf';
     this.eqLow.frequency.setValueAtTime(120.0, context.currentTime);
 
+    // Dedicated Kick Peaking Filter (55Hz, narrow Q=2.0)
     this.kickPeaking = context.createBiquadFilter();
     this.kickPeaking.type = 'peaking';
-    this.kickPeaking.frequency.setValueAtTime(70.0, context.currentTime);
-    this.kickPeaking.Q.setValueAtTime(1.2, context.currentTime);
+    this.kickPeaking.frequency.setValueAtTime(55.0, context.currentTime);
+    this.kickPeaking.Q.setValueAtTime(2.0, context.currentTime);
 
     this.eqMid = context.createBiquadFilter();
     this.eqMid.type = 'peaking';
@@ -499,7 +785,7 @@ export class AetherEnhancer {
       this[`eqCorrective${i}`].type = 'peaking';
       this[`eqCorrective${i}`].frequency.setValueAtTime(1000.0, context.currentTime);
       this[`eqCorrective${i}`].gain.setValueAtTime(0.0, context.currentTime);
-      this[`eqCorrective${i}`].Q.setValueAtTime(12.0, context.currentTime);
+      this[`eqCorrective${i}`].Q.setValueAtTime(18.0, context.currentTime);
     }
 
     // Connect EQ chain
@@ -579,7 +865,7 @@ export class AetherEnhancer {
     this.leftSum.connect(this.merger, 0, 0);
     this.rightDiff.connect(this.merger, 0, 1);
 
-    // 9. Maximizer & Limiter
+    // 9. Maximizer & Limiter (Near-instant 0.1ms attack, 80ms release)
     this.limiterGain = context.createGain();
     this.limiter = context.createDynamicsCompressor();
     this.limiter.threshold.setValueAtTime(0.0, context.currentTime);
@@ -598,7 +884,7 @@ export class AetherEnhancer {
 
     // 10. Output ceiling gain
     this.ceilingGain = context.createGain();
-    this.ceilingGain.gain.setValueAtTime(Math.pow(10, -0.2 / 20), context.currentTime);
+    this.ceilingGain.gain.setValueAtTime(Math.pow(10, -1.0 / 20), context.currentTime);
 
     this.safetyClipper.connect(this.ceilingGain);
   }
@@ -610,16 +896,20 @@ export class AetherEnhancer {
     const inputGain = Math.pow(10, (params.inputGainDb || 0.0) / 20.0);
     this.inputGainNode.gain.setTargetAtTime(inputGain, t, 0.05);
 
-    // 2. Rumble Filter
+    // 1b. Output Ceiling
+    const ceilingGain = Math.pow(10, (params.ceiling || -1.0) / 20.0);
+    this.ceilingGain.gain.setTargetAtTime(ceilingGain, t, 0.05);
+
+    // 2. Rumble Filter (80Hz when active, 18Hz subsonic cut when bypassed)
     if (params.rumbleCutEnabled) {
-      this.rumbleFilter.frequency.setTargetAtTime(30.0, t, 0.05);
+      this.rumbleFilter.frequency.setTargetAtTime(80.0, t, 0.05);
     } else {
-      this.rumbleFilter.frequency.setTargetAtTime(10.0, t, 0.05);
+      this.rumbleFilter.frequency.setTargetAtTime(18.0, t, 0.05);
     }
 
     // 3. Hiss Reduction
     const hissAmount = params.hissReductionAmount || 0;
-    const baseFreq = 20000.0 - (16000.0 * (hissAmount / 100.0));
+    const baseFreq = 20000.0 - (16250.0 * (hissAmount / 100.0)); // Maps 80% to 7,000Hz and 100% to 3,750Hz
     this.hissFilter.frequency.setTargetAtTime(baseFreq, t, 0.05);
     const maxEnvGain = 35000.0 * (hissAmount / 100.0);
     this.hissEnvelopeGain.gain.setTargetAtTime(maxEnvGain, t, 0.05);
@@ -631,18 +921,26 @@ export class AetherEnhancer {
     this.waveShaper.curve = this._generateSaturatorCurve(params.satType, params.satDrive);
 
     // 5. 3-band EQ + kick Peaking
+    this.eqLow.frequency.setTargetAtTime(params.eqLowFreq || 120.0, t, 0.05);
     this.eqLow.gain.setTargetAtTime(params.eqLowGain, t, 0.05);
-    this.kickPeaking.gain.setTargetAtTime(1.5, t, 0.05); // Standard +1.5 dB kick punch
+    this.kickPeaking.gain.setTargetAtTime(params.kickPeakingGain || 0.0, t, 0.05);
+    
+    this.eqMid.frequency.setTargetAtTime(params.eqMidFreq || 1000.0, t, 0.05);
     this.eqMid.gain.setTargetAtTime(params.eqMidGain, t, 0.05);
+    this.eqMid.Q.setTargetAtTime(params.eqMidQ || 1.0, t, 0.05);
+
+    this.eqHigh.frequency.setTargetAtTime(params.eqHighFreq || 10000.0, t, 0.05);
     this.eqHigh.gain.setTargetAtTime(params.eqHighGain, t, 0.05);
 
     // 6. Corrective Notch Filters
-    this.setCorrectiveNotches(notches);
+    this.setCorrectiveNotches(notches, hissAmount);
 
     // 7. Glue Compressor
     if (params.compEnabled) {
       this.compressor.threshold.setTargetAtTime(params.compThreshold, t, 0.05);
       this.compressor.ratio.setTargetAtTime(params.compRatio, t, 0.05);
+      if (params.compAttack) this.compressor.attack.setTargetAtTime(params.compAttack, t, 0.05);
+      if (params.compRelease) this.compressor.release.setTargetAtTime(params.compRelease, t, 0.05);
     } else {
       this.compressor.threshold.setTargetAtTime(0.0, t, 0.05);
       this.compressor.ratio.setTargetAtTime(1.0, t, 0.05);
@@ -650,22 +948,27 @@ export class AetherEnhancer {
 
     // 8. Stereo Width
     this.sideGain.gain.setTargetAtTime(params.stereoWidth, t, 0.05);
+    if (params.sideHighPassFreq) {
+      this.sideHighPass.frequency.setTargetAtTime(params.sideHighPassFreq, t, 0.05);
+    }
 
     // 9. Maximizer Gain
     const linearBoost = Math.pow(10, (params.limiterBoost || 0.0) / 20.0);
     this.limiterGain.gain.setTargetAtTime(linearBoost, t, 0.05);
   }
 
-  setCorrectiveNotches(notches) {
+  setCorrectiveNotches(notches, hissAmount = 0) {
     const t = this.ctx.currentTime;
+    const setupHissFactor = 1.0; // Keep surgical notches at full depth for uncompromised resonance removal
+
     for (let i = 0; i < 8; i++) {
       const filter = this[`eqCorrective${i+1}`];
       if (notches && notches[i]) {
         filter.frequency.setTargetAtTime(notches[i].freq, t, 0.05);
-        filter.gain.setTargetAtTime(notches[i].cut, t, 0.05);
-        filter.Q.setTargetAtTime(12.0, t, 0.05);
+        filter.gain.setTargetAtTime(notches[i].cut * setupHissFactor, t, 0.05);
+        filter.Q.setTargetAtTime(18.0, t, 0.05);
       } else {
-        filter.gain.setTargetAtTime(0.0, t, 0.05); // Neutral / Disabled
+        filter.gain.setTargetAtTime(0.0, t, 0.05);
       }
     }
   }
@@ -697,7 +1000,7 @@ export class AetherEnhancer {
   _generateSoftClipCurve() {
     const n_samples = 44100;
     const curve = new Float32Array(n_samples);
-    const threshold = 0.85;
+    const threshold = 0.96; // Linear up to 0.96 amplitude (~ -0.35 dBFS) to prevent low-end intermodulation distortion
     for (let i = 0; i < n_samples; ++i) {
       const x = (i * 2) / n_samples - 1;
       const absX = Math.abs(x);
@@ -741,6 +1044,13 @@ export class AetherEnhancer {
       for (let i = 0; i < n_samples; ++i) {
         const x = (i * 2) / n_samples - 1;
         curve[i] = Math.tanh(k * x) / Math.tanh(k);
+      }
+    } else if (type === 'hardcore') {
+      const k = 1.0 + (drive / 100) * 14.0;
+      for (let i = 0; i < n_samples; ++i) {
+        const x = (i * 2) / n_samples - 1;
+        const val = x * k;
+        curve[i] = Math.max(-0.82, Math.min(0.82, val));
       }
     } else {
       for (let i = 0; i < n_samples; ++i) {
