@@ -280,13 +280,36 @@ app.get('/api/suno', async (req, res) => {
       }
     }
 
-    // Extract playlists (if it's a profile page, fetch playlists from regular HTML)
+    // Extract playlists (if it's a profile page, fetch playlists from regular HTML and RSC pushes)
     const playlists = [];
     if (isProfile) {
-      const playlistRegex = /href="\/playlist\/([a-f0-9\-]{36})"[^>]*>[\s\S]*?<img\s+alt="([^"]*)"\s+src="([^"]*)"/g;
-      let match;
       const seenPlaylists = new Set();
 
+      // 1. Extract from RSC pushes (supports all public playlists beyond the first 5 SSR limit)
+      const rscPlaylistRegex = /playlist_id\\"\s*:\s*\\"([a-f0-9\-]{36})\\"\s*,\s*\\"playlist_name\\"\s*:\s*\\"([^\\"]+)\\"\s*,\s*\\"playlist_image_url\\"\s*:\s*\\"([^\\"]+)\\"/gi;
+      let rscMatch;
+      while ((rscMatch = rscPlaylistRegex.exec(html)) !== null) {
+        const id = rscMatch[1];
+        const name = rscMatch[2]
+          .replace(/\\u0026/g, '&')
+          .replace(/\\n/g, '\n')
+          .replace(/\\"/g, '"');
+        const image_url = rscMatch[3];
+        
+        if (!seenPlaylists.has(id)) {
+          seenPlaylists.add(id);
+          playlists.push({
+            id,
+            name,
+            image_url,
+            url: `https://suno.com/playlist/${id}`
+          });
+        }
+      }
+
+      // 2. Fallback to SSR static HTML href tags
+      const playlistRegex = /href="\/playlist\/([a-f0-9\-]{36})"[^>]*>[\s\S]*?<img\s+alt="([^"]*)"\s+src="([^"]*)"/g;
+      let match;
       while ((match = playlistRegex.exec(html)) !== null) {
         const id = match[1];
         const name = match[2];
