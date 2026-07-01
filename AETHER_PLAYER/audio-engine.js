@@ -783,23 +783,26 @@ export class AetherEnhancer {
     this.inputGainNode = context.createGain();
     this.inputGainNode.gain.setValueAtTime(1.0, context.currentTime);
 
-    // 2. Rumble high-pass filter
+    // 2. Rumble Filter (HPF)
     this.rumbleFilter = context.createBiquadFilter();
     this.rumbleFilter.type = 'highpass';
-    this.rumbleFilter.frequency.setValueAtTime(18.0, context.currentTime); // 18Hz subsonic filter when disabled
+    this.rumbleFilter.frequency.setValueAtTime(18.0, context.currentTime); // 18Hz subsonic filter when disabled, protecting deep sub-bass while removing DC offset/infrasound mud.
     this.rumbleFilter.Q.setValueAtTime(0.707, context.currentTime);
 
     // 3. Dynamic Hiss Filter (VCF Lowpass)
     this.hissFilter = context.createBiquadFilter();
     this.hissFilter.type = 'lowpass';
     this.hissFilter.frequency.setValueAtTime(20000.0, context.currentTime);
-    this.hissFilter.Q.setValueAtTime(0.5, context.currentTime);
+    this.hissFilter.Q.setValueAtTime(0.5, context.currentTime); // Gentle slope
 
-    // 3b. Sidechain Envelope Follower (Lowered crossover to 2kHz for vocal body)
+    // 3b. Sidechain Envelope Follower for Hiss Filter
     this.sidechainHpf = context.createBiquadFilter();
     this.sidechainHpf.type = 'highpass';
-    this.sidechainHpf.frequency.setValueAtTime(2000.0, context.currentTime);
+    this.sidechainHpf.frequency.setValueAtTime(2000.0, context.currentTime); // Lowered to 2,000Hz to detect vocal/midrange energy and open the filter.
     this.sidechainHpf.Q.setValueAtTime(0.707, context.currentTime);
+
+    this.sidechainGainNode = context.createGain();
+    this.sidechainGainNode.gain.setValueAtTime(10.0, context.currentTime); // Boost sidechain energy to generate robust envelope values during active music
 
     this.rectifier = context.createWaveShaper();
     this.rectifier.curve = this._generateAbsoluteValCurve();
@@ -814,15 +817,15 @@ export class AetherEnhancer {
 
     // Hiss sidechain connections
     this.rumbleFilter.connect(this.sidechainHpf);
-    this.sidechainHpf.connect(this.rectifier);
+    this.sidechainHpf.connect(this.sidechainGainNode);
+    this.sidechainGainNode.connect(this.rectifier);
     this.rectifier.connect(this.envelopeSmoother);
     this.envelopeSmoother.connect(this.hissEnvelopeGain);
     this.hissEnvelopeGain.connect(this.hissFilter.frequency);
 
-    // 4. Parallel Saturation
+    // 4. Parallel Saturator Stage
     this.satDryGain = context.createGain();
     this.satWetGain = context.createGain();
-    
     this.waveShaper = context.createWaveShaper();
     this.satSumNode = context.createGain();
 
@@ -833,9 +836,9 @@ export class AetherEnhancer {
     this.satHpf.Q.setValueAtTime(0.707, context.currentTime);
 
     this.waveShaper.curve = this._generateSaturatorCurve('tape', 10.0);
-    this.waveShaper.oversample = 'none';
+    this.waveShaper.oversample = 'none'; // フィルター遅延による位相干渉（コームフィルター）を防ぐため、オーバーサンプリングを無効化します。
 
-    // Hook up main input path to saturation
+    // Hook up main signal path
     this.inputNode.connect(this.inputGainNode);
     this.inputGainNode.connect(this.rumbleFilter);
     this.rumbleFilter.connect(this.hissFilter);
@@ -848,21 +851,21 @@ export class AetherEnhancer {
     this.satDryGain.connect(this.satSumNode);
     this.satWetGain.connect(this.satSumNode);
 
-    // 5. EQ Section (4-band cascade)
+    // 5. 3-Band Equalizer (Low Shelf, Mid Peaking, High Shelf)
     this.eqLow = context.createBiquadFilter();
     this.eqLow.type = 'lowshelf';
     this.eqLow.frequency.setValueAtTime(120.0, context.currentTime);
 
-    // Dedicated Kick Peaking Filter (55Hz, narrow Q=2.0)
+    // Dedicated Peaking Filter for Kick Punch (v3.30+)
     this.kickPeaking = context.createBiquadFilter();
     this.kickPeaking.type = 'peaking';
-    this.kickPeaking.frequency.setValueAtTime(55.0, context.currentTime);
-    this.kickPeaking.Q.setValueAtTime(2.0, context.currentTime);
+    this.kickPeaking.Q.setValueAtTime(2.0, context.currentTime); // narrow Q to isolate kick drum
+    this.kickPeaking.frequency.setValueAtTime(55.0, context.currentTime); // 55Hz fundamental thump
 
     this.eqMid = context.createBiquadFilter();
     this.eqMid.type = 'peaking';
-    this.eqMid.frequency.setValueAtTime(1000.0, context.currentTime);
     this.eqMid.Q.setValueAtTime(1.0, context.currentTime);
+    this.eqMid.frequency.setValueAtTime(1000.0, context.currentTime);
 
     this.eqHigh = context.createBiquadFilter();
     this.eqHigh.type = 'highshelf';
@@ -889,13 +892,10 @@ export class AetherEnhancer {
       this[`eqCorrective${i}`].Q.setValueAtTime(18.0, context.currentTime);
     }
 
-    // Connect EQ chain
     this.satSumNode.connect(this.eqLow);
     this.eqLow.connect(this.kickPeaking);
     this.kickPeaking.connect(this.eqMid);
     this.eqMid.connect(this.eqHigh);
-
-    // Cascade corrective filters
     this.eqHigh.connect(this.sibilanceNotch);
     this.sibilanceNotch.connect(this.eqCorrective1);
     this.eqCorrective1.connect(this.eqCorrective2);
@@ -916,7 +916,7 @@ export class AetherEnhancer {
 
     this.eqCorrective8.connect(this.compressor);
 
-    // 8. Mid-Side Stereo Imager Matrix
+    // 8. Stereo Imager Matrix (Mid/Side Processing)
     this.splitter = context.createChannelSplitter(2);
     this.midSum = context.createGain();
     this.sideDiff = context.createGain();
@@ -928,16 +928,18 @@ export class AetherEnhancer {
 
     this.compressor.connect(this.splitter);
 
-    this.splitter.connect(this.leftToMid, 0);
-    this.splitter.connect(this.rightToMid, 1);
+    // Map L/R to Mid-Side
+    this.splitter.connect(this.leftToMid, 0); // L
+    this.splitter.connect(this.rightToMid, 1); // R
     this.leftToMid.connect(this.midSum);
     this.rightToMid.connect(this.midSum);
 
-    this.splitter.connect(this.leftToSide, 0);
-    this.splitter.connect(this.rightToSide, 1);
+    this.splitter.connect(this.leftToSide, 0); // L
+    this.splitter.connect(this.rightToSide, 1); // R
     this.leftToSide.connect(this.sideDiff);
     this.rightToSide.connect(this.sideDiff);
 
+    // Stereo Width Gain Nodes
     this.midGain = context.createGain();
     this.sideGain = context.createGain();
 
@@ -946,22 +948,27 @@ export class AetherEnhancer {
     this.sideHighPass.frequency.setValueAtTime(110.0, context.currentTime);
     this.sideHighPass.Q.setValueAtTime(0.707, context.currentTime);
 
+    this.midGain.gain.setValueAtTime(1.0, context.currentTime);
+    this.sideGain.gain.setValueAtTime(1.0, context.currentTime);
+
     this.midSum.connect(this.midGain);
+
+    // Side signals go through highpass then width gain
     this.sideDiff.connect(this.sideHighPass);
     this.sideHighPass.connect(this.sideGain);
 
-    // Decode to stereo
+    // Decode back to Stereo L/R
     this.leftSum = context.createGain();
     this.rightDiff = context.createGain();
     this.sideInverter = context.createGain();
     this.sideInverter.gain.setValueAtTime(-1.0, context.currentTime);
 
     this.midGain.connect(this.leftSum);
-    this.sideGain.connect(this.leftSum);
+    this.sideGain.connect(this.leftSum); // L = Mid + Side
 
     this.midGain.connect(this.rightDiff);
     this.sideGain.connect(this.sideInverter);
-    this.sideInverter.connect(this.rightDiff);
+    this.sideInverter.connect(this.rightDiff); // R = Mid - Side
 
     this.merger = context.createChannelMerger(2);
     this.leftSum.connect(this.merger, 0, 0);
@@ -969,18 +976,22 @@ export class AetherEnhancer {
 
     // 9. Maximizer & Limiter (Near-instant 0.1ms attack, 80ms release)
     this.limiterGain = context.createGain();
-    this.limiter = context.createDynamicsCompressor();
-    this.limiter.threshold.setValueAtTime(0.0, context.currentTime);
-    this.limiter.knee.setValueAtTime(3.0, context.currentTime);
-    this.limiter.ratio.setValueAtTime(20.0, context.currentTime);
-    this.limiter.attack.setValueAtTime(0.0001, context.currentTime);
-    this.limiter.release.setValueAtTime(0.08, context.currentTime);
-
-    this.safetyClipper = context.createWaveShaper();
-    this.safetyClipper.curve = this._generateSoftClipCurve();
-    this.safetyClipper.oversample = '2x';
+    this.limiterGain.gain.setValueAtTime(1.0, context.currentTime);
 
     this.merger.connect(this.limiterGain);
+
+    this.limiter = context.createDynamicsCompressor();
+    this.limiter.threshold.setValueAtTime(-3.0, context.currentTime); // -3.0dB threshold provides look-ahead emulation cushion
+    this.limiter.knee.setValueAtTime(3.0, context.currentTime);      // Smooth knee
+    this.limiter.ratio.setValueAtTime(20.0, context.currentTime);    // Dynamic limiting brickwall
+    this.limiter.attack.setValueAtTime(0.0001, context.currentTime); // 0.1ms (near-instant reaction to catch peaks)
+    this.limiter.release.setValueAtTime(0.08, context.currentTime);  // 80ms (optimized to prevent low-end distortion)
+
+    // 9b. Safety Soft Clipper (WaveShaper Node)
+    this.safetyClipper = context.createWaveShaper();
+    this.safetyClipper.curve = this._generateSoftClipCurve();
+    this.safetyClipper.oversample = '2x'; // 2x oversampling to prevent aliasing
+
     this.limiterGain.connect(this.limiter);
     this.limiter.connect(this.safetyClipper);
 
