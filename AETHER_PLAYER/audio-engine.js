@@ -53,7 +53,7 @@ export const GENRE_PRESETS = {
     eqLowGain: 1.8, eqLowFreq: 90,
     eqMidGain: -0.5, eqMidFreq: 800, eqMidQ: 1.0,
     eqHighGain: 2.0, eqHighFreq: 11000,
-    compEnabled: true, compThreshold: -7.0, compRatio: 1.35, compAttack: 0.05, compRelease: 0.20, // Tamed attack (50ms) and ratio (1.35) to prevent bass cycles clipping/buzzing (v4.0.0)
+    compEnabled: true, compThreshold: -7.0, compRatio: 1.35, compAttack: 0.05, compRelease: 0.20, // Tamed attack (50ms) and ratio (1.35) to prevent bass cycles clipping/buzzing (v4.0.1)
     stereoWidth: 1.30, limiterBoost: 5.0, sideHighPassFreq: 150 // Slightly reduced limiter boost (5.0dB) for safer headroom
   },
   hiphop: {
@@ -977,7 +977,7 @@ export class AetherEnhancer {
     this.hissEnvelopeGain.gain.setTargetAtTime(maxEnvGain, t, 0.05);
 
     // 4. Parallel Saturation
-    const blend = params.satMix / 100.0;
+    const blend = params.satEnabled ? (params.satMix / 100.0) : 0.0;
     this.satDryGain.gain.setTargetAtTime(1.0 - blend, t, 0.05);
     this.satWetGain.gain.setTargetAtTime(blend, t, 0.05);
     this.waveShaper.curve = this._generateSaturatorCurve(params.satType, params.satDrive);
