@@ -44,8 +44,8 @@ function getNormalizedArtist(name) {
   return name;
 }
 
-// Version: 2.7.7 (Re-deployed to ensure complete file sync)
-import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=2.7.7';
+// Version: 2.7.8 (Re-deployed to ensure complete file sync)
+import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=2.7.8';
 
 // --- State Variables ---
 let audioCtx = null;
@@ -1235,14 +1235,14 @@ function updateAiHudUI(result) {
   hudCompRatioEl.textContent = `${sug.compRatio.toFixed(2)}:1`;
   hudLimiterBoostEl.textContent = `+${sug.limiterBoost.toFixed(1)} dB`;
 
-  // Loudness target and genre
-  const loudnessDesc = document.getElementById('hud-loudness-desc');
-  if (loudnessDesc) {
-    const crest = result.crestDesc || 'BALANCED';
-    const correlation = result.correlationDesc || 'STEREO';
-    const genre = result.detectedGenre ? result.detectedGenre.toUpperCase() : 'OPTIMIZED';
-    loudnessDesc.textContent = `${crest} / ${correlation} (${genre})`;
-  }
+  // Dynamic Range, Stereo Field, and Detected Genre Style Descriptors
+  const dynamicsDesc = document.getElementById('hud-dynamics-desc');
+  const stereoDesc = document.getElementById('hud-stereo-desc');
+  const genreDesc = document.getElementById('hud-genre-desc');
+
+  if (dynamicsDesc) dynamicsDesc.textContent = result.crestDesc || 'Normal (Balanced)';
+  if (stereoDesc) stereoDesc.textContent = result.correlationDesc || 'Balanced Stereo';
+  if (genreDesc) genreDesc.textContent = result.detectedGenre ? result.detectedGenre.toUpperCase() : 'OPTIMIZED';
 
   // Notch Filters
   notchesListEl.innerHTML = '';
@@ -1307,6 +1307,13 @@ function applyDefaultAutoParams() {
   hudCompRatioEl.textContent = '1.60:1';
   hudLimiterBoostEl.textContent = '+3.5 dB';
   notchesListEl.innerHTML = '<div class="empty-notches">分析待ち...</div>';
+
+  const dynamicsDesc = document.getElementById('hud-dynamics-desc');
+  const stereoDesc = document.getElementById('hud-stereo-desc');
+  const genreDesc = document.getElementById('hud-genre-desc');
+  if (dynamicsDesc) dynamicsDesc.textContent = '--';
+  if (stereoDesc) stereoDesc.textContent = '--';
+  if (genreDesc) genreDesc.textContent = '--';
 
   if (likeBtn) likeBtn.classList.remove('liked');
 }
