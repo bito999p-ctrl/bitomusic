@@ -7,7 +7,7 @@
 const baseLoudnessTarget = 'genre';
 const params = { limiterBoost: 3.5 };
 
-const GENRE_PRESETS = {
+export const GENRE_PRESETS = {
   auto: {
     satEnabled: true, satType: 'tube', satDrive: 12, satMix: 10,
     eqLowGain: 0.0, eqLowFreq: 90,
@@ -164,7 +164,7 @@ function fft(re, im) {
   }
 }
 
-export function analyzeAudioResonances(buffer) {
+export function analyzeAudioResonances(buffer, userPresetKey) {
   const fftSize = 2048;
   const numSlices = 32; // サンプリング精度を高めるため、32箇所を走査
   const sampleRate = buffer.sampleRate;
@@ -339,8 +339,8 @@ export function analyzeAudioResonances(buffer) {
     sugHissAmount = Math.round(Math.max(0, Math.min(80, (hissNoiseFloorDb + 56.0) * 4.0)));
   }
 
-  // 3. 耳障りな高音域（シャリシャリした sibilance 帯域：6.5kHz 〜 20kHz）のマルチピーク走査（上限撤廃）
-  const sibilanceMinBin = Math.floor((6500 * fftSize) / sampleRate);
+  // 3. 耳障りな高音域（シャリシャリした sibilance 帯域：7.0kHz 〜 20kHz）のマルチピーク走査（上限撤廃）
+  const sibilanceMinBin = Math.floor((7000 * fftSize) / sampleRate);
   const sibilanceMaxBin = Math.min(fftSize / 2 - 1, Math.floor((20000 * fftSize) / sampleRate));
   
   // ローカルピーク（極大値かつ周辺のローカルノイズフロアより著しく高いピーク）をすべて検出
@@ -361,13 +361,13 @@ export function analyzeAudioResonances(buffer) {
       
       const ratio = val / (localFloor + 1e-9);
       
-      // Suno AIの音源で特に耳に刺さりやすい 9kHz〜10kHz 帯域（マージンを取り8800Hz〜10200Hz）の判定
+      // Suno AIの音源で特に耳に刺やすく 9kHz〜10kHz 帯域（マージンを取り8800Hz〜10200Hz）の判定
       const isSunoRange = (peakFreq >= 8800 && peakFreq <= 10200);
-      const thresholdMultiplier = isSunoRange ? 1.28 : 1.34; // 28% / 34% の突出度（約2.1dB〜2.5dB）で検出し、中程度のキンキン音も的確に補足
+      const thresholdMultiplier = isSunoRange ? 1.20 : 1.25; // 20% / 25% の突出度（約1.6dB〜1.9dB）で検出し、残存する微細なキンキン音も漏らさず補足
       
       if (ratio > thresholdMultiplier) {
-        // 超過度合い（比率）に基づき減衰幅をダイナミックに算出（極端なこもりを防ぐため最大 -3.2dB までに制限）
-        let cutDb = -Math.min(3.2, Math.max(0.8, (ratio - thresholdMultiplier) * 4.0 + 0.8));
+        // 超過度合い（比率）に基づき減衰幅をダイナミックに算出（削りすぎを防止しつつ効果的に除去するため最大 -4.0dB までに制限）
+        let cutDb = -Math.min(4.0, Math.max(1.0, (ratio - thresholdMultiplier) * 5.0 + 1.0));
         
         // 8500Hz未満のカットは、極度に痩せるのを防ぎつつもしっかり金属音を除去できる安全ライン（85%）に緩和
         if (peakFreq < 8500) {
@@ -392,7 +392,7 @@ export function analyzeAudioResonances(buffer) {
   // 互いに400Hz以上離れた上位最大4個のピークを抽出（削りすぎを防止）
   const filteredPeaks = [];
   for (const peak of rawPeaks) {
-    if (filteredPeaks.length >= 4) break;
+    if (filteredPeaks.length >= 6) break;
     const tooClose = filteredPeaks.some(p => Math.abs(p.freq - peak.freq) < 400);
     if (!tooClose) {
       filteredPeaks.push({ freq: peak.freq, cut: peak.cut });
@@ -444,7 +444,7 @@ export function analyzeAudioResonances(buffer) {
   // 設計変更: AI AUTO（auto）またはカスタム（custom）の場合は中立なフラット特性（auto）をベースにする。
   // それ以外の個別プリセット（edm, rock等）が選ばれている場合は、そのプリセットをベースにAIが動的に最適化する。
   const genreSelect = document.getElementById('preset-select');
-  const userGenreKey = genreSelect ? genreSelect.value : 'auto';
+  const userGenreKey = userPresetKey || (genreSelect ? genreSelect.value : 'auto');
   const genreKey = (userGenreKey === 'auto' || userGenreKey === 'custom') ? 'auto' : userGenreKey;
   const basePreset = GENRE_PRESETS[genreKey] || GENRE_PRESETS.auto;
   const genreTargets = {
@@ -633,8 +633,8 @@ export function analyzeAudioResonances(buffer) {
       stereoWidth: stereoWidth,
       sideHighPassFreq: basePreset.sideHighPassFreq || 110,
       limiterBoost: limiterBoost,
-      rumbleCutEnabled: sugRumbleCut,
-      hissReductionAmount: sugHissAmount
+      rumbleCutEnabled: genreKey === 'auto' ? sugRumbleCut : false,
+      hissReductionAmount: genreKey === 'auto' ? sugHissAmount : 0
     }
   };
 }
