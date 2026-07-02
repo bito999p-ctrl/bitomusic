@@ -44,8 +44,8 @@ function getNormalizedArtist(name) {
   return name;
 }
 
-// Version: 3.0.8 (Re-deployed to ensure complete file sync)
-import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=3.0.8';
+// Version: 3.0.9 (Re-deployed to ensure complete file sync)
+import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=3.0.9';
 
 // --- State Variables ---
 let audioCtx = null;
@@ -114,7 +114,7 @@ const repeatBtn = document.getElementById('repeat-btn');
 const volumeSlider = document.getElementById('volume-slider');
 const visModeSelect = document.getElementById('vis-mode-select');
 const canvas = document.getElementById('player-visualizer');
-const canvasCtx = canvas.getContext('2d');
+const canvasCtx = canvas ? canvas.getContext('2d') : null;
 
 // AI HUD UI Elements
 const enhancerToggle = document.getElementById('enhancer-toggle');
@@ -318,8 +318,9 @@ function setupEventListeners() {
     });
   });
 
-  // Workspace actions
-  backToLandingBtn.addEventListener('click', showLandingView);
+  if (backToLandingBtn) {
+    backToLandingBtn.addEventListener('click', showLandingView);
+  }
   if (sidebarBackBtn) {
     sidebarBackBtn.addEventListener('click', showLandingView);
   }
@@ -2128,63 +2129,67 @@ function updateSourceLikeButtonState() {
 }
 
 function renderFavoritesUI() {
-  loadFavorites();
+  try {
+    loadFavorites();
 
-  const container = document.getElementById('favorites-container');
-  const usersList = document.getElementById('favorites-users-list');
-  const playlistsList = document.getElementById('favorites-playlists-list');
-  const tracksList = document.getElementById('favorites-tracks-list');
+    const container = document.getElementById('favorites-container');
+    const usersList = document.getElementById('favorites-users-list');
+    const playlistsList = document.getElementById('favorites-playlists-list');
+    const tracksList = document.getElementById('favorites-tracks-list');
 
-  const dropUsersList = document.getElementById('dropdown-favorites-users-list');
-  const dropPlaylistsList = document.getElementById('dropdown-favorites-playlists-list');
-  const dropTracksList = document.getElementById('dropdown-favorites-tracks-list');
+    const dropUsersList = document.getElementById('dropdown-favorites-users-list');
+    const dropPlaylistsList = document.getElementById('dropdown-favorites-playlists-list');
+    const dropTracksList = document.getElementById('dropdown-favorites-tracks-list');
 
-  const hasFavorites = favorites.users.length > 0 || favorites.playlists.length > 0 || favorites.tracks.length > 0;
-  if (!hasFavorites) {
-    if (container) container.classList.add('hidden');
-    if (dropUsersList) dropUsersList.innerHTML = '<div class="empty-history">お気に入りはありません</div>';
-    if (dropPlaylistsList) dropPlaylistsList.innerHTML = '<div class="empty-history">お気に入りはありません</div>';
-    if (dropTracksList) dropTracksList.innerHTML = '<div class="empty-history">お気に入りはありません</div>';
-    return;
-  }
-  if (container) container.classList.remove('hidden');
+    const hasFavorites = favorites.users.length > 0 || favorites.playlists.length > 0 || favorites.tracks.length > 0;
+    if (!hasFavorites) {
+      if (container) container.classList.add('hidden');
+      if (dropUsersList) dropUsersList.innerHTML = '<div class="empty-history">お気に入りはありません</div>';
+      if (dropPlaylistsList) dropPlaylistsList.innerHTML = '<div class="empty-history">お気に入りはありません</div>';
+      if (dropTracksList) dropTracksList.innerHTML = '<div class="empty-history">お気に入りはありません</div>';
+      return;
+    }
+    if (container) container.classList.remove('hidden');
 
-  // Helper to render HTML list items
-  const getListHtml = (items, type) => {
-    if (items.length === 0) return '<div class="empty-history">お気に入りはありません</div>';
-    return items.map(item => `
-      <div class="favorite-item" data-url="${escapeHtml(item.url || item.id)}">
-        <span class="favorite-item-title">${escapeHtml(item.name || item.title)}</span>
-        <span class="favorite-item-sub">${escapeHtml(getDisplaySubtitle(item.url || item.id, type, item))}</span>
-      </div>
-    `).join('');
-  };
+    // Helper to render HTML list items
+    const getListHtml = (items, type) => {
+      if (items.length === 0) return '<div class="empty-history">お気に入りはありません</div>';
+      return items.map(item => `
+        <div class="favorite-item" data-url="${escapeHtml(item.url || item.id)}">
+          <span class="favorite-item-title">${escapeHtml(item.name || item.title)}</span>
+          <span class="favorite-item-sub">${escapeHtml(getDisplaySubtitle(item.url || item.id, type, item))}</span>
+        </div>
+      `).join('');
+    };
 
-  // Render Landing Favorites
-  if (usersList) usersList.innerHTML = getListHtml(favorites.users, 'user');
-  if (playlistsList) playlistsList.innerHTML = getListHtml(favorites.playlists, 'playlist');
-  if (tracksList) tracksList.innerHTML = getListHtml(favorites.tracks, 'track');
+    // Render Landing Favorites
+    if (usersList) usersList.innerHTML = getListHtml(favorites.users, 'user');
+    if (playlistsList) playlistsList.innerHTML = getListHtml(favorites.playlists, 'playlist');
+    if (tracksList) tracksList.innerHTML = getListHtml(favorites.tracks, 'track');
 
-  // Render Dropdown Favorites
-  if (dropUsersList) dropUsersList.innerHTML = getListHtml(favorites.users, 'user');
-  if (dropPlaylistsList) dropPlaylistsList.innerHTML = getListHtml(favorites.playlists, 'playlist');
-  if (dropTracksList) dropTracksList.innerHTML = getListHtml(favorites.tracks, 'track');
+    // Render Dropdown Favorites
+    if (dropUsersList) dropUsersList.innerHTML = getListHtml(favorites.users, 'user');
+    if (dropPlaylistsList) dropPlaylistsList.innerHTML = getListHtml(favorites.playlists, 'playlist');
+    if (dropTracksList) dropTracksList.innerHTML = getListHtml(favorites.tracks, 'track');
 
-  // Bind click listeners to all favorite items
-  document.querySelectorAll('.favorite-item').forEach(el => {
-    el.addEventListener('click', () => {
-      const url = el.getAttribute('data-url');
-      landingInput.value = url;
+    // Bind click listeners to all favorite items
+    document.querySelectorAll('.favorite-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const url = el.getAttribute('data-url');
+        landingInput.value = url;
 
-      // Hide dropdown if clicked inside dropdown
-      const dropdown = document.getElementById('header-history-dropdown');
-      if (dropdown) dropdown.classList.add('hidden');
+        // Hide dropdown if clicked inside dropdown
+        const dropdown = document.getElementById('header-history-dropdown');
+        if (dropdown) dropdown.classList.add('hidden');
 
-      importSunoUrl(url);
+        importSunoUrl(url);
+      });
     });
-  });
 
-  if (window.lucide) lucide.createIcons();
+    if (window.lucide) lucide.createIcons();
+  } catch (err) {
+    console.error('[Favorites] Failed to render favorites UI:', err);
+  }
 }
 
 function saveToHistory(type, id, name) {
@@ -2292,126 +2297,130 @@ function saveToHistory(type, id, name) {
 }
 
 function renderHistoryUI() {
-  let history = { users: [], playlists: [], tracks: [] };
   try {
-    const saved = localStorage.getItem('suno_player_history_v2');
-    if (saved) history = JSON.parse(saved);
-  } catch (e) {
-    console.error('Failed to load history:', e);
-  }
-
-  // Migrate, canonicalize, and deduplicate on render
-  let migrated = false;
-  if (history.users) {
-    history.users = history.users.map(u => {
-      const canonical = canonicalizeSunoUrl(u.id);
-      if (u.id !== canonical) {
-        migrated = true;
-        u.id = canonical;
-      }
-      return u;
-    });
-    const uniqueUsers = [];
-    const seenIds = new Set();
-    const seenNames = new Set();
-    history.users.forEach(u => {
-      if (!u) return;
-      const idKey = (u.id || '').toLowerCase();
-      const nameKey = (u.name || '').trim().toLowerCase();
-      if (!seenIds.has(idKey) && (!nameKey || !seenNames.has(nameKey))) {
-        seenIds.add(idKey);
-        if (nameKey) seenNames.add(nameKey);
-        uniqueUsers.push(u);
-      } else {
-        migrated = true;
-      }
-    });
-    history.users = uniqueUsers;
-  }
-  if (history.playlists) {
-    history.playlists = history.playlists.map(p => {
-      const canonical = canonicalizeSunoUrl(p.id);
-      if (p.id !== canonical) {
-        migrated = true;
-        p.id = canonical;
-      }
-      return p;
-    });
-    const uniquePlaylists = [];
-    const seenIds = new Set();
-    const seenNames = new Set();
-    history.playlists.forEach(p => {
-      if (!p) return;
-      const idKey = (p.id || '').toLowerCase();
-      const nameKey = (p.name || '').trim().toLowerCase();
-      if (!seenIds.has(idKey) && (!nameKey || !seenNames.has(nameKey))) {
-        seenIds.add(idKey);
-        if (nameKey) seenNames.add(nameKey);
-        uniquePlaylists.push(p);
-      } else {
-        migrated = true;
-      }
-    });
-    history.playlists = uniquePlaylists;
-  }
-  if (migrated) {
+    let history = { users: [], playlists: [], tracks: [] };
     try {
-      localStorage.setItem('suno_player_history_v2', JSON.stringify(history));
+      const saved = localStorage.getItem('suno_player_history_v2');
+      if (saved) history = JSON.parse(saved);
     } catch (e) {
-      console.error(e);
+      console.error('Failed to load history:', e);
     }
-  }
 
-  const container = document.getElementById('history-container');
-  const usersList = document.getElementById('history-users-list');
-  const playlistsList = document.getElementById('history-playlists-list');
-  const tracksList = document.getElementById('history-tracks-list');
+    // Migrate, canonicalize, and deduplicate on render
+    let migrated = false;
+    if (history.users) {
+      history.users = history.users.map(u => {
+        const canonical = canonicalizeSunoUrl(u.id);
+        if (u.id !== canonical) {
+          migrated = true;
+          u.id = canonical;
+        }
+        return u;
+      });
+      const uniqueUsers = [];
+      const seenIds = new Set();
+      const seenNames = new Set();
+      history.users.forEach(u => {
+        if (!u) return;
+        const idKey = (u.id || '').toLowerCase();
+        const nameKey = (u.name || '').trim().toLowerCase();
+        if (!seenIds.has(idKey) && (!nameKey || !seenNames.has(nameKey))) {
+          seenIds.add(idKey);
+          if (nameKey) seenNames.add(nameKey);
+          uniqueUsers.push(u);
+        } else {
+          migrated = true;
+        }
+      });
+      history.users = uniqueUsers;
+    }
+    if (history.playlists) {
+      history.playlists = history.playlists.map(p => {
+        const canonical = canonicalizeSunoUrl(p.id);
+        if (p.id !== canonical) {
+          migrated = true;
+          p.id = canonical;
+        }
+        return p;
+      });
+      const uniquePlaylists = [];
+      const seenIds = new Set();
+      const seenNames = new Set();
+      history.playlists.forEach(p => {
+        if (!p) return;
+        const idKey = (p.id || '').toLowerCase();
+        const nameKey = (p.name || '').trim().toLowerCase();
+        if (!seenIds.has(idKey) && (!nameKey || !seenNames.has(nameKey))) {
+          seenIds.add(idKey);
+          if (nameKey) seenNames.add(nameKey);
+          uniquePlaylists.push(p);
+        } else {
+          migrated = true;
+        }
+      });
+      history.playlists = uniquePlaylists;
+    }
+    if (migrated) {
+      try {
+        localStorage.setItem('suno_player_history_v2', JSON.stringify(history));
+      } catch (e) {
+        console.error(e);
+      }
+    }
 
-  const dropUsersList = document.getElementById('dropdown-history-users-list');
-  const dropPlaylistsList = document.getElementById('dropdown-history-playlists-list');
-  const dropTracksList = document.getElementById('dropdown-history-tracks-list');
+    const container = document.getElementById('history-container');
+    const usersList = document.getElementById('history-users-list');
+    const playlistsList = document.getElementById('history-playlists-list');
+    const tracksList = document.getElementById('history-tracks-list');
 
-  const hasHistory = history.users.length > 0 || history.playlists.length > 0 || history.tracks.length > 0;
-  if (!hasHistory) {
-    if (container) container.classList.add('hidden');
-    return;
-  }
-  if (container) container.classList.remove('hidden');
+    const dropUsersList = document.getElementById('dropdown-history-users-list');
+    const dropPlaylistsList = document.getElementById('dropdown-history-playlists-list');
+    const dropTracksList = document.getElementById('dropdown-history-tracks-list');
 
-  // Helper to render HTML list items
-  const getListHtml = (items, type) => {
-    if (items.length === 0) return '<div class="empty-history">履歴はありません</div>';
-    return items.map(item => `
-      <div class="history-item" data-url="${escapeHtml(item.id)}">
-        <span class="history-item-title">${escapeHtml(item.name)}</span>
-        <span class="history-item-sub">${escapeHtml(getDisplaySubtitle(item.id, type, item))}</span>
-      </div>
-    `).join('');
-  };
+    const hasHistory = history.users.length > 0 || history.playlists.length > 0 || history.tracks.length > 0;
+    if (!hasHistory) {
+      if (container) container.classList.add('hidden');
+      return;
+    }
+    if (container) container.classList.remove('hidden');
 
-  // Render Landing History
-  if (usersList) usersList.innerHTML = getListHtml(history.users, 'user');
-  if (playlistsList) playlistsList.innerHTML = getListHtml(history.playlists, 'playlist');
-  if (tracksList) tracksList.innerHTML = getListHtml(history.tracks, 'track');
+    // Helper to render HTML list items
+    const getListHtml = (items, type) => {
+      if (items.length === 0) return '<div class="empty-history">履歴はありません</div>';
+      return items.map(item => `
+        <div class="history-item" data-url="${escapeHtml(item.id)}">
+          <span class="history-item-title">${escapeHtml(item.name)}</span>
+          <span class="history-item-sub">${escapeHtml(getDisplaySubtitle(item.id, type, item))}</span>
+        </div>
+      `).join('');
+    };
 
-  // Render Dropdown History
-  if (dropUsersList) dropUsersList.innerHTML = getListHtml(history.users, 'user');
-  if (dropPlaylistsList) dropPlaylistsList.innerHTML = getListHtml(history.playlists, 'playlist');
-  if (dropTracksList) dropTracksList.innerHTML = getListHtml(history.tracks, 'track');
+    // Render Landing History
+    if (usersList) usersList.innerHTML = getListHtml(history.users, 'user');
+    if (playlistsList) playlistsList.innerHTML = getListHtml(history.playlists, 'playlist');
+    if (tracksList) tracksList.innerHTML = getListHtml(history.tracks, 'track');
 
-  // Bind click listeners to all history items
-  document.querySelectorAll('.history-item').forEach(el => {
-    el.addEventListener('click', () => {
-      const url = el.getAttribute('data-url');
-      landingInput.value = url;
+    // Render Dropdown History
+    if (dropUsersList) dropUsersList.innerHTML = getListHtml(history.users, 'user');
+    if (dropPlaylistsList) dropPlaylistsList.innerHTML = getListHtml(history.playlists, 'playlist');
+    if (dropTracksList) dropTracksList.innerHTML = getListHtml(history.tracks, 'track');
 
-      // Hide dropdown if clicked inside dropdown
-      const dropdown = document.getElementById('header-history-dropdown');
-      if (dropdown) dropdown.classList.add('hidden');
+    // Bind click listeners to all history items
+    document.querySelectorAll('.history-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const url = el.getAttribute('data-url');
+        landingInput.value = url;
 
-      importSunoUrl(url);
+        // Hide dropdown if clicked inside dropdown
+        const dropdown = document.getElementById('header-history-dropdown');
+        if (dropdown) dropdown.classList.add('hidden');
+
+        importSunoUrl(url);
+      });
     });
-  });
 
-  if (window.lucide) lucide.createIcons();
+    if (window.lucide) lucide.createIcons();
+  } catch (err) {
+    console.error('[History] Failed to render history UI:', err);
+  }
 }
