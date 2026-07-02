@@ -44,8 +44,8 @@ function getNormalizedArtist(name) {
   return name;
 }
 
-// Version: 3.0.5 (Re-deployed to ensure complete file sync)
-import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=3.0.5';
+// Version: 3.0.6 (Re-deployed to ensure complete file sync)
+import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=3.0.6';
 
 // --- State Variables ---
 let audioCtx = null;
@@ -268,8 +268,10 @@ function initAudio() {
   enhancer.outputNode.connect(analyser);
   analyser.connect(masterGainNode);
 
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  if (isIOS && 'createMediaStreamDestination' in audioCtx) {
+  const isMobileOrSafari = /iPad|iPhone|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
+                           (navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome'));
+  if (isMobileOrSafari && 'createMediaStreamDestination' in audioCtx) {
     mediaStreamDest = audioCtx.createMediaStreamDestination();
     masterGainNode.connect(mediaStreamDest);
     
@@ -279,7 +281,7 @@ function initAudio() {
     speakerPlayer.preload = 'auto';
     speakerPlayer.srcObject = mediaStreamDest.stream;
     document.body.appendChild(speakerPlayer);
-    console.log('[AudioEngine] MediaStreamDestination routing initialized for iOS background support.');
+    console.log('[AudioEngine] MediaStreamDestination routing initialized for background support.');
   } else {
     masterGainNode.connect(audioCtx.destination);
     console.log('[AudioEngine] Direct destination routing initialized.');
