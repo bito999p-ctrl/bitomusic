@@ -44,8 +44,8 @@ function getNormalizedArtist(name) {
   return name;
 }
 
-// Version: 3.0.10 (Re-deployed to ensure complete file sync)
-import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=3.0.10';
+// Version: 3.0.11 (Re-deployed to ensure complete file sync)
+import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=3.0.11';
 
 // --- State Variables ---
 let audioCtx = null;
@@ -77,177 +77,104 @@ let isUserDraggingProgress = false;
 let seekTimeout = null;
 
 // --- DOM Elements ---
-let landingScreen = null;
-let playerWorkspace = null;
-let landingInput = null;
-let landingBtn = null;
-let landingBtnText = null;
-let landingBtnLoader = null;
-let backToLandingBtn = null;
-let sidebarBackBtn = null;
-let sidebarToPlayerBtn = null;
-let shareBtn = null;
-let audioPlayer = null;
-let sourceCover = null;
-let sourceName = null;
-let sourceType = null;
-let playlistsSection = null;
-let playlistsList = null;
-let tracksCountEl = null;
-let tracksList = null;
-let trackArtwork = null;
-let artworkWrapper = null;
-let trackTitle = null;
-let trackArtist = null;
-let progressBar = null;
-let currentTimeEl = null;
-let durationTimeEl = null;
-let playPauseBtn = null;
-let prevBtn = null;
-let nextBtn = null;
-let shuffleBtn = null;
-let repeatBtn = null;
-let volumeSlider = null;
-let visModeSelect = null;
-let canvas = null;
-let canvasCtx = null;
-let enhancerToggle = null;
-let aiStatusEl = null;
-let notchesListEl = null;
-let hudEqLowEl = null;
-let hudEqHighEl = null;
-let hudWidthEl = null;
-let hudHissEl = null;
-let hudCompThreshEl = null;
-let hudCompRatioEl = null;
-let hudLimiterBoostEl = null;
-let grValue = null;
-let grBarFill = null;
-let tabEnhancerBtn = null;
-let tabLyricsBtn = null;
-let tabEnhancer = null;
-let tabLyrics = null;
-let lyricsText = null;
-let mobileEnhancerToggle = null;
-let mobileLyricsText = null;
-let presetSelect = null;
-let mobilePresetSelect = null;
-let likeBtn = null;
-let sourceLikeBtn = null;
-let dropTabHistory = null;
-let dropTabFavorites = null;
-let dropContentHistory = null;
-let dropContentFavorites = null;
-let navBtnLibrary = null;
-let navBtnUtility = null;
-let workspaceSidebar = null;
-let workspacePlayer = null;
-let workspaceUtility = null;
-let openLyricsBtn = null;
-let closeLyricsBtn = null;
-let playerLyricsOverlay = null;
-let openPlaylistBtn = null;
-let closePlaylistBtn = null;
-let playerPlaylistOverlay = null;
-let overlayTracksCount = null;
-let miniPlayer = null;
-let mobileNavBar = null;
-let miniArtwork = null;
-let miniTitle = null;
-let miniArtist = null;
-let miniPlayBtn = null;
-let miniNextBtn = null;
-let miniLikeBtn = null;
-let closePlayerBtn = null;
-let mobileSourceLikeBtn = null;
+const landingScreen = document.getElementById('landing-screen');
+const playerWorkspace = document.getElementById('player-workspace');
+const landingInput = document.getElementById('landing-input');
+const landingBtn = document.getElementById('landing-btn');
+const landingBtnText = document.getElementById('landing-btn-text');
+const landingBtnLoader = document.getElementById('landing-btn-loader');
+const backToLandingBtn = document.getElementById('back-to-landing-btn');
+const sidebarBackBtn = document.getElementById('sidebar-back-btn');
+const sidebarToPlayerBtn = document.getElementById('sidebar-to-player-btn');
+const shareBtn = document.getElementById('share-btn');
+const audioPlayer = document.getElementById('audio-player');
 
-// --- DOM References Initialization ---
-function initDomReferences() {
-  landingScreen = document.getElementById('landing-screen');
-  playerWorkspace = document.getElementById('player-workspace');
-  landingInput = document.getElementById('landing-input');
-  landingBtn = document.getElementById('landing-btn');
-  landingBtnText = document.getElementById('landing-btn-text');
-  landingBtnLoader = document.getElementById('landing-btn-loader');
-  backToLandingBtn = document.getElementById('back-to-landing-btn');
-  sidebarBackBtn = document.getElementById('sidebar-back-btn');
-  sidebarToPlayerBtn = document.getElementById('sidebar-to-player-btn');
-  shareBtn = document.getElementById('share-btn');
-  audioPlayer = document.getElementById('audio-player');
-  sourceCover = document.getElementById('source-cover');
-  sourceName = document.getElementById('source-name');
-  sourceType = document.getElementById('source-type');
-  playlistsSection = document.getElementById('playlists-section');
-  playlistsList = document.getElementById('playlists-list');
-  tracksCountEl = document.getElementById('tracks-count');
-  tracksList = document.getElementById('tracks-list');
-  trackArtwork = document.getElementById('track-artwork');
-  artworkWrapper = document.querySelector('.artwork-wrapper');
-  trackTitle = document.getElementById('track-title');
-  trackArtist = document.getElementById('track-artist');
-  progressBar = document.getElementById('progress-bar');
-  currentTimeEl = document.getElementById('current-time');
-  durationTimeEl = document.getElementById('duration-time');
-  playPauseBtn = document.getElementById('play-pause-btn');
-  prevBtn = document.getElementById('prev-btn');
-  nextBtn = document.getElementById('next-btn');
-  shuffleBtn = document.getElementById('shuffle-btn');
-  repeatBtn = document.getElementById('repeat-btn');
-  volumeSlider = document.getElementById('volume-slider');
-  visModeSelect = document.getElementById('vis-mode-select');
-  canvas = document.getElementById('player-visualizer');
-  canvasCtx = canvas ? canvas.getContext('2d') : null;
-  enhancerToggle = document.getElementById('enhancer-toggle');
-  aiStatusEl = document.getElementById('ai-status');
-  notchesListEl = document.getElementById('notches-list');
-  hudEqLowEl = document.getElementById('hud-eq-low');
-  hudEqHighEl = document.getElementById('hud-eq-high');
-  hudWidthEl = document.getElementById('hud-width');
-  hudHissEl = document.getElementById('hud-hiss');
-  hudCompThreshEl = document.getElementById('hud-comp-thresh');
-  hudCompRatioEl = document.getElementById('hud-comp-ratio');
-  hudLimiterBoostEl = document.getElementById('hud-limiter-boost');
-  grValue = document.getElementById('gr-value');
-  grBarFill = document.getElementById('gr-bar-fill');
-  tabEnhancerBtn = document.getElementById('tab-enhancer-btn');
-  tabLyricsBtn = document.getElementById('tab-lyrics-btn');
-  tabEnhancer = document.getElementById('tab-enhancer');
-  tabLyrics = document.getElementById('tab-lyrics');
-  lyricsText = document.getElementById('lyrics-text');
-  mobileEnhancerToggle = document.getElementById('mobile-enhancer-toggle');
-  mobileLyricsText = document.getElementById('mobile-lyrics-text');
-  presetSelect = document.getElementById('preset-select');
-  mobilePresetSelect = document.getElementById('mobile-preset-select');
-  likeBtn = document.getElementById('like-btn');
-  sourceLikeBtn = document.getElementById('source-like-btn');
-  dropTabHistory = document.getElementById('drop-tab-history');
-  dropTabFavorites = document.getElementById('drop-tab-favorites');
-  dropContentHistory = document.getElementById('drop-content-history');
-  dropContentFavorites = document.getElementById('drop-content-favorites');
-  navBtnLibrary = document.getElementById('nav-btn-library');
-  navBtnUtility = document.getElementById('nav-btn-utility');
-  workspaceSidebar = document.querySelector('.workspace-sidebar');
-  workspacePlayer = document.querySelector('.workspace-player');
-  workspaceUtility = document.querySelector('.workspace-utility');
-  openLyricsBtn = document.getElementById('open-lyrics-btn');
-  closeLyricsBtn = document.getElementById('close-lyrics-btn');
-  playerLyricsOverlay = document.getElementById('player-lyrics-overlay');
-  openPlaylistBtn = document.getElementById('open-playlist-btn');
-  closePlaylistBtn = document.getElementById('close-playlist-btn');
-  playerPlaylistOverlay = document.getElementById('player-playlist-overlay');
-  overlayTracksCount = document.getElementById('overlay-tracks-count');
-  miniPlayer = document.getElementById('mini-player');
-  mobileNavBar = document.getElementById('mobile-nav-bar');
-  miniArtwork = document.getElementById('mini-artwork');
-  miniTitle = document.getElementById('mini-title');
-  miniArtist = document.getElementById('mini-artist');
-  miniPlayBtn = document.getElementById('mini-play-btn');
-  miniNextBtn = document.getElementById('mini-next-btn');
-  miniLikeBtn = document.getElementById('mini-like-btn');
-  closePlayerBtn = document.getElementById('close-player-btn');
-  mobileSourceLikeBtn = document.getElementById('mobile-source-like-btn');
-}
+// Sidebar Info
+const sourceCover = document.getElementById('source-cover');
+const sourceName = document.getElementById('source-name');
+const sourceType = document.getElementById('source-type');
+const playlistsSection = document.getElementById('playlists-section');
+const playlistsList = document.getElementById('playlists-list');
+const tracksCountEl = document.getElementById('tracks-count');
+const tracksList = document.getElementById('tracks-list');
 
+// Player Main
+const trackArtwork = document.getElementById('track-artwork');
+const artworkWrapper = document.querySelector('.artwork-wrapper');
+const trackTitle = document.getElementById('track-title');
+const trackArtist = document.getElementById('track-artist');
+const progressBar = document.getElementById('progress-bar');
+const currentTimeEl = document.getElementById('current-time');
+const durationTimeEl = document.getElementById('duration-time');
+const playPauseBtn = document.getElementById('play-pause-btn');
+const prevBtn = document.getElementById('prev-btn');
+const nextBtn = document.getElementById('next-btn');
+const shuffleBtn = document.getElementById('shuffle-btn');
+const repeatBtn = document.getElementById('repeat-btn');
+const volumeSlider = document.getElementById('volume-slider');
+const visModeSelect = document.getElementById('vis-mode-select');
+const canvas = document.getElementById('player-visualizer');
+const canvasCtx = canvas.getContext('2d');
+
+// AI HUD UI Elements
+const enhancerToggle = document.getElementById('enhancer-toggle');
+const aiStatusEl = document.getElementById('ai-status');
+const notchesListEl = document.getElementById('notches-list');
+const hudEqLowEl = document.getElementById('hud-eq-low');
+const hudEqHighEl = document.getElementById('hud-eq-high');
+const hudWidthEl = document.getElementById('hud-width');
+const hudHissEl = document.getElementById('hud-hiss');
+const hudCompThreshEl = document.getElementById('hud-comp-thresh');
+const hudCompRatioEl = document.getElementById('hud-comp-ratio');
+const hudLimiterBoostEl = document.getElementById('hud-limiter-boost');
+
+const grValue = document.getElementById('gr-value');
+const grBarFill = document.getElementById('gr-bar-fill');
+
+// Tabs & Lyrics
+const tabEnhancerBtn = document.getElementById('tab-enhancer-btn');
+const tabLyricsBtn = document.getElementById('tab-lyrics-btn');
+const tabEnhancer = document.getElementById('tab-enhancer');
+const tabLyrics = document.getElementById('tab-lyrics');
+const lyricsText = document.getElementById('lyrics-text');
+const mobileEnhancerToggle = document.getElementById('mobile-enhancer-toggle');
+const mobileLyricsText = document.getElementById('mobile-lyrics-text');
+const presetSelect = document.getElementById('preset-select');
+const mobilePresetSelect = document.getElementById('mobile-preset-select');
+
+// Like Buttons & Dropdown tabs
+const likeBtn = document.getElementById('like-btn');
+const sourceLikeBtn = document.getElementById('source-like-btn');
+const dropTabHistory = document.getElementById('drop-tab-history');
+const dropTabFavorites = document.getElementById('drop-tab-favorites');
+const dropContentHistory = document.getElementById('drop-content-history');
+const dropContentFavorites = document.getElementById('drop-content-favorites');
+
+// Bottom Nav Tab Bar DOM references
+const navBtnLibrary = document.getElementById('nav-btn-library');
+const navBtnUtility = document.getElementById('nav-btn-utility');
+const workspaceSidebar = document.querySelector('.workspace-sidebar');
+const workspacePlayer = document.querySelector('.workspace-player');
+const workspaceUtility = document.querySelector('.workspace-utility');
+const openLyricsBtn = document.getElementById('open-lyrics-btn');
+const closeLyricsBtn = document.getElementById('close-lyrics-btn');
+const playerLyricsOverlay = document.getElementById('player-lyrics-overlay');
+const openPlaylistBtn = document.getElementById('open-playlist-btn');
+const closePlaylistBtn = document.getElementById('close-playlist-btn');
+const playerPlaylistOverlay = document.getElementById('player-playlist-overlay');
+const overlayTracksCount = document.getElementById('overlay-tracks-count');
+
+// Mini Player & Close button DOM references
+const miniPlayer = document.getElementById('mini-player');
+const mobileNavBar = document.getElementById('mobile-nav-bar');
+const miniArtwork = document.getElementById('mini-artwork');
+const miniTitle = document.getElementById('mini-title');
+const miniArtist = document.getElementById('mini-artist');
+const miniPlayBtn = document.getElementById('mini-play-btn');
+const miniNextBtn = document.getElementById('mini-next-btn');
+const miniLikeBtn = document.getElementById('mini-like-btn');
+const closePlayerBtn = document.getElementById('close-player-btn');
+const mobileSourceLikeBtn = document.getElementById('mobile-source-like-btn');
 
 // Global mock state required by favorites
 let favorites = { users: [], playlists: [], tracks: [] };
@@ -286,7 +213,6 @@ document.addEventListener('visibilitychange', async () => {
 
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
-  initDomReferences();
   if (document.body) document.body.classList.remove('player-active'); // Ensure scroll is unlocked initially
   setupEventListeners();
   setupMediaSessionActions();
@@ -300,7 +226,6 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('resize', () => {
     resizeCanvas();
     handleResponsiveLayout();
-    startVisualizerLoop();
   });
   
   // Render recent history and favorites on startup
@@ -392,9 +317,8 @@ function setupEventListeners() {
     });
   });
 
-  if (backToLandingBtn) {
-    backToLandingBtn.addEventListener('click', showLandingView);
-  }
+  // Workspace actions
+  backToLandingBtn.addEventListener('click', showLandingView);
   if (sidebarBackBtn) {
     sidebarBackBtn.addEventListener('click', showLandingView);
   }
@@ -1529,14 +1453,6 @@ function updateProgressBar() {
 
 // --- Compressor Gain Reduction Meter ---
 function updateCompressionMeter() {
-  const isMobile = window.innerWidth <= 768;
-  const isPlayerModalOpen = workspacePlayer && workspacePlayer.classList.contains('active-modal');
-  const isCanvasVisible = !isMobile || isPlayerModalOpen;
-
-  if (!isCanvasVisible || document.hidden) {
-    return;
-  }
-
   if (!isPlaying || !enhancer || !enhancerToggle.checked || enhancer.isBypassed) {
     grValue.textContent = '0.0 dB';
     grBarFill.style.width = '0%';
@@ -1594,11 +1510,7 @@ function drawVisualizer() {
   }
 
   const mode = visModeSelect.value;
-  const isMobile = window.innerWidth <= 768;
-  const isPlayerModalOpen = workspacePlayer && workspacePlayer.classList.contains('active-modal');
-  const isCanvasVisible = !isMobile || isPlayerModalOpen;
-
-  if (mode === 'off' || audioPlayer.paused || audioPlayer.ended || !isCanvasVisible || document.hidden) {
+  if (mode === 'off' || audioPlayer.paused || audioPlayer.ended) {
     isVisualizerRunning = false;
     // Clear canvas once to save energy
     const width = canvas.width;
@@ -1917,7 +1829,6 @@ function openPlayerModal() {
   if (workspacePlayer) {
     workspacePlayer.classList.add('active-modal');
   }
-  startVisualizerLoop();
 }
 
 function closePlayerModal() {
@@ -2203,67 +2114,63 @@ function updateSourceLikeButtonState() {
 }
 
 function renderFavoritesUI() {
-  try {
-    loadFavorites();
+  loadFavorites();
 
-    const container = document.getElementById('favorites-container');
-    const usersList = document.getElementById('favorites-users-list');
-    const playlistsList = document.getElementById('favorites-playlists-list');
-    const tracksList = document.getElementById('favorites-tracks-list');
+  const container = document.getElementById('favorites-container');
+  const usersList = document.getElementById('favorites-users-list');
+  const playlistsList = document.getElementById('favorites-playlists-list');
+  const tracksList = document.getElementById('favorites-tracks-list');
 
-    const dropUsersList = document.getElementById('dropdown-favorites-users-list');
-    const dropPlaylistsList = document.getElementById('dropdown-favorites-playlists-list');
-    const dropTracksList = document.getElementById('dropdown-favorites-tracks-list');
+  const dropUsersList = document.getElementById('dropdown-favorites-users-list');
+  const dropPlaylistsList = document.getElementById('dropdown-favorites-playlists-list');
+  const dropTracksList = document.getElementById('dropdown-favorites-tracks-list');
 
-    const hasFavorites = favorites.users.length > 0 || favorites.playlists.length > 0 || favorites.tracks.length > 0;
-    if (!hasFavorites) {
-      if (container) container.classList.add('hidden');
-      if (dropUsersList) dropUsersList.innerHTML = '<div class="empty-history">お気に入りはありません</div>';
-      if (dropPlaylistsList) dropPlaylistsList.innerHTML = '<div class="empty-history">お気に入りはありません</div>';
-      if (dropTracksList) dropTracksList.innerHTML = '<div class="empty-history">お気に入りはありません</div>';
-      return;
-    }
-    if (container) container.classList.remove('hidden');
-
-    // Helper to render HTML list items
-    const getListHtml = (items, type) => {
-      if (items.length === 0) return '<div class="empty-history">お気に入りはありません</div>';
-      return items.map(item => `
-        <div class="favorite-item" data-url="${escapeHtml(item.url || item.id)}">
-          <span class="favorite-item-title">${escapeHtml(item.name || item.title)}</span>
-          <span class="favorite-item-sub">${escapeHtml(getDisplaySubtitle(item.url || item.id, type, item))}</span>
-        </div>
-      `).join('');
-    };
-
-    // Render Landing Favorites
-    if (usersList) usersList.innerHTML = getListHtml(favorites.users, 'user');
-    if (playlistsList) playlistsList.innerHTML = getListHtml(favorites.playlists, 'playlist');
-    if (tracksList) tracksList.innerHTML = getListHtml(favorites.tracks, 'track');
-
-    // Render Dropdown Favorites
-    if (dropUsersList) dropUsersList.innerHTML = getListHtml(favorites.users, 'user');
-    if (dropPlaylistsList) dropPlaylistsList.innerHTML = getListHtml(favorites.playlists, 'playlist');
-    if (dropTracksList) dropTracksList.innerHTML = getListHtml(favorites.tracks, 'track');
-
-    // Bind click listeners to all favorite items
-    document.querySelectorAll('.favorite-item').forEach(el => {
-      el.addEventListener('click', () => {
-        const url = el.getAttribute('data-url');
-        landingInput.value = url;
-
-        // Hide dropdown if clicked inside dropdown
-        const dropdown = document.getElementById('header-history-dropdown');
-        if (dropdown) dropdown.classList.add('hidden');
-
-        importSunoUrl(url);
-      });
-    });
-
-    if (window.lucide) lucide.createIcons();
-  } catch (err) {
-    console.error('[Favorites] Failed to render favorites UI:', err);
+  const hasFavorites = favorites.users.length > 0 || favorites.playlists.length > 0 || favorites.tracks.length > 0;
+  if (!hasFavorites) {
+    if (container) container.classList.add('hidden');
+    if (dropUsersList) dropUsersList.innerHTML = '<div class="empty-history">お気に入りはありません</div>';
+    if (dropPlaylistsList) dropPlaylistsList.innerHTML = '<div class="empty-history">お気に入りはありません</div>';
+    if (dropTracksList) dropTracksList.innerHTML = '<div class="empty-history">お気に入りはありません</div>';
+    return;
   }
+  if (container) container.classList.remove('hidden');
+
+  // Helper to render HTML list items
+  const getListHtml = (items, type) => {
+    if (items.length === 0) return '<div class="empty-history">お気に入りはありません</div>';
+    return items.map(item => `
+      <div class="favorite-item" data-url="${escapeHtml(item.url || item.id)}">
+        <span class="favorite-item-title">${escapeHtml(item.name || item.title)}</span>
+        <span class="favorite-item-sub">${escapeHtml(getDisplaySubtitle(item.url || item.id, type, item))}</span>
+      </div>
+    `).join('');
+  };
+
+  // Render Landing Favorites
+  if (usersList) usersList.innerHTML = getListHtml(favorites.users, 'user');
+  if (playlistsList) playlistsList.innerHTML = getListHtml(favorites.playlists, 'playlist');
+  if (tracksList) tracksList.innerHTML = getListHtml(favorites.tracks, 'track');
+
+  // Render Dropdown Favorites
+  if (dropUsersList) dropUsersList.innerHTML = getListHtml(favorites.users, 'user');
+  if (dropPlaylistsList) dropPlaylistsList.innerHTML = getListHtml(favorites.playlists, 'playlist');
+  if (dropTracksList) dropTracksList.innerHTML = getListHtml(favorites.tracks, 'track');
+
+  // Bind click listeners to all favorite items
+  document.querySelectorAll('.favorite-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const url = el.getAttribute('data-url');
+      landingInput.value = url;
+
+      // Hide dropdown if clicked inside dropdown
+      const dropdown = document.getElementById('header-history-dropdown');
+      if (dropdown) dropdown.classList.add('hidden');
+
+      importSunoUrl(url);
+    });
+  });
+
+  if (window.lucide) lucide.createIcons();
 }
 
 function saveToHistory(type, id, name) {
@@ -2371,130 +2278,126 @@ function saveToHistory(type, id, name) {
 }
 
 function renderHistoryUI() {
+  let history = { users: [], playlists: [], tracks: [] };
   try {
-    let history = { users: [], playlists: [], tracks: [] };
-    try {
-      const saved = localStorage.getItem('suno_player_history_v2');
-      if (saved) history = JSON.parse(saved);
-    } catch (e) {
-      console.error('Failed to load history:', e);
-    }
-
-    // Migrate, canonicalize, and deduplicate on render
-    let migrated = false;
-    if (history.users) {
-      history.users = history.users.map(u => {
-        const canonical = canonicalizeSunoUrl(u.id);
-        if (u.id !== canonical) {
-          migrated = true;
-          u.id = canonical;
-        }
-        return u;
-      });
-      const uniqueUsers = [];
-      const seenIds = new Set();
-      const seenNames = new Set();
-      history.users.forEach(u => {
-        if (!u) return;
-        const idKey = (u.id || '').toLowerCase();
-        const nameKey = (u.name || '').trim().toLowerCase();
-        if (!seenIds.has(idKey) && (!nameKey || !seenNames.has(nameKey))) {
-          seenIds.add(idKey);
-          if (nameKey) seenNames.add(nameKey);
-          uniqueUsers.push(u);
-        } else {
-          migrated = true;
-        }
-      });
-      history.users = uniqueUsers;
-    }
-    if (history.playlists) {
-      history.playlists = history.playlists.map(p => {
-        const canonical = canonicalizeSunoUrl(p.id);
-        if (p.id !== canonical) {
-          migrated = true;
-          p.id = canonical;
-        }
-        return p;
-      });
-      const uniquePlaylists = [];
-      const seenIds = new Set();
-      const seenNames = new Set();
-      history.playlists.forEach(p => {
-        if (!p) return;
-        const idKey = (p.id || '').toLowerCase();
-        const nameKey = (p.name || '').trim().toLowerCase();
-        if (!seenIds.has(idKey) && (!nameKey || !seenNames.has(nameKey))) {
-          seenIds.add(idKey);
-          if (nameKey) seenNames.add(nameKey);
-          uniquePlaylists.push(p);
-        } else {
-          migrated = true;
-        }
-      });
-      history.playlists = uniquePlaylists;
-    }
-    if (migrated) {
-      try {
-        localStorage.setItem('suno_player_history_v2', JSON.stringify(history));
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    const container = document.getElementById('history-container');
-    const usersList = document.getElementById('history-users-list');
-    const playlistsList = document.getElementById('history-playlists-list');
-    const tracksList = document.getElementById('history-tracks-list');
-
-    const dropUsersList = document.getElementById('dropdown-history-users-list');
-    const dropPlaylistsList = document.getElementById('dropdown-history-playlists-list');
-    const dropTracksList = document.getElementById('dropdown-history-tracks-list');
-
-    const hasHistory = history.users.length > 0 || history.playlists.length > 0 || history.tracks.length > 0;
-    if (!hasHistory) {
-      if (container) container.classList.add('hidden');
-      return;
-    }
-    if (container) container.classList.remove('hidden');
-
-    // Helper to render HTML list items
-    const getListHtml = (items, type) => {
-      if (items.length === 0) return '<div class="empty-history">履歴はありません</div>';
-      return items.map(item => `
-        <div class="history-item" data-url="${escapeHtml(item.id)}">
-          <span class="history-item-title">${escapeHtml(item.name)}</span>
-          <span class="history-item-sub">${escapeHtml(getDisplaySubtitle(item.id, type, item))}</span>
-        </div>
-      `).join('');
-    };
-
-    // Render Landing History
-    if (usersList) usersList.innerHTML = getListHtml(history.users, 'user');
-    if (playlistsList) playlistsList.innerHTML = getListHtml(history.playlists, 'playlist');
-    if (tracksList) tracksList.innerHTML = getListHtml(history.tracks, 'track');
-
-    // Render Dropdown History
-    if (dropUsersList) dropUsersList.innerHTML = getListHtml(history.users, 'user');
-    if (dropPlaylistsList) dropPlaylistsList.innerHTML = getListHtml(history.playlists, 'playlist');
-    if (dropTracksList) dropTracksList.innerHTML = getListHtml(history.tracks, 'track');
-
-    // Bind click listeners to all history items
-    document.querySelectorAll('.history-item').forEach(el => {
-      el.addEventListener('click', () => {
-        const url = el.getAttribute('data-url');
-        landingInput.value = url;
-
-        // Hide dropdown if clicked inside dropdown
-        const dropdown = document.getElementById('header-history-dropdown');
-        if (dropdown) dropdown.classList.add('hidden');
-
-        importSunoUrl(url);
-      });
-    });
-
-    if (window.lucide) lucide.createIcons();
-  } catch (err) {
-    console.error('[History] Failed to render history UI:', err);
+    const saved = localStorage.getItem('suno_player_history_v2');
+    if (saved) history = JSON.parse(saved);
+  } catch (e) {
+    console.error('Failed to load history:', e);
   }
+
+  // Migrate, canonicalize, and deduplicate on render
+  let migrated = false;
+  if (history.users) {
+    history.users = history.users.map(u => {
+      const canonical = canonicalizeSunoUrl(u.id);
+      if (u.id !== canonical) {
+        migrated = true;
+        u.id = canonical;
+      }
+      return u;
+    });
+    const uniqueUsers = [];
+    const seenIds = new Set();
+    const seenNames = new Set();
+    history.users.forEach(u => {
+      if (!u) return;
+      const idKey = (u.id || '').toLowerCase();
+      const nameKey = (u.name || '').trim().toLowerCase();
+      if (!seenIds.has(idKey) && (!nameKey || !seenNames.has(nameKey))) {
+        seenIds.add(idKey);
+        if (nameKey) seenNames.add(nameKey);
+        uniqueUsers.push(u);
+      } else {
+        migrated = true;
+      }
+    });
+    history.users = uniqueUsers;
+  }
+  if (history.playlists) {
+    history.playlists = history.playlists.map(p => {
+      const canonical = canonicalizeSunoUrl(p.id);
+      if (p.id !== canonical) {
+        migrated = true;
+        p.id = canonical;
+      }
+      return p;
+    });
+    const uniquePlaylists = [];
+    const seenIds = new Set();
+    const seenNames = new Set();
+    history.playlists.forEach(p => {
+      if (!p) return;
+      const idKey = (p.id || '').toLowerCase();
+      const nameKey = (p.name || '').trim().toLowerCase();
+      if (!seenIds.has(idKey) && (!nameKey || !seenNames.has(nameKey))) {
+        seenIds.add(idKey);
+        if (nameKey) seenNames.add(nameKey);
+        uniquePlaylists.push(p);
+      } else {
+        migrated = true;
+      }
+    });
+    history.playlists = uniquePlaylists;
+  }
+  if (migrated) {
+    try {
+      localStorage.setItem('suno_player_history_v2', JSON.stringify(history));
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  const container = document.getElementById('history-container');
+  const usersList = document.getElementById('history-users-list');
+  const playlistsList = document.getElementById('history-playlists-list');
+  const tracksList = document.getElementById('history-tracks-list');
+
+  const dropUsersList = document.getElementById('dropdown-history-users-list');
+  const dropPlaylistsList = document.getElementById('dropdown-history-playlists-list');
+  const dropTracksList = document.getElementById('dropdown-history-tracks-list');
+
+  const hasHistory = history.users.length > 0 || history.playlists.length > 0 || history.tracks.length > 0;
+  if (!hasHistory) {
+    if (container) container.classList.add('hidden');
+    return;
+  }
+  if (container) container.classList.remove('hidden');
+
+  // Helper to render HTML list items
+  const getListHtml = (items, type) => {
+    if (items.length === 0) return '<div class="empty-history">履歴はありません</div>';
+    return items.map(item => `
+      <div class="history-item" data-url="${escapeHtml(item.id)}">
+        <span class="history-item-title">${escapeHtml(item.name)}</span>
+        <span class="history-item-sub">${escapeHtml(getDisplaySubtitle(item.id, type, item))}</span>
+      </div>
+    `).join('');
+  };
+
+  // Render Landing History
+  if (usersList) usersList.innerHTML = getListHtml(history.users, 'user');
+  if (playlistsList) playlistsList.innerHTML = getListHtml(history.playlists, 'playlist');
+  if (tracksList) tracksList.innerHTML = getListHtml(history.tracks, 'track');
+
+  // Render Dropdown History
+  if (dropUsersList) dropUsersList.innerHTML = getListHtml(history.users, 'user');
+  if (dropPlaylistsList) dropPlaylistsList.innerHTML = getListHtml(history.playlists, 'playlist');
+  if (dropTracksList) dropTracksList.innerHTML = getListHtml(history.tracks, 'track');
+
+  // Bind click listeners to all history items
+  document.querySelectorAll('.history-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const url = el.getAttribute('data-url');
+      landingInput.value = url;
+
+      // Hide dropdown if clicked inside dropdown
+      const dropdown = document.getElementById('header-history-dropdown');
+      if (dropdown) dropdown.classList.add('hidden');
+
+      importSunoUrl(url);
+    });
+  });
+
+  if (window.lucide) lucide.createIcons();
 }
