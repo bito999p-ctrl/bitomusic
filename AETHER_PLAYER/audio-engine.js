@@ -427,24 +427,7 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
   const genreKey = (userGenreKey === 'auto' || userGenreKey === 'custom') ? 'auto' : userGenreKey;
   const basePreset = GENRE_PRESETS[genreKey] || GENRE_PRESETS.auto;
 
-  const genreTargets = {
-    auto: { low: 2.8, high: 0.10, presence: 0.42 },
-    pops: { low: 2.6, high: 0.11, presence: 0.44 },
-    rnb: { low: 3.2, high: 0.10, presence: 0.41 },
-    rock: { low: 2.9, high: 0.09, presence: 0.43 },
-    metal: { low: 3.0, high: 0.11, presence: 0.42 },
-    edm: { low: 3.2, high: 0.11, presence: 0.40 },
-    hiphop: { low: 3.3, high: 0.09, presence: 0.38 },
-    lofi: { low: 3.1, high: 0.06, presence: 0.36 },
-    hardcore: { low: 3.2, high: 0.12, presence: 0.42 },
-    ambient: { low: 2.9, high: 0.14, presence: 0.44 },
-    podcast: { low: 1.6, high: 0.08, presence: 0.47 },
-    classic: { low: 2.2, high: 0.08, presence: 0.39 },
-    jazz: { low: 2.7, high: 0.09, presence: 0.41 },
-    acoustic: { low: 2.4, high: 0.10, presence: 0.43 },
-    custom: { low: 2.8, high: 0.10, presence: 0.42 }
-  };
-  const target = genreTargets[genreKey] || genreTargets.auto;
+  const target = GENRE_TARGETS[genreKey] || GENRE_TARGETS.auto;
 
   const lowDiffDb = 20 * Math.log10(actualLowMidRatio / target.low);
   const highDiffDb = 20 * Math.log10(actualHighMidRatio / target.high);
@@ -453,33 +436,26 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
 
   let eqLowAdjustment = 0;
   if (lowDiffDb > 0.5) {
-    eqLowAdjustment = -Math.min(3.5, lowDiffDb * 0.75);
+    eqLowAdjustment = -Math.min(3.5, lowDiffDb * 0.75); // 絞りすぎ防止
   } else if (lowDiffDb < -0.5) {
-    eqLowAdjustment = Math.min(2.2, -lowDiffDb * 0.75);
+    eqLowAdjustment = Math.min(2.2, -lowDiffDb * 0.75); // 不足分引き上げ
   }
-  const eqLowGain = Math.max(-5.0, Math.min(3.0, Math.round((basePreset.eqLowGain + eqLowAdjustment) * 2) / 2));
-
+  const eqLowGain = Math.max(-5.0, Math.min(3.0, Math.round((basePreset.eqLowGain + eqLowAdjustment) * 2) / 2)); // クランプ範囲を元に戻す
   let eqMidAdjustment = 0;
   if (presenceDiffDb > 0.5) {
-    eqMidAdjustment = -Math.min(1.8, presenceDiffDb * 0.5); // 派手すぎる場合は中域を抑えてマイルドに（最大-1.8dB）
+    eqMidAdjustment = -Math.min(1.5, presenceDiffDb * 0.75);
   } else if (presenceDiffDb < -0.5) {
-    eqMidAdjustment = Math.min(1.2, -presenceDiffDb * 0.45); // こもっている場合はマイルドに補強（最大+1.2dB）
+    eqMidAdjustment = Math.min(1.5, -presenceDiffDb * 0.75);
   }
-  const eqMidGain = Math.max(-4.0, Math.min(1.0, Math.round((basePreset.eqMidGain + eqMidAdjustment) * 2) / 2)); // 中音域が強くなりすぎないよう最大値を+1.0dBにクランプ
+  const eqMidGain = Math.max(-2.0, Math.min(2.0, Math.round((basePreset.eqMidGain + eqMidAdjustment) * 2) / 2));
 
   let eqHighAdjustment = 0;
   if (highDiffDb > 0.5) {
-    eqHighAdjustment = -Math.min(2.0, highDiffDb * 0.5); // 派手すぎる場合はマイルドに減衰（最大-2.0dB）
+    eqHighAdjustment = -Math.min(2.0, highDiffDb * 0.75);
   } else if (highDiffDb < -0.5) {
-    eqHighAdjustment = Math.min(1.5, -highDiffDb * 0.45); // 不足している場合はマイルドに補強（最大+1.5dB）
+    eqHighAdjustment = Math.min(1.5, -highDiffDb * 0.75);
   }
-
-  let eqHighGain = Math.max(-5.0, Math.min(1.2, Math.round((basePreset.eqHighGain + eqHighAdjustment) * 2) / 2)); // キンキンしすぎないよう最大ブースト量を+1.2dBに制限
-
-  // キンキン共鳴音 (sibilanceDynamicFreq > 0) が検知されている場合、高域EQのブーストを禁止し、安全のために少なくとも-1.5dB以下の減衰量にクランプ
-  if (sibilanceDynamicFreq > 0) {
-    eqHighGain = Math.min(-1.5, eqHighGain);
-  }
+  let eqHighGain = Math.max(-3.0, Math.min(1.5, Math.round((basePreset.eqHighGain + eqHighAdjustment) * 2) / 2));
 
   // 現在選択されているラウドネス・ターゲットの取得と基準ブースト値の設定
   const loudnessKey = typeof baseLoudnessTarget !== 'undefined' ? baseLoudnessTarget : (document.getElementById('loudness-select')?.value || 'genre');
@@ -655,6 +631,13 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
   
   finalLimiterBoost = Math.round(finalLimiterBoost * 10) / 10;
 
+  // 動的なディエッサー強度の算出
+  let suggestedDeesserAmount = 40; // デフォルトで基本有効（40%）
+  if (sibilanceDynamicFreq > 0 && rawSibilancePeaks.length > 0) {
+    const maxScore = rawSibilancePeaks[0].score;
+    suggestedDeesserAmount = Math.round(Math.min(85, Math.max(40, 40 + (maxScore - 1.15) * 60)));
+  }
+
   return {
     detected: filteredPeaks.length > 0,
     notches: filteredPeaks,
@@ -691,7 +674,8 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
       limiterBoost: finalLimiterBoost,
       rumbleCutEnabled: sugRumbleCut,
       hissReductionAmount: sugHissAmount,
-      sibilanceDynamicFreq: sibilanceDynamicFreq
+      sibilanceDynamicFreq: sibilanceDynamicFreq,
+      deesserAmount: suggestedDeesserAmount
     }
   };
 }
