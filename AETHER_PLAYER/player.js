@@ -44,8 +44,8 @@ function getNormalizedArtist(name) {
   return name;
 }
 
-// Version: 3.0.7 (Re-deployed to ensure complete file sync)
-import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=3.0.7';
+// Version: 3.0.8 (Re-deployed to ensure complete file sync)
+import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=3.0.8';
 
 // --- State Variables ---
 let audioCtx = null;
@@ -226,6 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('resize', () => {
     resizeCanvas();
     handleResponsiveLayout();
+    startVisualizerLoop();
   });
   
   // Render recent history and favorites on startup
@@ -1453,6 +1454,14 @@ function updateProgressBar() {
 
 // --- Compressor Gain Reduction Meter ---
 function updateCompressionMeter() {
+  const isMobile = window.innerWidth <= 768;
+  const isPlayerModalOpen = workspacePlayer && workspacePlayer.classList.contains('active-modal');
+  const isCanvasVisible = !isMobile || isPlayerModalOpen;
+
+  if (!isCanvasVisible || document.hidden) {
+    return;
+  }
+
   if (!isPlaying || !enhancer || !enhancerToggle.checked || enhancer.isBypassed) {
     grValue.textContent = '0.0 dB';
     grBarFill.style.width = '0%';
@@ -1510,7 +1519,11 @@ function drawVisualizer() {
   }
 
   const mode = visModeSelect.value;
-  if (mode === 'off' || audioPlayer.paused || audioPlayer.ended) {
+  const isMobile = window.innerWidth <= 768;
+  const isPlayerModalOpen = workspacePlayer && workspacePlayer.classList.contains('active-modal');
+  const isCanvasVisible = !isMobile || isPlayerModalOpen;
+
+  if (mode === 'off' || audioPlayer.paused || audioPlayer.ended || !isCanvasVisible || document.hidden) {
     isVisualizerRunning = false;
     // Clear canvas once to save energy
     const width = canvas.width;
@@ -1829,6 +1842,7 @@ function openPlayerModal() {
   if (workspacePlayer) {
     workspacePlayer.classList.add('active-modal');
   }
+  startVisualizerLoop();
 }
 
 function closePlayerModal() {
