@@ -965,11 +965,11 @@ export class AetherEnhancer {
     this.merger.connect(this.limiterGain);
 
     this.limiter = context.createDynamicsCompressor();
-    this.limiter.threshold.setValueAtTime(-3.0, context.currentTime); // -3.0dB threshold provides look-ahead emulation cushion
-    this.limiter.knee.setValueAtTime(3.0, context.currentTime);      // Smooth knee
+    this.limiter.threshold.setValueAtTime(-1.0, context.currentTime); // -1.0dB に引き上げて過剰な圧縮圧と高域トランジェントの潰れを低減（ダイナミクスを保護）
+    this.limiter.knee.setValueAtTime(4.0, context.currentTime);      // 4.0dB に広げてよりなだらかで滑らかな制限動作へ
     this.limiter.ratio.setValueAtTime(20.0, context.currentTime);    // Dynamic limiting brickwall
     this.limiter.attack.setValueAtTime(0.0001, context.currentTime); // 0.1ms (near-instant reaction to catch peaks)
-    this.limiter.release.setValueAtTime(0.08, context.currentTime);  // 80ms (optimized to prevent low-end distortion)
+    this.limiter.release.setValueAtTime(0.12, context.currentTime);  // 120ms に拡張し、高域の微細な歪みやポンピング（音の硬さ）を防止
 
     // 9b. Safety Soft Clipper (WaveShaper Node)
     this.safetyClipper = context.createWaveShaper();
