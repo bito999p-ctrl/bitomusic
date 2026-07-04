@@ -9,51 +9,51 @@ const params = { limiterBoost: 3.5 };
 
 export const GENRE_PRESETS = {
   auto: {
-    satEnabled: true, satType: 'tube', satDrive: 12, satMix: 10, satLpfFreq: 4500,
+    satEnabled: true, satType: 'tube', satDrive: 12, satMix: 10, satLpfFreq: 12000,
     eqLowGain: 0.0, eqLowFreq: 90, eqLowQ: 0.70,
     eqLowMidGain: 0.0, eqLowMidFreq: 200, eqLowMidQ: 0.60,
     eqMidGain: 0.0, eqMidFreq: 1000, eqMidQ: 1.0,
-    eqMidHighGain: 0.0, eqMidHighFreq: 3000, eqMidHighQ: 1.0,
+    eqMidHighGain: 0.0, eqMidHighFreq: 4800, eqMidHighQ: 1.0,
     eqHighGain: 0.0, eqHighFreq: 9000, eqHighQ: 0.70,
     compEnabled: true, compThreshold: -8.0, compRatio: 1.35, compAttack: 0.04, compRelease: 0.20,
     stereoWidth: 1.15, limiterBoost: 3.5, sideHighPassFreq: 110
   },
   pops: {
-    satEnabled: true, satType: 'tube', satDrive: 15, satMix: 10, satLpfFreq: 4500,
+    satEnabled: true, satType: 'tube', satDrive: 15, satMix: 10, satLpfFreq: 12000,
     eqLowGain: 1.2, eqLowFreq: 80, eqLowQ: 0.70,
     eqLowMidGain: 0.0, eqLowMidFreq: 200, eqLowMidQ: 0.60,
     eqMidGain: 0.0, eqMidFreq: 1000, eqMidQ: 1.0,
-    eqMidHighGain: 1.2, eqMidHighFreq: 3000, eqMidHighQ: 1.0,
+    eqMidHighGain: 1.2, eqMidHighFreq: 4800, eqMidHighQ: 1.0,
     eqHighGain: 0.4, eqHighFreq: 14000, eqHighQ: 0.65,
     compEnabled: true, compThreshold: -8.0, compRatio: 1.35, compAttack: 0.035, compRelease: 0.16,
     stereoWidth: 1.15, limiterBoost: 3.5, sideHighPassFreq: 110
   },
   rnb: {
-    satEnabled: true, satType: 'tape', satDrive: 15, satMix: 12, satLpfFreq: 6000,
+    satEnabled: true, satType: 'tape', satDrive: 15, satMix: 12, satLpfFreq: 10000,
     eqLowGain: 2.2, eqLowFreq: 75, eqLowQ: 0.80,
     eqLowMidGain: 0.0, eqLowMidFreq: 200, eqLowMidQ: 0.60,
     eqMidGain: -0.8, eqMidFreq: 1000, eqMidQ: 1.0,
-    eqMidHighGain: 0.0, eqMidHighFreq: 3000, eqMidHighQ: 1.0,
+    eqMidHighGain: 0.0, eqMidHighFreq: 4800, eqMidHighQ: 1.0,
     eqHighGain: 0.8, eqHighFreq: 10000, eqHighQ: 0.70,
     compEnabled: true, compThreshold: -8.0, compRatio: 1.35, compAttack: 0.04, compRelease: 0.20,
     stereoWidth: 1.25, limiterBoost: 3.5, sideHighPassFreq: 110
   },
   rock: {
-    satEnabled: true, satType: 'tape', satDrive: 18, satMix: 12, satLpfFreq: 10000,
+    satEnabled: true, satType: 'tape', satDrive: 18, satMix: 12, satLpfFreq: 12000,
     eqLowGain: 1.0, eqLowFreq: 80, eqLowQ: 0.65,
     eqLowMidGain: 0.6, eqLowMidFreq: 200, eqLowMidQ: 0.60,
     eqMidGain: -0.4, eqMidFreq: 1000, eqMidQ: 1.0,
-    eqMidHighGain: 0.8, eqMidHighFreq: 3000, eqMidHighQ: 1.0,
+    eqMidHighGain: 0.8, eqMidHighFreq: 4800, eqMidHighQ: 1.0,
     eqHighGain: 0.5, eqHighFreq: 12000, eqHighQ: 0.60,
     compEnabled: true, compThreshold: -7.5, compRatio: 1.35, compAttack: 0.05, compRelease: 0.15,
     stereoWidth: 1.15, limiterBoost: 4.0, sideHighPassFreq: 110
   },
   metal: {
-    satEnabled: true, satType: 'tape', satDrive: 25, satMix: 14, satLpfFreq: 10000,
+    satEnabled: true, satType: 'tape', satDrive: 25, satMix: 14, satLpfFreq: 12000,
     eqLowGain: 2.2, eqLowFreq: 85, eqLowQ: 0.60,
     eqLowMidGain: 0.0, eqLowMidFreq: 200, eqLowMidQ: 0.60,
     eqMidGain: -1.5, eqMidFreq: 1000, eqMidQ: 0.8,
-    eqMidHighGain: 0.0, eqMidHighFreq: 3000, eqMidHighQ: 1.0,
+    eqMidHighGain: 0.0, eqMidHighFreq: 4800, eqMidHighQ: 1.0,
     eqHighGain: 1.2, eqHighFreq: 8500, eqHighQ: 0.75,
     compEnabled: true, compThreshold: -7.5, compRatio: 1.40, compAttack: 0.02, compRelease: 0.10,
     stereoWidth: 1.28, limiterBoost: 4.5, sideHighPassFreq: 120
@@ -63,17 +63,17 @@ export const GENRE_PRESETS = {
     eqLowGain: 1.8, eqLowFreq: 65, eqLowQ: 0.85,
     eqLowMidGain: -0.8, eqLowMidFreq: 200, eqLowMidQ: 0.60,
     eqMidGain: -0.5, eqMidFreq: 800, eqMidQ: 1.0,
-    eqMidHighGain: 1.2, eqMidHighFreq: 3000, eqMidHighQ: 1.0,
+    eqMidHighGain: 1.2, eqMidHighFreq: 4800, eqMidHighQ: 1.0,
     eqHighGain: 1.0, eqHighFreq: 14000, eqHighQ: 0.70,
     compEnabled: true, compThreshold: -7.0, compRatio: 1.35, compAttack: 0.05, compRelease: 0.20,
     stereoWidth: 1.30, limiterBoost: 4.5, sideHighPassFreq: 150
   },
   hiphop: {
-    satEnabled: true, satType: 'tape', satDrive: 15, satMix: 14, satLpfFreq: 8000,
+    satEnabled: true, satType: 'tape', satDrive: 15, satMix: 14, satLpfFreq: 12000,
     eqLowGain: 1.8, eqLowFreq: 65, eqLowQ: 0.90,
     eqLowMidGain: 0.0, eqLowMidFreq: 200, eqLowMidQ: 0.60,
     eqMidGain: -0.8, eqMidFreq: 350, eqMidQ: 1.0,
-    eqMidHighGain: 0.0, eqMidHighFreq: 3000, eqMidHighQ: 1.0,
+    eqMidHighGain: 0.0, eqMidHighFreq: 4800, eqMidHighQ: 1.0,
     eqHighGain: 0.5, eqHighFreq: 10000, eqHighQ: 0.65,
     compEnabled: true, compThreshold: -8.0, compRatio: 1.40, compAttack: 0.035, compRelease: 0.15,
     stereoWidth: 1.20, limiterBoost: 4.2, sideHighPassFreq: 150
@@ -83,7 +83,7 @@ export const GENRE_PRESETS = {
     eqLowGain: 3.5, eqLowFreq: 150, eqLowQ: 0.55,
     eqLowMidGain: 0.0, eqLowMidFreq: 200, eqLowMidQ: 0.60,
     eqMidGain: 0.8, eqMidFreq: 1200, eqMidQ: 1.0,
-    eqMidHighGain: 0.0, eqMidHighFreq: 3000, eqMidHighQ: 1.0,
+    eqMidHighGain: 0.0, eqMidHighFreq: 4800, eqMidHighQ: 1.0,
     eqHighGain: -4.5, eqHighFreq: 7000, eqHighQ: 0.50,
     compEnabled: true, compThreshold: -10.0, compRatio: 1.5, compAttack: 0.06, compRelease: 0.30,
     stereoWidth: 0.92, limiterBoost: 2.8, sideHighPassFreq: 110
@@ -93,37 +93,37 @@ export const GENRE_PRESETS = {
     eqLowGain: 3.0, eqLowFreq: 80, eqLowQ: 0.80,
     eqLowMidGain: 0.0, eqLowMidFreq: 200, eqLowMidQ: 0.60,
     eqMidGain: -1.2, eqMidFreq: 800, eqMidQ: 1.0,
-    eqMidHighGain: 0.0, eqMidHighFreq: 3000, eqMidHighQ: 1.0,
+    eqMidHighGain: 0.0, eqMidHighFreq: 4800, eqMidHighQ: 1.0,
     eqHighGain: 1.5, eqHighFreq: 12000, eqHighQ: 0.80,
     compEnabled: true, compThreshold: -8.5, compRatio: 1.45, compAttack: 0.015, compRelease: 0.10,
     stereoWidth: 1.38, limiterBoost: 5.0, sideHighPassFreq: 150
   },
   ambient: {
-    satEnabled: true, satType: 'tube', satDrive: 8, satMix: 6, satLpfFreq: 8000,
+    satEnabled: true, satType: 'tube', satDrive: 8, satMix: 6, satLpfFreq: 12000,
     eqLowGain: 2.0, eqLowFreq: 80, eqLowQ: 0.50,
     eqLowMidGain: 0.0, eqLowMidFreq: 200, eqLowMidQ: 0.60,
     eqMidGain: 0.0, eqMidFreq: 1000, eqMidQ: 0.7,
-    eqMidHighGain: 0.0, eqMidHighFreq: 3000, eqMidHighQ: 1.0,
+    eqMidHighGain: 0.0, eqMidHighFreq: 4800, eqMidHighQ: 1.0,
     eqHighGain: 1.8, eqHighFreq: 12000, eqHighQ: 0.50,
     compEnabled: true, compThreshold: -6.0, compRatio: 1.2, compAttack: 0.12, compRelease: 0.40,
     stereoWidth: 1.55, limiterBoost: 2.0, sideHighPassFreq: 90
   },
   podcast: {
-    satEnabled: true, satType: 'tube', satDrive: 5, satMix: 5, satLpfFreq: 4000,
+    satEnabled: true, satType: 'tube', satDrive: 5, satMix: 5, satLpfFreq: 8000,
     eqLowGain: -2.0, eqLowFreq: 120, eqLowQ: 0.80,
     eqLowMidGain: 0.0, eqLowMidFreq: 200, eqLowMidQ: 0.60,
     eqMidGain: 0.8, eqMidFreq: 1600, eqMidQ: 1.0,
-    eqMidHighGain: 0.0, eqMidHighFreq: 3000, eqMidHighQ: 1.0,
+    eqMidHighGain: 0.0, eqMidHighFreq: 4800, eqMidHighQ: 1.0,
     eqHighGain: 0.2, eqHighFreq: 8000, eqHighQ: 0.70,
     compEnabled: true, compThreshold: -10.0, compRatio: 1.3, compAttack: 0.02, compRelease: 0.15,
     stereoWidth: 1.00, limiterBoost: 2.5, sideHighPassFreq: 150
   },
   classic: {
-    satEnabled: false, satType: 'tube', satDrive: 0, satMix: 0, satLpfFreq: 6000,
+    satEnabled: false, satType: 'tube', satDrive: 0, satMix: 0, satLpfFreq: 10000,
     eqLowGain: 0.5, eqLowFreq: 100, eqLowQ: 0.55,
     eqLowMidGain: 0.0, eqLowMidFreq: 200, eqLowMidQ: 0.60,
     eqMidGain: 0.0, eqMidFreq: 1000, eqMidQ: 0.7,
-    eqMidHighGain: 0.0, eqMidHighFreq: 3000, eqMidHighQ: 1.0,
+    eqMidHighGain: 0.0, eqMidHighFreq: 4800, eqMidHighQ: 1.0,
     eqHighGain: 0.0, eqHighFreq: 10000, eqHighQ: 0.55,
     compEnabled: true, compThreshold: -4.0, compRatio: 1.15, compAttack: 0.15, compRelease: 0.50,
     stereoWidth: 1.30, limiterBoost: 1.5, sideHighPassFreq: 90
@@ -133,17 +133,17 @@ export const GENRE_PRESETS = {
     eqLowGain: 0.8, eqLowFreq: 80, eqLowQ: 0.60,
     eqLowMidGain: 0.0, eqLowMidFreq: 200, eqLowMidQ: 0.55,
     eqMidGain: 0.0, eqMidFreq: 1000, eqMidQ: 1.0,
-    eqMidHighGain: 0.6, eqMidHighFreq: 3000, eqMidHighQ: 1.0,
+    eqMidHighGain: 0.6, eqMidHighFreq: 4800, eqMidHighQ: 1.0,
     eqHighGain: 0.4, eqHighFreq: 14000, eqHighQ: 0.60,
     compEnabled: true, compThreshold: -7.5, compRatio: 1.20, compAttack: 0.06, compRelease: 0.25,
     stereoWidth: 1.15, limiterBoost: 2.2, sideHighPassFreq: 90
   },
   acoustic: {
-    satEnabled: true, satType: 'tube', satDrive: 8, satMix: 8, satLpfFreq: 4500,
+    satEnabled: true, satType: 'tube', satDrive: 8, satMix: 8, satLpfFreq: 12000,
     eqLowGain: 1.0, eqLowFreq: 120, eqLowQ: 0.60,
     eqLowMidGain: 0.8, eqLowMidFreq: 200, eqLowMidQ: 0.60,
     eqMidGain: 0.4, eqMidFreq: 2000, eqMidQ: 1.0,
-    eqMidHighGain: 0.3, eqMidHighFreq: 3000, eqMidHighQ: 1.0,
+    eqMidHighGain: 0.3, eqMidHighFreq: 4800, eqMidHighQ: 1.0,
     eqHighGain: 0.8, eqHighFreq: 11000, eqHighQ: 0.65,
     compEnabled: true, compThreshold: -7.5, compRatio: 1.25, compAttack: 0.045, compRelease: 0.22,
     stereoWidth: 1.25, limiterBoost: 2.5, sideHighPassFreq: 90
@@ -573,7 +573,11 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
   const genreSelect = document.getElementById('preset-select');
   const userGenreKey = userPresetKey || (genreSelect ? genreSelect.value : 'auto');
   const genreKey = (userGenreKey === 'auto' || userGenreKey === 'custom') ? 'auto' : userGenreKey;
-  const basePreset = GENRE_PRESETS[genreKey] || GENRE_PRESETS.auto;
+  // AI AUTO解析時は、検出されたジャンル専用のターゲットとベースプリセットを使用することで、
+  // ジャンル本来の強み（EDMなら重低音、クラシックなら控えめで自然な音響など）を損なわずに精密補正します。
+  const basePresetKey = (genreKey === 'auto') ? detectedGenre : genreKey;
+  const basePreset = GENRE_PRESETS[basePresetKey] || GENRE_PRESETS.auto;
+  const target = GENRE_TARGETS[basePresetKey] || GENRE_TARGETS.auto;
 
   // EDM, HIPHOP, HARDCORE などの重低音（サブベース）を重視するジャンルの場合、
   // 80Hz以下の帯域を急峻にカットする Rumble Cut はサブベースをごそっと削り取ってしまうため、AI自動解析によるONを禁止します。
@@ -583,16 +587,21 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
     sugRumbleCut = false;
   }
 
-  const target = GENRE_TARGETS[genreKey] || GENRE_TARGETS.auto;
-
   const lowDiffDb = 20 * Math.log10(actualLowMidRatio / target.low);
   const highDiffDb = 20 * Math.log10(actualHighMidRatio / target.high);
   const targetPresence = target.presence || 0.42;
   const presenceDiffDb = 20 * Math.log10(actualPresenceRatio / targetPresence);
 
+  // クラシックやアコースティックなどの生楽器主体のダイナミックな楽曲は、
+  // アレンジャーや録音エンジニアが意図的に調整した繊細な帯域バランスを破壊しないよう、
+  // AIによる自動イコライジング（補正値）の適用強度を25%以下に大幅に抑制（スケールダウン）します。
+  // また、クレストファクター（強弱差）が大きい楽曲全体も適用度を50%に抑え、不要な歪みやビビリ音の発生を未然に防止します。
+  const isGentleGenre = (detectedGenre === 'classic' || detectedGenre === 'acoustic' || basePresetKey === 'classic' || basePresetKey === 'acoustic');
+  const spectralCorrectionScale = isGentleGenre ? 0.25 : (crestFactorDb > 12.0 ? 0.50 : 1.0);
+
   // 1. LOW EQ (低域補正: 80Hz/100Hz/120Hz)
   // ターゲットからのズレを100%反転して補正値とします（最大+4.0dB〜-4.0dB）
-  const eqLowAdjustment = -lowDiffDb;
+  const eqLowAdjustment = -lowDiffDb * spectralCorrectionScale;
   const eqLowGain = Math.max(-4.0, Math.min(4.0, Math.round((basePreset.eqLowGain + eqLowAdjustment) * 10) / 10));
 
   let suggestedEqLowFreq = basePreset.eqLowFreq || 100;
@@ -606,18 +615,18 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
 
   // 2. LOW-MID EQ (中低域補正: 200Hz)
   // 低域全体の過不足に対して50%の割合で追従し、ふくよかさ・スッキリ感を調整します（最大+2.0dB〜-2.0dB）
-  const eqLowMidAdjustment = -lowDiffDb * 0.5;
+  const eqLowMidAdjustment = -lowDiffDb * 0.5 * spectralCorrectionScale;
   const eqLowMidGain = Math.max(-2.0, Math.min(2.0, Math.round((basePreset.eqLowMidGain + eqLowMidAdjustment) * 10) / 10));
 
   // 3. MID EQ (中域補正: 1000Hz)
-  // 中域全体の箱鳴り・泥つき感（1kHz）をすっきりさせ、音の「抜け」を改善するため、全体的に少し下げる方向（最大-3.5dB〜+0.5dB）にバイアス調整
-  const eqMidAdjustment = -presenceDiffDb * 0.5 - 0.8; // 全体的に-0.8dBのカットバイアスを追加して「抜け」を確保
-  const eqMidGain = Math.max(-3.5, Math.min(0.5, Math.round((basePreset.eqMidGain + eqMidAdjustment) * 10) / 10));
+  // 箱鳴りやラジオ感を防ぐため、追従感度を 0.5 → 0.75 に高め、カットバイアスも -0.8 → -1.5dB へ強めてすっきりさせます
+  const eqMidAdjustment = (-presenceDiffDb * 0.75 - 1.5) * spectralCorrectionScale; 
+  const eqMidGain = Math.max(-4.5, Math.min(0.5, Math.round((basePreset.eqMidGain + eqMidAdjustment) * 10) / 10));
 
-  // 4. MID-HIGH EQ (中高域・プレゼンス補正: 3000Hz)
-  // プレゼンスの過不足に対して90%の高感度リニア追従を行い、埋もれたボーカルを前面に引き出します（最大+3.0dB〜-3.0dB）
-  const eqMidHighAdjustment = -presenceDiffDb * 0.9;
-  const eqMidHighGain = Math.max(-3.0, Math.min(3.0, Math.round((basePreset.eqMidHighGain + eqMidHighAdjustment) * 10) / 10));
+  // 4. MID-HIGH EQ (中高域・プレゼンス補正: 4800Hz)
+  // キンキンしたラジオ感を防ぐため、追従感度を 0.9 → 0.45 に半減させます（最大ブーストも +3.0 → +1.5dB に制限）
+  const eqMidHighAdjustment = -presenceDiffDb * 0.45 * spectralCorrectionScale;
+  const eqMidHighGain = Math.max(-2.5, Math.min(1.5, Math.round((basePreset.eqMidHighGain + eqMidHighAdjustment) * 10) / 10));
 
   // 5. HIGH EQ (高域・エアバンド補正: 14000Hz)
   // ターゲットからのズレを100%反転して直接補正。曇った音源は明るく、うるさい音源は暖かく整えます（最大+3.5dB〜-4.5dB）
@@ -688,16 +697,30 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
     requiredBoost += Math.max(-2.5, crestDiff * 0.5);
   }
 
-  let limiterBoost = requiredBoost;
+  // 音量低下を防止するための最低限のリミッターブースト（出力ピークが少なくとも-1.0dBFSに達するように補償）
+  const baselineLimiterBoost = -1.0 - (suggestedInputGainDb + originalPeakDb);
+  let limiterBoost = Math.max(baselineLimiterBoost, requiredBoost);
 
   // 低域飽和による歪み・ビビリ防止（低域が基準ターゲットより著しく大きい場合、マキシマイザーブーストを自動制限）
   if (lowDiffDb > 1.0) {
     const bassOverloadPenalty = Math.min(1.5, (lowDiffDb - 1.0) * 0.75);
-    limiterBoost = Math.max(1.5, limiterBoost - bassOverloadPenalty);
+    limiterBoost = Math.max(baselineLimiterBoost - 1.0, limiterBoost - bassOverloadPenalty);
   }
 
-  // どんなに静かな音源でも上限+10.0dB、元の音が大きい音源でも最小+1.0dB（のり効果）の範囲で調整
-  limiterBoost = Math.max(1.0, Math.min(10.0, Math.round(limiterBoost * 10) / 10));
+  // 温和なアコースティック・クラシック系ジャンルでは、リミッターによる強烈な圧縮歪みやビビリ音を防ぎ、
+  // 原音の広いダイナミクスを保護するために、マキシマイザーブースト（limiterBoost）の最大上限値を控えめに制限します。
+  let maxAllowedLimiterBoost = 10.0;
+  if (detectedGenre === 'classic' || basePresetKey === 'classic') {
+    maxAllowedLimiterBoost = 3.5;
+  } else if (detectedGenre === 'acoustic' || basePresetKey === 'acoustic') {
+    maxAllowedLimiterBoost = 4.5;
+  } else if (detectedGenre === 'jazz' || detectedGenre === 'ambient' || detectedGenre === 'podcast' ||
+             basePresetKey === 'jazz' || basePresetKey === 'ambient' || basePresetKey === 'podcast') {
+    maxAllowedLimiterBoost = 5.5;
+  }
+
+  // どんなに静かな音源でも上限+10.0dB（温和なジャンルでは個別の最大上限）、元の音が大きい音源でも最小+1.0dB（のり効果）の範囲で調整
+  limiterBoost = Math.max(1.0, Math.min(maxAllowedLimiterBoost, Math.round(limiterBoost * 10) / 10));
 
   // GUI表示用のラウドネス説明テキストの構築
   const loudnessKey = typeof baseLoudnessTarget !== 'undefined' ? baseLoudnessTarget : (document.getElementById('loudness-select')?.value || 'genre');
@@ -717,18 +740,19 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
     baseLoudnessDesc = "CUSTOM";
   }
   
-  const eqHighAdjustment = -highDiffDb * 1.0;
+  // 補正係数を 1.0 -> 1.25 に高め、高域の明瞭度（空気感・クリアさ）をしっかりと引き出します
+  const eqHighAdjustment = -highDiffDb * 1.25 * spectralCorrectionScale;
   
   const isElectronicGenre = (detectedGenre === 'edm' || detectedGenre === 'hardcore' || detectedGenre === 'metal' ||
                              genreKey === 'edm' || genreKey === 'hardcore' || genreKey === 'metal');
   
-  // 最大ブースト幅を+3.5dBまで拡張し、高域が曇った音源を鮮明にブーストできるように解放します
-  const maxHighBoost = 3.5;
+  // 最大ブースト幅を+4.0dBまで拡張し、高域が曇った音源をより鮮明にできるように解放します
+  const maxHighBoost = 4.0;
   let eqHighGain = Math.max(-4.5, Math.min(maxHighBoost, Math.round((basePreset.eqHighGain + eqHighAdjustment) * 10) / 10));
 
-  // サ行（シビランス）が検知されている場合は、高域EQの最大ブーストを安全レベルにクランプして痛くならないように配慮
+  // サ行（シビランス）検知時の高域クランプを少し緩和（超高音の曇りを防ぐため、2.2dB〜2.6dBまで許容）
   if (sibilanceDynamicFreq > 0) {
-    const sibilanceClampLimit = isElectronicGenre ? 1.5 : 0.8;
+    const sibilanceClampLimit = isElectronicGenre ? 2.6 : 2.2; // 2.2〜2.6dB までは高域ブーストを許容して抜けを確保
     eqHighGain = Math.min(sibilanceClampLimit, eqHighGain);
   }
 
@@ -887,7 +911,7 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
       eqMidFreq: basePreset.eqMidFreq,
       eqMidQ: basePreset.eqMidQ || 1.0,
       eqMidHighGain: eqMidHighGain,
-      eqMidHighFreq: basePreset.eqMidHighFreq || 3000,
+      eqMidHighFreq: basePreset.eqMidHighFreq || 4800,
       eqMidHighQ: basePreset.eqMidHighQ || 1.0,
       eqHighGain: eqHighGain,
       eqHighFreq: suggestedEqHighFreq,
@@ -991,12 +1015,12 @@ export class AetherEnhancer {
 
     this.satHpf = context.createBiquadFilter();
     this.satHpf.type = 'highpass';
-    this.satHpf.frequency.setValueAtTime(150.0, context.currentTime); // Cut sub-bass/bass saturation
+    this.satHpf.frequency.setValueAtTime(220.0, context.currentTime); // Cut sub-bass/bass saturation below 220Hz to prevent low-frequency buzzing
     this.satHpf.Q.setValueAtTime(0.707, context.currentTime);
 
     this.satLpf = context.createBiquadFilter();
     this.satLpf.type = 'lowpass';
-    this.satLpf.frequency.setValueAtTime(4500.0, context.currentTime);
+    this.satLpf.frequency.setValueAtTime(12000.0, context.currentTime);
     this.satLpf.Q.setValueAtTime(0.5, context.currentTime);
 
     // Hook up saturator path
@@ -1039,7 +1063,7 @@ export class AetherEnhancer {
 
     this.eqMidHigh = context.createBiquadFilter();
     this.eqMidHigh.type = 'peaking';
-    this.eqMidHigh.frequency.setValueAtTime(3000.0, context.currentTime);
+    this.eqMidHigh.frequency.setValueAtTime(4800.0, context.currentTime);
     this.eqMidHigh.gain.setValueAtTime(0.0, context.currentTime);
     this.eqMidHigh.Q.setValueAtTime(1.0, context.currentTime);
 
@@ -1155,10 +1179,19 @@ export class AetherEnhancer {
     // 9. Brickwall Limiter
     this.limiter = context.createDynamicsCompressor();
     this.limiter.threshold.setValueAtTime(-1.0, context.currentTime); // -1.0dB に引き上げて過剰な圧縮圧と高域トランジェントの潰れを低減（ダイナミクスを保護）
-    this.limiter.knee.setValueAtTime(4.0, context.currentTime);      // 4.0dB に広げてよりなだらかで滑らかな制限動作へ
     this.limiter.ratio.setValueAtTime(20.0, context.currentTime);    // 変わらずブリックウォール比率
-    this.limiter.attack.setValueAtTime(0.0001, context.currentTime); // 0.1ms (超高速ピークキャッチ)
-    this.limiter.release.setValueAtTime(0.12, context.currentTime);  // 120ms に拡張し、高域の微細な歪みやポンピング（音の硬さ）を防止
+
+    const genreSelect = typeof document !== 'undefined' ? document.getElementById('preset-select') : null;
+    const genreKey = genreSelect ? genreSelect.value : 'auto';
+    const isGentle = (genreKey === 'classic' || genreKey === 'jazz' || genreKey === 'ambient' || genreKey === 'acoustic' || genreKey === 'podcast');
+
+    const initialAttack = isGentle ? 0.005 : 0.0015; // 温和な曲には5msアタックで超低域波形を保護、モダンな曲には1.5ms
+    const initialRelease = isGentle ? 0.25 : 0.12;  // 温和な曲には250msリリースで歪み防止、モダンな曲には音圧重視の120ms
+    const initialKnee = isGentle ? 12.0 : 4.0;      // 温和な曲には12dBソフト膝で極めて自然な制限、モダンな曲には4dB
+
+    this.limiter.knee.setValueAtTime(initialKnee, context.currentTime);
+    this.limiter.attack.setValueAtTime(initialAttack, context.currentTime);
+    this.limiter.release.setValueAtTime(initialRelease, context.currentTime);
 
     this.safetyClipper = context.createWaveShaper();
     this.safetyClipper.curve = this._generateSoftClipCurve ? this._generateSoftClipCurve() : this._generateAbsoluteValCurve();
@@ -1206,7 +1239,7 @@ export class AetherEnhancer {
     this.satDryGain.gain.setTargetAtTime(1.0 - blend, t, 0.05);
     this.satWetGain.gain.setTargetAtTime(blend, t, 0.05);
     this.waveShaper.curve = this._generateSaturatorCurve(params.satType, params.satDrive);
-    this.satLpf.frequency.setTargetAtTime(params.satLpfFreq || 4500.0, t, 0.05);
+    this.satLpf.frequency.setTargetAtTime(params.satLpfFreq || 12000.0, t, 0.05);
 
     // 5. 5-band EQ + kick Peaking
     this.eqLow.frequency.setTargetAtTime(params.eqLowFreq || 100.0, t, 0.05);
@@ -1223,7 +1256,7 @@ export class AetherEnhancer {
     this.eqMid.gain.setTargetAtTime(params.eqMidGain || 0.0, t, 0.05);
     this.eqMid.Q.setTargetAtTime(params.eqMidQ || 1.0, t, 0.05);
 
-    this.eqMidHigh.frequency.setTargetAtTime(params.eqMidHighFreq || 3000.0, t, 0.05);
+    this.eqMidHigh.frequency.setTargetAtTime(params.eqMidHighFreq || 4800.0, t, 0.05);
     this.eqMidHigh.gain.setTargetAtTime(params.eqMidHighGain || 0.0, t, 0.05);
     this.eqMidHigh.Q.setTargetAtTime(params.eqMidHighQ || 1.0, t, 0.05);
 
@@ -1234,7 +1267,7 @@ export class AetherEnhancer {
     // Decoupled from hissAmount: active if deesserAmount > 0
     if (this.sibilanceNotch && this.sibilanceNotchDynamicGain) {
       const amount = params.deesserAmount || 0;
-      const dynamicCut = -4.5 * (amount / 100.0);
+      const dynamicCut = -15.0 * (amount / 100.0);
       this.sibilanceNotch.frequency.setTargetAtTime(params.sibilanceDynamicFreq || 9000, t, 0.05);
       this.sibilanceNotchDynamicGain.gain.setTargetAtTime(dynamicCut, t, 0.05);
     }
@@ -1259,9 +1292,26 @@ export class AetherEnhancer {
       this.sideHighPass.frequency.setTargetAtTime(params.sideHighPassFreq, t, 0.05);
     }
 
-    // 9. Maximizer Gain
+    // 9. Maximizer Gain & Dynamic Limiter parameters (prevents buzzing distortion in gentle genres)
     const linearBoost = Math.pow(10, (params.limiterBoost || 0.0) / 20.0);
     this.limiterGain.gain.setTargetAtTime(linearBoost, t, 0.05);
+
+    if (this.limiter) {
+      const genreSelect = typeof document !== 'undefined' ? document.getElementById('preset-select') : null;
+      const genreKey = genreSelect ? genreSelect.value : 'auto';
+      
+      const isGentlePreset = (genreKey === 'classic' || genreKey === 'jazz' || genreKey === 'ambient' || genreKey === 'acoustic' || genreKey === 'podcast');
+      const isGentleAuto = (genreKey === 'auto' && ((params.compRelease >= 0.21 && params.compAttack >= 0.04) || !params.satEnabled || (params.satLpfFreq === 8000 && params.limiterBoost <= 2.5)));
+      const isGentle = isGentlePreset || isGentleAuto;
+
+      const targetAttack = isGentle ? 0.005 : 0.0015; // 5ms attack to protect low cycles; 1.5ms for modern loud tracks
+      const targetRelease = isGentle ? 0.25 : 0.12;  // 250ms release for clean low end; 120ms for modern loud tracks
+      const targetKnee = isGentle ? 12.0 : 4.0;      // 12dB soft knee for transparent limiting; 4dB knee for modern loud tracks
+      
+      this.limiter.attack.setTargetAtTime(targetAttack, t, 0.02);
+      this.limiter.release.setTargetAtTime(targetRelease, t, 0.02);
+      this.limiter.knee.setTargetAtTime(targetKnee, t, 0.02);
+    }
   }
 
   setCorrectiveNotches(notches, hissAmount = 0) {
