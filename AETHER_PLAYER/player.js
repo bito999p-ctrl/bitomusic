@@ -44,8 +44,8 @@ function getNormalizedArtist(name) {
   return name;
 }
 
-// Version: 3.0.27 (Re-deployed to ensure complete file sync)
-import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=3.0.27';
+// Version: 3.0.28 (Re-deployed to ensure complete file sync)
+import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=3.0.28';
 
 // --- State Variables ---
 let audioCtx = null;
@@ -326,7 +326,7 @@ function setupEventListeners() {
   });
 
   // Workspace actions
-  backToLandingBtn.addEventListener('click', showLandingView);
+  if (backToLandingBtn) backToLandingBtn.addEventListener('click', showLandingView);
   if (sidebarBackBtn) {
     sidebarBackBtn.addEventListener('click', showLandingView);
   }

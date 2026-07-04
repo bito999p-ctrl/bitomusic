@@ -958,7 +958,10 @@ export class AetherEnhancer {
     this.wetGain.gain.setValueAtTime(1.0, this.ctx.currentTime);
 
     // Build the Enhancer Chain
-    this._buildChain() {
+    this._buildChain();
+  }
+
+  _buildChain() {
     const context = this.ctx;
 
     // 1. Input Gain node
