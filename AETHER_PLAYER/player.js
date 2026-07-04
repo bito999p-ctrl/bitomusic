@@ -44,8 +44,8 @@ function getNormalizedArtist(name) {
   return name;
 }
 
-// Version: 3.0.24 (Re-deployed to ensure complete file sync)
-import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=3.0.24';
+// Version: 3.0.25 (Re-deployed to ensure complete file sync)
+import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=3.0.25';
 
 // --- State Variables ---
 let audioCtx = null;
@@ -1932,13 +1932,30 @@ function getDisplaySubtitle(idOrUrl, type, item) {
 function loadFavorites() {
   try {
     const saved = localStorage.getItem('suno_player_favorites_v2');
-    if (saved) favorites = JSON.parse(saved);
-    else favorites = { users: [], playlists: [], tracks: [] };
+    if (saved) {
+      favorites = JSON.parse(saved);
+    } else {
+      favorites = { users: [], playlists: [], tracks: [] };
+    }
+  } catch (e) {
+    console.error('Failed to load favorites:', e);
+    favorites = { users: [], playlists: [], tracks: [] };
+  }
 
-    // Migrate, canonicalize, and deduplicate
+  // Double check fields are valid arrays
+  if (!favorites || typeof favorites !== 'object') {
+    favorites = { users: [], playlists: [], tracks: [] };
+  }
+  if (!Array.isArray(favorites.users)) favorites.users = [];
+  if (!Array.isArray(favorites.playlists)) favorites.playlists = [];
+  if (!Array.isArray(favorites.tracks)) favorites.tracks = [];
+
+  // Migrate, canonicalize, and deduplicate
+  try {
     let migrated = false;
-    if (favorites.users) {
+    if (favorites.users.length > 0) {
       favorites.users = favorites.users.map(u => {
+        if (!u) return u;
         const canonical = canonicalizeSunoUrl(u.url || u.id);
         if (u.url !== canonical || u.id !== canonical) {
           migrated = true;
@@ -1946,7 +1963,7 @@ function loadFavorites() {
           u.id = canonical;
         }
         return u;
-      });
+      }).filter(Boolean);
       const uniqueUsers = [];
       const seenUrls = new Set();
       const seenNames = new Set();
@@ -1964,8 +1981,9 @@ function loadFavorites() {
       });
       favorites.users = uniqueUsers;
     }
-    if (favorites.playlists) {
+    if (favorites.playlists.length > 0) {
       favorites.playlists = favorites.playlists.map(p => {
+        if (!p) return p;
         const canonical = canonicalizeSunoUrl(p.url || p.id);
         if (p.url !== canonical || p.id !== canonical) {
           migrated = true;
@@ -1973,7 +1991,7 @@ function loadFavorites() {
           p.id = canonical;
         }
         return p;
-      });
+      }).filter(Boolean);
       const uniquePlaylists = [];
       const seenUrls = new Set();
       const seenNames = new Set();
@@ -1991,11 +2009,14 @@ function loadFavorites() {
       });
       favorites.playlists = uniquePlaylists;
     }
+    if (favorites.tracks.length > 0) {
+      favorites.tracks = favorites.tracks.filter(Boolean);
+    }
     if (migrated) {
       localStorage.setItem('suno_player_favorites_v2', JSON.stringify(favorites));
     }
-  } catch (e) {
-    console.error('Failed to load favorites:', e);
+  } catch (err) {
+    console.error('Failed to migrate favorites:', err);
   }
 }
 
@@ -2182,59 +2203,81 @@ function saveToHistory(type, id, name) {
     console.error('Failed to load history:', e);
   }
 
-  // Migrate, canonicalize, and deduplicate existing history
-  let migrated = false;
-  if (history.users) {
-    history.users = history.users.map(u => {
-      const canonical = canonicalizeSunoUrl(u.id);
-      if (u.id !== canonical) {
-        migrated = true;
-        u.id = canonical;
-      }
-      return u;
-    });
-    const uniqueUsers = [];
-    const seenIds = new Set();
-    const seenNames = new Set();
-    history.users.forEach(u => {
-      if (!u) return;
-      const idKey = (u.id || '').toLowerCase();
-      const nameKey = (u.name || '').trim().toLowerCase();
-      if (!seenIds.has(idKey) && (!nameKey || !seenNames.has(nameKey))) {
-        seenIds.add(idKey);
-        if (nameKey) seenNames.add(nameKey);
-        uniqueUsers.push(u);
-      } else {
-        migrated = true;
-      }
-    });
-    history.users = uniqueUsers;
+  // Ensure fields are valid arrays
+  if (!history || typeof history !== 'object') {
+    history = { users: [], playlists: [], tracks: [] };
   }
-  if (history.playlists) {
-    history.playlists = history.playlists.map(p => {
-      const canonical = canonicalizeSunoUrl(p.id);
-      if (p.id !== canonical) {
-        migrated = true;
-        p.id = canonical;
-      }
-      return p;
-    });
-    const uniquePlaylists = [];
-    const seenIds = new Set();
-    const seenNames = new Set();
-    history.playlists.forEach(p => {
-      if (!p) return;
-      const idKey = (p.id || '').toLowerCase();
-      const nameKey = (p.name || '').trim().toLowerCase();
-      if (!seenIds.has(idKey) && (!nameKey || !seenNames.has(nameKey))) {
-        seenIds.add(idKey);
-        if (nameKey) seenNames.add(nameKey);
-        uniquePlaylists.push(p);
-      } else {
-        migrated = true;
-      }
-    });
-    history.playlists = uniquePlaylists;
+  if (!Array.isArray(history.users)) history.users = [];
+  if (!Array.isArray(history.playlists)) history.playlists = [];
+  if (!Array.isArray(history.tracks)) history.tracks = [];
+
+  // Migrate, canonicalize, and deduplicate existing history
+  try {
+    let migrated = false;
+    if (history.users.length > 0) {
+      history.users = history.users.map(u => {
+        if (!u) return u;
+        const canonical = canonicalizeSunoUrl(u.id);
+        if (u.id !== canonical) {
+          migrated = true;
+          u.id = canonical;
+        }
+        return u;
+      }).filter(Boolean);
+      const uniqueUsers = [];
+      const seenIds = new Set();
+      const seenNames = new Set();
+      history.users.forEach(u => {
+        if (!u) return;
+        const idKey = (u.id || '').toLowerCase();
+        const nameKey = (u.name || '').trim().toLowerCase();
+        if (!seenIds.has(idKey) && (!nameKey || !seenNames.has(nameKey))) {
+          seenIds.add(idKey);
+          if (nameKey) seenNames.add(nameKey);
+          uniqueUsers.push(u);
+        } else {
+          migrated = true;
+        }
+      });
+      history.users = uniqueUsers;
+    }
+    if (history.playlists.length > 0) {
+      history.playlists = history.playlists.map(p => {
+        if (!p) return p;
+        const canonical = canonicalizeSunoUrl(p.id);
+        if (p.id !== canonical) {
+          migrated = true;
+          p.id = canonical;
+        }
+        return p;
+      }).filter(Boolean);
+      const uniquePlaylists = [];
+      const seenIds = new Set();
+      const seenNames = new Set();
+      history.playlists.forEach(p => {
+        if (!p) return;
+        const idKey = (p.id || '').toLowerCase();
+        const nameKey = (p.name || '').trim().toLowerCase();
+        if (!seenIds.has(idKey) && (!nameKey || !seenNames.has(nameKey))) {
+          seenIds.add(idKey);
+          if (nameKey) seenNames.add(nameKey);
+          uniquePlaylists.push(p);
+        } else {
+          migrated = true;
+        }
+      });
+      history.playlists = uniquePlaylists;
+    }
+    if (!Array.isArray(history.tracks)) {
+      history.tracks = [];
+    } else {
+      history.tracks = history.tracks.filter(Boolean);
+    }
+    if (migrated) {
+      localStorage.setItem('suno_player_history_v2', JSON.stringify(history));
+    }
+  } catch (err) {
+    console.error('Failed to migrate history in save:', err);
   }
 
   let list = [];
@@ -2286,66 +2329,83 @@ function renderHistoryUI() {
     console.error('Failed to load history:', e);
   }
 
+  // Ensure fields are valid arrays
+  if (!history || typeof history !== 'object') {
+    history = { users: [], playlists: [], tracks: [] };
+  }
+  if (!Array.isArray(history.users)) history.users = [];
+  if (!Array.isArray(history.playlists)) history.playlists = [];
+  if (!Array.isArray(history.tracks)) history.tracks = [];
+
   // Migrate, canonicalize, and deduplicate on render
   let migrated = false;
-  if (history.users) {
-    history.users = history.users.map(u => {
-      const canonical = canonicalizeSunoUrl(u.id);
-      if (u.id !== canonical) {
-        migrated = true;
-        u.id = canonical;
-      }
-      return u;
-    });
-    const uniqueUsers = [];
-    const seenIds = new Set();
-    const seenNames = new Set();
-    history.users.forEach(u => {
-      if (!u) return;
-      const idKey = (u.id || '').toLowerCase();
-      const nameKey = (u.name || '').trim().toLowerCase();
-      if (!seenIds.has(idKey) && (!nameKey || !seenNames.has(nameKey))) {
-        seenIds.add(idKey);
-        if (nameKey) seenNames.add(nameKey);
-        uniqueUsers.push(u);
-      } else {
-        migrated = true;
-      }
-    });
-    history.users = uniqueUsers;
-  }
-  if (history.playlists) {
-    history.playlists = history.playlists.map(p => {
-      const canonical = canonicalizeSunoUrl(p.id);
-      if (p.id !== canonical) {
-        migrated = true;
-        p.id = canonical;
-      }
-      return p;
-    });
-    const uniquePlaylists = [];
-    const seenIds = new Set();
-    const seenNames = new Set();
-    history.playlists.forEach(p => {
-      if (!p) return;
-      const idKey = (p.id || '').toLowerCase();
-      const nameKey = (p.name || '').trim().toLowerCase();
-      if (!seenIds.has(idKey) && (!nameKey || !seenNames.has(nameKey))) {
-        seenIds.add(idKey);
-        if (nameKey) seenNames.add(nameKey);
-        uniquePlaylists.push(p);
-      } else {
-        migrated = true;
-      }
-    });
-    history.playlists = uniquePlaylists;
-  }
-  if (migrated) {
-    try {
-      localStorage.setItem('suno_player_history_v2', JSON.stringify(history));
-    } catch (e) {
-      console.error(e);
+  try {
+    if (history.users.length > 0) {
+      history.users = history.users.map(u => {
+        if (!u) return u;
+        const canonical = canonicalizeSunoUrl(u.id);
+        if (u.id !== canonical) {
+          migrated = true;
+          u.id = canonical;
+        }
+        return u;
+      }).filter(Boolean);
+      const uniqueUsers = [];
+      const seenIds = new Set();
+      const seenNames = new Set();
+      history.users.forEach(u => {
+        if (!u) return;
+        const idKey = (u.id || '').toLowerCase();
+        const nameKey = (u.name || '').trim().toLowerCase();
+        if (!seenIds.has(idKey) && (!nameKey || !seenNames.has(nameKey))) {
+          seenIds.add(idKey);
+          if (nameKey) seenNames.add(nameKey);
+          uniqueUsers.push(u);
+        } else {
+          migrated = true;
+        }
+      });
+      history.users = uniqueUsers;
     }
+    if (history.playlists.length > 0) {
+      history.playlists = history.playlists.map(p => {
+        if (!p) return p;
+        const canonical = canonicalizeSunoUrl(p.id);
+        if (p.id !== canonical) {
+          migrated = true;
+          p.id = canonical;
+        }
+        return p;
+      }).filter(Boolean);
+      const uniquePlaylists = [];
+      const seenIds = new Set();
+      const seenNames = new Set();
+      history.playlists.forEach(p => {
+        if (!p) return;
+        const idKey = (p.id || '').toLowerCase();
+        const nameKey = (p.name || '').trim().toLowerCase();
+        if (!seenIds.has(idKey) && (!nameKey || !seenNames.has(nameKey))) {
+          seenIds.add(idKey);
+          if (nameKey) seenNames.add(nameKey);
+          uniquePlaylists.push(p);
+        } else {
+          migrated = true;
+        }
+      });
+      history.playlists = uniquePlaylists;
+    }
+    if (history.tracks.length > 0) {
+      history.tracks = history.tracks.filter(Boolean);
+    }
+    if (migrated) {
+      try {
+        localStorage.setItem('suno_player_history_v2', JSON.stringify(history));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  } catch (err) {
+    console.error('Failed to migrate history on render:', err);
   }
 
   const container = document.getElementById('history-container');
@@ -2360,6 +2420,9 @@ function renderHistoryUI() {
   const hasHistory = history.users.length > 0 || history.playlists.length > 0 || history.tracks.length > 0;
   if (!hasHistory) {
     if (container) container.classList.add('hidden');
+    if (dropUsersList) dropUsersList.innerHTML = '<div class="empty-history">履歴はありません</div>';
+    if (dropPlaylistsList) dropPlaylistsList.innerHTML = '<div class="empty-history">履歴はありません</div>';
+    if (dropTracksList) dropTracksList.innerHTML = '<div class="empty-history">履歴はありません</div>';
     return;
   }
   if (container) container.classList.remove('hidden');
