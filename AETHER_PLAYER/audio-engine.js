@@ -1207,8 +1207,11 @@ export class AetherEnhancer {
     this.ceilingGain.gain.setValueAtTime(Math.pow(10, -1.0 / 20), context.currentTime);
 
     this.safetyClipper.connect(this.ceilingGain);
-    this.inputNode = this.inputGainNode;
-    this.outputNode = this.ceilingGain;
+    
+    // Connect mastering chain to bypass crossfade structure
+    this.inputNode.connect(this.inputGainNode);
+    this.ceilingGain.connect(this.wetGain);
+    this.wetGain.connect(this.outputNode);
   }
 
   setMasteringParams(params, notches) {
