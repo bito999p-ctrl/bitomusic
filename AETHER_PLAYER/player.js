@@ -44,8 +44,8 @@ function getNormalizedArtist(name) {
   return name;
 }
 
-// Version: 3.0.25 (Re-deployed to ensure complete file sync)
-import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=3.0.25';
+// Version: 3.0.26 (Re-deployed to ensure complete file sync)
+import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=3.0.26';
 
 // --- State Variables ---
 let audioCtx = null;
@@ -212,7 +212,7 @@ document.addEventListener('visibilitychange', async () => {
 });
 
 // --- Initialization ---
-document.addEventListener('DOMContentLoaded', () => {
+function initializeApp() {
   if (document.body) document.body.classList.remove('player-active'); // Ensure scroll is unlocked initially
   setupEventListeners();
   setupMediaSessionActions();
@@ -240,7 +240,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize Lucide Icons
   if (window.lucide) lucide.createIcons();
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+  initializeApp();
+}
 
 // --- Audio Context Lazy Setup ---
 function initAudio() {
