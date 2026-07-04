@@ -1,4 +1,4 @@
-/* Version: 3.0.31 (Re-deployed to ensure complete file sync) */
+/* Version: 3.0.32 (Re-deployed to ensure complete file sync) */
 /* ==========================================================================
    AetherPlayer CSS - Premium Dark Glassmorphic Design
    ========================================================================== */
@@ -134,11 +134,13 @@ body.player-active .app-container {
   animation: pulse-glow 2s infinite ease-in-out;
 }
 
-.logo h1 {
+.logo h1, .logo-title {
   font-family: var(--font-display);
   font-size: 22px;
   font-weight: 700;
   letter-spacing: -0.5px;
+  margin: 0;
+  display: block;
 }
 
 .logo-subtitle {
