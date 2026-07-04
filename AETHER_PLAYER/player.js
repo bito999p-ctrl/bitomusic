@@ -44,8 +44,8 @@ function getNormalizedArtist(name) {
   return name;
 }
 
-// Version: 3.0.26 (Re-deployed to ensure complete file sync)
-import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=3.0.26';
+// Version: 3.0.27 (Re-deployed to ensure complete file sync)
+import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=3.0.27';
 
 // --- State Variables ---
 let audioCtx = null;
@@ -113,8 +113,8 @@ const shuffleBtn = document.getElementById('shuffle-btn');
 const repeatBtn = document.getElementById('repeat-btn');
 const volumeSlider = document.getElementById('volume-slider');
 const visModeSelect = document.getElementById('vis-mode-select');
-const canvas = document.getElementById('player-visualizer');
-const canvasCtx = canvas.getContext('2d');
+let canvas = null;
+let canvasCtx = null;
 
 // AI HUD UI Elements
 const enhancerToggle = document.getElementById('enhancer-toggle');
@@ -213,6 +213,8 @@ document.addEventListener('visibilitychange', async () => {
 
 // --- Initialization ---
 function initializeApp() {
+  canvas = document.getElementById('player-visualizer');
+  if (canvas) canvasCtx = canvas.getContext('2d');
   if (document.body) document.body.classList.remove('player-active'); // Ensure scroll is unlocked initially
   setupEventListeners();
   setupMediaSessionActions();
