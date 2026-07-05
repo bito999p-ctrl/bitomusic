@@ -14,7 +14,7 @@ export const GENRE_PRESETS = {
     eqLowMidGain: 0.0, eqLowMidFreq: 200, eqLowMidQ: 0.60,
     eqMidGain: 0.0, eqMidFreq: 1000, eqMidQ: 1.0,
     eqMidHighGain: 0.0, eqMidHighFreq: 4800, eqMidHighQ: 1.0,
-    eqHighGain: 0.0, eqHighFreq: 9000, eqHighQ: 0.70,
+    eqHighGain: -0.3, eqHighFreq: 9000, eqHighQ: 0.70,
     compEnabled: true, compThreshold: -8.0, compRatio: 1.35, compAttack: 0.04, compRelease: 0.20,
     stereoWidth: 1.15, limiterBoost: 3.5, sideHighPassFreq: 110
   },
@@ -24,7 +24,7 @@ export const GENRE_PRESETS = {
     eqLowMidGain: 0.0, eqLowMidFreq: 200, eqLowMidQ: 0.60,
     eqMidGain: 0.0, eqMidFreq: 1000, eqMidQ: 1.0,
     eqMidHighGain: 2.2, eqMidHighFreq: 4800, eqMidHighQ: 1.0,
-    eqHighGain: 0.4, eqHighFreq: 14000, eqHighQ: 0.65,
+    eqHighGain: -0.5, eqHighFreq: 14000, eqHighQ: 0.65,
     compEnabled: true, compThreshold: -8.0, compRatio: 1.35, compAttack: 0.035, compRelease: 0.16,
     stereoWidth: 1.15, limiterBoost: 3.5, sideHighPassFreq: 110
   },
@@ -34,7 +34,7 @@ export const GENRE_PRESETS = {
     eqLowMidGain: -0.6, eqLowMidFreq: 200, eqLowMidQ: 0.60,
     eqMidGain: -0.8, eqMidFreq: 1000, eqMidQ: 1.0,
     eqMidHighGain: 1.2, eqMidHighFreq: 4800, eqMidHighQ: 1.0,
-    eqHighGain: 0.8, eqHighFreq: 10000, eqHighQ: 0.70,
+    eqHighGain: -0.4, eqHighFreq: 10000, eqHighQ: 0.70,
     compEnabled: true, compThreshold: -8.0, compRatio: 1.35, compAttack: 0.04, compRelease: 0.20,
     stereoWidth: 1.25, limiterBoost: 3.2, sideHighPassFreq: 110
   },
@@ -44,7 +44,7 @@ export const GENRE_PRESETS = {
     eqLowMidGain: 0.6, eqLowMidFreq: 200, eqLowMidQ: 0.60,
     eqMidGain: -0.4, eqMidFreq: 1000, eqMidQ: 1.0,
     eqMidHighGain: 1.8, eqMidHighFreq: 4800, eqMidHighQ: 1.0,
-    eqHighGain: 0.5, eqHighFreq: 12000, eqHighQ: 0.60,
+    eqHighGain: -0.6, eqHighFreq: 12000, eqHighQ: 0.60,
     compEnabled: true, compThreshold: -7.5, compRatio: 1.35, compAttack: 0.05, compRelease: 0.15,
     stereoWidth: 1.15, limiterBoost: 4.0, sideHighPassFreq: 110
   },
@@ -54,7 +54,7 @@ export const GENRE_PRESETS = {
     eqLowMidGain: -1.2, eqLowMidFreq: 200, eqLowMidQ: 0.60,
     eqMidGain: -1.5, eqMidFreq: 1000, eqMidQ: 0.8,
     eqMidHighGain: 1.5, eqMidHighFreq: 4800, eqMidHighQ: 1.0,
-    eqHighGain: 1.2, eqHighFreq: 8500, eqHighQ: 0.75,
+    eqHighGain: -0.5, eqHighFreq: 8500, eqHighQ: 0.75,
     compEnabled: true, compThreshold: -7.5, compRatio: 1.40, compAttack: 0.02, compRelease: 0.10,
     stereoWidth: 1.28, limiterBoost: 3.8, sideHighPassFreq: 120
   },
@@ -64,7 +64,7 @@ export const GENRE_PRESETS = {
     eqLowMidGain: -0.8, eqLowMidFreq: 200, eqLowMidQ: 0.60,
     eqMidGain: -0.5, eqMidFreq: 800, eqMidQ: 1.0,
     eqMidHighGain: 2.5, eqMidHighFreq: 4800, eqMidHighQ: 1.0,
-    eqHighGain: 1.0, eqHighFreq: 14000, eqHighQ: 0.70,
+    eqHighGain: -0.4, eqHighFreq: 14000, eqHighQ: 0.70,
     compEnabled: true, compThreshold: -7.0, compRatio: 1.35, compAttack: 0.05, compRelease: 0.20,
     stereoWidth: 1.30, limiterBoost: 4.5, sideHighPassFreq: 150
   },
@@ -74,7 +74,7 @@ export const GENRE_PRESETS = {
     eqLowMidGain: -0.5, eqLowMidFreq: 200, eqLowMidQ: 0.60,
     eqMidGain: -0.8, eqMidFreq: 350, eqMidQ: 1.0,
     eqMidHighGain: 1.2, eqMidHighFreq: 4800, eqMidHighQ: 1.0,
-    eqHighGain: 0.5, eqHighFreq: 10000, eqHighQ: 0.65,
+    eqHighGain: -0.5, eqHighFreq: 10000, eqHighQ: 0.65,
     compEnabled: true, compThreshold: -8.0, compRatio: 1.40, compAttack: 0.035, compRelease: 0.15,
     stereoWidth: 1.20, limiterBoost: 3.6, sideHighPassFreq: 150
   },
@@ -94,7 +94,7 @@ export const GENRE_PRESETS = {
     eqLowMidGain: -0.8, eqLowMidFreq: 200, eqLowMidQ: 0.60,
     eqMidGain: -1.2, eqMidFreq: 800, eqMidQ: 1.0,
     eqMidHighGain: 1.5, eqMidHighFreq: 4800, eqMidHighQ: 1.0,
-    eqHighGain: 1.5, eqHighFreq: 12000, eqHighQ: 0.80,
+    eqHighGain: -0.3, eqHighFreq: 12000, eqHighQ: 0.80,
     compEnabled: true, compThreshold: -8.5, compRatio: 1.45, compAttack: 0.015, compRelease: 0.10,
     stereoWidth: 1.38, limiterBoost: 4.2, sideHighPassFreq: 150
   },
@@ -104,7 +104,7 @@ export const GENRE_PRESETS = {
     eqLowMidGain: 0.0, eqLowMidFreq: 200, eqLowMidQ: 0.60,
     eqMidGain: 0.0, eqMidFreq: 1000, eqMidQ: 0.7,
     eqMidHighGain: 0.0, eqMidHighFreq: 4800, eqMidHighQ: 1.0,
-    eqHighGain: 1.8, eqHighFreq: 12000, eqHighQ: 0.50,
+    eqHighGain: -0.3, eqHighFreq: 12000, eqHighQ: 0.50,
     compEnabled: true, compThreshold: -6.0, compRatio: 1.2, compAttack: 0.12, compRelease: 0.40,
     stereoWidth: 1.55, limiterBoost: 2.0, sideHighPassFreq: 90
   },
@@ -114,7 +114,7 @@ export const GENRE_PRESETS = {
     eqLowMidGain: 0.0, eqLowMidFreq: 200, eqLowMidQ: 0.60,
     eqMidGain: 0.8, eqMidFreq: 1600, eqMidQ: 1.0,
     eqMidHighGain: 0.0, eqMidHighFreq: 4800, eqMidHighQ: 1.0,
-    eqHighGain: 0.2, eqHighFreq: 8000, eqHighQ: 0.70,
+    eqHighGain: -0.3, eqHighFreq: 8000, eqHighQ: 0.70,
     compEnabled: true, compThreshold: -10.0, compRatio: 1.3, compAttack: 0.02, compRelease: 0.15,
     stereoWidth: 1.00, limiterBoost: 2.5, sideHighPassFreq: 150
   },
@@ -124,7 +124,7 @@ export const GENRE_PRESETS = {
     eqLowMidGain: 0.0, eqLowMidFreq: 200, eqLowMidQ: 0.60,
     eqMidGain: 0.0, eqMidFreq: 1000, eqMidQ: 0.7,
     eqMidHighGain: 0.0, eqMidHighFreq: 4800, eqMidHighQ: 1.0,
-    eqHighGain: 0.0, eqHighFreq: 10000, eqHighQ: 0.55,
+    eqHighGain: -0.3, eqHighFreq: 10000, eqHighQ: 0.55,
     compEnabled: true, compThreshold: -4.0, compRatio: 1.15, compAttack: 0.15, compRelease: 0.50,
     stereoWidth: 1.30, limiterBoost: 1.5, sideHighPassFreq: 90
   },
@@ -134,7 +134,7 @@ export const GENRE_PRESETS = {
     eqLowMidGain: 0.0, eqLowMidFreq: 200, eqLowMidQ: 0.55,
     eqMidGain: 0.0, eqMidFreq: 1000, eqMidQ: 1.0,
     eqMidHighGain: 0.6, eqMidHighFreq: 4800, eqMidHighQ: 1.0,
-    eqHighGain: 0.4, eqHighFreq: 14000, eqHighQ: 0.60,
+    eqHighGain: -0.3, eqHighFreq: 14000, eqHighQ: 0.60,
     compEnabled: true, compThreshold: -7.5, compRatio: 1.20, compAttack: 0.06, compRelease: 0.25,
     stereoWidth: 1.15, limiterBoost: 2.2, sideHighPassFreq: 90
   },
@@ -144,28 +144,28 @@ export const GENRE_PRESETS = {
     eqLowMidGain: 0.8, eqLowMidFreq: 200, eqLowMidQ: 0.60,
     eqMidGain: 0.4, eqMidFreq: 2000, eqMidQ: 1.0,
     eqMidHighGain: 0.3, eqMidHighFreq: 4800, eqMidHighQ: 1.0,
-    eqHighGain: 0.8, eqHighFreq: 11000, eqHighQ: 0.65,
+    eqHighGain: -0.2, eqHighFreq: 11000, eqHighQ: 0.65,
     compEnabled: true, compThreshold: -7.5, compRatio: 1.25, compAttack: 0.045, compRelease: 0.22,
     stereoWidth: 1.25, limiterBoost: 2.5, sideHighPassFreq: 90
   }
 }
 
 export const GENRE_TARGETS = {
-  auto: { low: 2.8, high: 0.092, presence: 0.42 },
-  pops: { low: 2.6, high: 0.10, presence: 0.44 },
-  rnb: { low: 3.2, high: 0.09, presence: 0.41 },
-  rock: { low: 2.9, high: 0.082, presence: 0.43 },
-  metal: { low: 3.0, high: 0.10, presence: 0.42 },
-  edm: { low: 3.2, high: 0.10, presence: 0.40 },
-  hiphop: { low: 3.3, high: 0.08, presence: 0.38 },
-  lofi: { low: 3.1, high: 0.06, presence: 0.36 },
-  hardcore: { low: 3.2, high: 0.11, presence: 0.42 },
-  ambient: { low: 2.9, high: 0.13, presence: 0.44 },
-  podcast: { low: 1.6, high: 0.08, presence: 0.47 },
-  classic: { low: 2.2, high: 0.075, presence: 0.39 },
-  jazz: { low: 2.7, high: 0.082, presence: 0.41 },
-  acoustic: { low: 2.4, high: 0.09, presence: 0.43 },
-  custom: { low: 2.8, high: 0.092, presence: 0.42 }
+  auto: { low: 2.8, high: 0.16, presence: 0.42 },
+  pops: { low: 2.6, high: 0.17, presence: 0.44 },
+  rnb: { low: 3.2, high: 0.16, presence: 0.41 },
+  rock: { low: 2.9, high: 0.14, presence: 0.43 },
+  metal: { low: 3.0, high: 0.18, presence: 0.42 },
+  edm: { low: 3.2, high: 0.20, presence: 0.40 },
+  hiphop: { low: 3.3, high: 0.14, presence: 0.38 },
+  lofi: { low: 3.1, high: 0.12, presence: 0.36 },
+  hardcore: { low: 3.2, high: 0.19, presence: 0.42 },
+  ambient: { low: 2.9, high: 0.21, presence: 0.44 },
+  podcast: { low: 1.6, high: 0.13, presence: 0.47 },
+  classic: { low: 2.2, high: 0.13, presence: 0.39 },
+  jazz: { low: 2.7, high: 0.14, presence: 0.41 },
+  acoustic: { low: 2.4, high: 0.15, presence: 0.43 },
+  custom: { low: 2.8, high: 0.16, presence: 0.42 }
 }
 
 const LOUDNESS_TARGETS = {
@@ -384,7 +384,9 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
 
   // 実際のエネルギー比率 (中低域/ローミッドを基準とする)
   const actualLowMidRatio = energyBass / (energyLowMid + 1e-6);
-  const actualHighMidRatio = energyTreble / (energyLowMid + 1e-6);
+  // 高域（Treble）のエネルギー比率は、低中域（Low-Mid）ではなく中高域（High-Mid / プレゼンス）と比較することで、
+  // Suno音源特有の「中域の過圧縮（デコボコした密度）」による影響を排除し、純粋な高域のシャリシャリ感のみを精密測定します。
+  const actualHighMidRatio = energyTreble / (energyHighMid + 1e-6);
   const actualPresenceRatio = energyHighMid / (energyLowMid + 1e-6);
 
   let minRmsIdx = 0;
