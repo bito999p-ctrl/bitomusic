@@ -44,8 +44,8 @@ function getNormalizedArtist(name) {
   return name;
 }
 
-// Version: 3.0.33 (Re-deployed to ensure complete file sync)
-import { AetherEnhancer, analyzeAudioResonances } from './audio-engine.js?v=3.0.33';
+// Version: 3.0.34 (Re-deployed to ensure complete file sync)
+import { AetherEnhancer, analyzeAudioResonances, GENRE_PRESETS } from './audio-engine.js?v=3.0.34';
 
 // --- State Variables ---
 let audioCtx = null;
@@ -1221,8 +1221,24 @@ function applySelectedPreset() {
 
   const presetKey = presetSelect ? presetSelect.value : 'auto';
 
-  // Run the spectral resonance & dynamics analysis using the current audio buffer and the selected preset!
-  const result = analyzeAudioResonances(currentAudioBuffer, presetKey);
+  let result;
+  if (presetKey === 'auto') {
+    // Run the full AI adaptive analysis
+    result = analyzeAudioResonances(currentAudioBuffer, 'auto');
+  } else {
+    // Run the analysis to get detected notches (noise removal) and descriptors
+    const analysisResult = analyzeAudioResonances(currentAudioBuffer, 'auto');
+    
+    // Use the static preset parameters directly to guarantee a distinct preset sound character
+    const presetParams = GENRE_PRESETS[presetKey] || GENRE_PRESETS.auto;
+    result = {
+      suggestedParams: { ...presetParams },
+      notches: analysisResult.notches,
+      crestDesc: analysisResult.crestDesc,
+      correlationDesc: analysisResult.correlationDesc
+    };
+  }
+
   currentAnalysisResult = result;
 
   // Apply mastering parameters to the enhancer stage
