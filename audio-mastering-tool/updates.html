@@ -8,7 +8,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="styles.css?v=3.21.6">
+  <link rel="stylesheet" href="styles.css?v=5.0.0">
+  <link rel="icon" href="https://bito999p-ctrl.github.io/bitomusic/favicon.png" type="image/png">
   <style>
     .doc-container {
       max-width: 900px;
@@ -190,11 +191,233 @@
     
     <header class="doc-header">
       <h1 class="doc-title">AetherMaster アップデート履歴</h1>
-      <div class="doc-subtitle">AetherMaster の機能更新、追加、調整の記録をタイムラインでご紹介します</div>
+      <div class="doc-subtitle">AetherMaster の機能更新、追加、調整 of 記録をタイムラインでご紹介します</div>
     </header>
 
     <div class="timeline">
       
+      <!-- v5.0.0 -->
+      <div class="timeline-item major">
+        <div class="version-header">
+          <span class="version-tag major">v5.0.0</span>
+          <span class="version-date">2026.07.06</span>
+          <span class="version-title">【メジャーアップデート】個別ジャンルプリセットの動的最適化 ＆ 新次元ノイズクリーナー「2-Band Double-Shelf」構造の導入</span>
+        </div>
+        <ul class="update-list">
+          <li><span class="badge-add">新機能</span><strong>すべての個別ジャンルプリセットにおける「ダイナミック・プリセット（動的最適化）」の実装</strong>：静的な固定テンプレート方式を完全に廃止し、読み込まれた楽曲の音響プロファイル（周波数バランス等）をリアルタイムに解析のうえ、各ジャンルが目指すターゲット特性に合わせてEQやダイナミクスを動的に再計算・自動適合するインテリジェントなプリセットシステムへ刷新。</li>
+          <li><span class="badge-add">新機能</span><strong>AIノイズクリーナー（Hiss Reducer）の「2-Band Double-Shelf」構造</strong>：ノイズ除去を強く適用しても超高音域（Air/空気感）が曇らない超高域保護アーキテクチャ。9kHz以上のヒス帯域を減衰させるローレベル・ハイシェルフと、16kHz以上のAir帯域を完全に復元・保護するハイレベル・ハイシェルフを直列に繋ぎ、動的サイドチェーンエンベロープで高精度に相互リンク制御します。</li>
+          <li><span class="badge-add">新機能</span><strong>De-esserのインテリジェントなQ値（帯域幅）自動計算</strong>：コントロールパネルに `Start Freq` と `End Freq` のダブルスライダーを新設。指定された周波数範囲から、幾何平均中心周波数と最適なQ値をWeb Audio API内でリアルタイムに動的算出し、耳障りな周波数だけをピンポイントで鋭くノッチ処理します。</li>
+          <li><span class="badge-change">改善</span><strong>ANALYZED SONIC PROFILE の完全動的同期アナライザー</strong>：プリセット（AUTO, METAL, POPSなど）やラウド目標を切り替えた際、現在のターゲットを基準とした音源の特性偏差（Bass/Treble Deviation）や実際に適用されているマスタリングパラメータ（DYNAMIC AUTO-ADJUSTMENTS APPLIED）が瞬時に再計算され、画面上に完全動的同期して描画されるようにアップデート。</li>
+          <li><span class="badge-fix">修正</span><strong>ラウドネス目標切り替え時の安定化</strong>：AI AUTOモードにおいて、ラウド目標（genre, streaming, club, loud, pure）を変更した際、意図した規定の目標ブーストに正しく追従し、セレクトボックスの状態が勝手に `custom` や `genre` にリセットされないよう同期ロジックを最適化。</li>
+        </ul>
+      </div>
+
+      <!-- v4.3.4 -->
+      <div class="timeline-item major">
+        <div class="version-header">
+          <span class="version-tag major">v4.3.4</span>
+          <span class="version-date">2026.07.04</span>
+          <span class="version-title">HISS REDUCER と DE-ESSER の高音域「曇り・くぐもり感」の完全な解消（マスタリング品質へのリファイン）</span>
+        </div>
+        <ul class="update-list">
+          <li><span class="badge-change">改善</span><strong>HISS REDUCERの遮断周波数範囲の最適化</strong>：ヒスノイズ軽減用のLPFの下限周波数を大幅に引き上げ、100%適用時でも13,000Hz以下に落ちないよう設計変更（元の仕様では3,750Hzまで落ちて極端に曇っていました）。また、演奏中はカットオフが20,000Hz（全開）まで動的追従するよう改善しました。</li>
+          <li><span class="badge-change">改善</span><strong>DE-ESSERのトリガー周波数と最大減衰量の緩和</strong>：
+            <ul>
+              <li>サイドチェーンの検出用ハイパスを2,000Hzから6,000Hzに引き上げ、ボーカルや他の楽器の通常のメロディ成分による「常時De-esserがONになってしまう現象」を解消。本物のサ行（シビランス）やhi-hatアタックのみに綺麗に追従させました。</li>
+              <li>最大減衰量の上限値を-14.0dBから-4.5dBに緩和し、強いDe-esser設定時でも高域が曇らず透明感が維持されるように修正しました。</li>
+            </ul>
+          </li>
+          <li><span class="badge-change">改善</span><strong>AI検出デフォルト値の無効化（0%）</strong>：AI自動解析において、サ行（シビランス）が全く検出されなかった場合はDe-esserの設定値をデフォルトで0%（完全にOFF）にするように修正しました。</li>
+        </ul>
+      </div>
+
+      <!-- v4.3.3 -->
+      <div class="timeline-item major">
+        <div class="version-header">
+          <span class="version-tag major">v4.3.3</span>
+          <span class="version-date">2026.07.04</span>
+          <span class="version-title">AIスペクトラム解析の無音除外2パス処理による各種モジュール推定精度の全面向上</span>
+        </div>
+        <ul class="update-list">
+          <li><span class="badge-change">改善</span><strong>2パス処理によるアクティブ区間限定のスペクトラム平均化</strong>：1パス目で全体の音量ダイナミクスを調べて無音しきい値を決定し、2パス目で無音部分を完全に除外してFFTを実行。これにより、曲の導入部や末尾の無音によってAI平均スペクトラムが薄まる（希釈される）現象を完全に解消。</li>
+          <li><span class="badge-change">改善</span><strong>EQ、De-esser、ジャンル推定などの総合的チューニング精度向上</strong>：無音が平均値に影響を及ぼさなくなったため、耳につく突発的な高域シビランス（サ行）や中域の共鳴ピーク検出の感度が劇的に向上。より正確でブレのないEQ/De-esserセッティングが算出されます。</li>
+        </ul>
+      </div>
+
+      <!-- v4.3.2 -->
+      <div class="timeline-item major">
+        <div class="version-header">
+          <span class="version-tag major">v4.3.2</span>
+          <span class="version-date">2026.07.04</span>
+          <span class="version-title">AIノイズクリーナー（Hiss Reducer）判定ロジックの改善 ＆ 無音除外フィルタの搭載</span>
+        </div>
+        <ul class="update-list">
+          <li><span class="badge-change">改善</span><strong>デジタル無音および前後リードイン無音の自動除外</strong>：曲の最初や最後にある無音区間（デジタルゼロ）をAIのノイズ推定対象から自動で除外するフィルターを搭載。無音をノイズが全く無いと誤認してしまうバグを解消しました。</li>
+          <li><span class="badge-change">改善</span><strong>ヒスノイズ検出しきい値の感度向上（-83dBへの引き下げ）</strong>：人間にははっきりと聞き取れる微細なアナログテープヒスや部屋鳴り（-78dB〜-83dB付近）まで確実に検知できるようにしきい値を引き下げ。マキシマイザーで持ち上げた際の残留ノイズを適切にケアします。</li>
+        </ul>
+      </div>
+
+      <!-- v4.3.1 -->
+      <div class="timeline-item major">
+        <div class="version-header">
+          <span class="version-tag major">v4.3.1</span>
+          <span class="version-date">2026.07.04</span>
+          <span class="version-title">電子音楽（EDM / Metal / Hardcore）におけるシンセ高域倍音＆アタック感の維持チューニング</span>
+        </div>
+        <ul class="update-list">
+          <li><span class="badge-change">改善</span><strong>サチュレーター内LPFのジャンル可変（EDM/Hardcoreで16kHz解放）</strong>：電子音楽ジャンルではシンセ音（ピコピコ感）のきらびやかさとギラつきを損なわないよう、サチュレーション制限を16kHzまで解放（Metalは10kHz）。ポップス等のボーカル曲では4.5kHzで滑らかに留めるジャンル可変設計に変更。</li>
+          <li><span class="badge-change">改善</span><strong>電子音楽における高域EQ制限の自動緩和（最大+1.2dB）</strong>：EDMなどのシンセアタックを活かすため、高域シェルフEQの最大ブースト上限を+1.2dBまで自動解放。サ行保護時のブーストクランプも+0.8dBに緩和しました。</li>
+        </ul>
+      </div>
+
+      <!-- v4.3.0 -->
+      <div class="timeline-item major">
+        <div class="version-header">
+          <span class="version-tag major">v4.3.0</span>
+          <span class="version-date">2026.07.04</span>
+          <span class="version-title">「J-Pop/Rock 楽曲感（中低音の温かみ ＆ 抜け）」特化マスタリングエンジンへの大刷新 ＆ ログコピー機能</span>
+        </div>
+        <ul class="update-list">
+          <li><span class="badge-add">機能</span><strong>「LOW-MID EQ（200Hz）」と「MID-HIGH PEAK EQ（3kHz）」の追加（5バンドEQ化）</strong>：中低域に心地よい豊かさを与える200Hzバンドと、ボーカルを近く引き出す3kHzバンドを追加。痛い「カーン」という1kHzの金属感を抑えるため、MID PEAKを1000Hzに統一しました。</li>
+          <li><span class="badge-change">改善</span><strong>サチュレーター内LPF（4.5kHz）の追加による高域倍音歪みの除去</strong>：飽和ウェット回路に4.5kHzのローパスを組み込み、高域アタックがサチュレーションで毛羽立つ（デジタル的な硬さになる）のを防止。中低域だけに温かいアナロググール（glue）を与えます。</li>
+          <li><span class="badge-change">改善</span><strong>コンプレッサーのソフトニー化（18dB）による滑らかな接着効果</strong>：しきい値を越える際のトランジションをなだらかにし、音の接着感を高めます。</li>
+          <li><span class="badge-change">改善</span><strong>AI AUTOのインテリジェント化（低域/高域/中高域の自動判定）</strong>：
+            <ul>
+              <li><strong>低域シェルフ周波数の動的選定</strong>：低音過多なら120Hzでカット、不足なら80Hzで深く持ち上げるよう自動判定。</li>
+              <li><strong>高域シェルフのエアバンドシフト</strong>：クロスオーバー周波数を10,500Hz以上に逃がし、サ行の共鳴があっても安全に極上の空気感（Air）をブースト可能に。</li>
+              <li><strong>ボーカル距離（3kHz）の無段階追従</strong>：デッドゾーンを廃止し、プレゼンスの過不足に完全リニアで追従して存在感を補正。</li>
+            </ul>
+          </li>
+          <li><span class="badge-add">機能</span><strong>診断ログの「自動折り返し」および「COPY LOG（コピー）」ボタンの搭載</strong>：ログがはみ出して横スクロールバーが出る問題を解消し、ワンクリックで全履歴をテキストコピーできるボタンを追加しました。</li>
+        </ul>
+      </div>
+
+      <!-- v4.2.0 -->
+      <div class="timeline-item major">
+        <div class="version-header">
+          <span class="version-tag major">v4.2.0</span>
+          <span class="version-date">2026.07.04</span>
+          <span class="version-title">「総合ユーザーズガイド」の創設 ＆ AIマスタリング期待値・リミッターのプロ品質チューニング</span>
+        </div>
+        <ul class="update-list">
+          <li><span class="badge-add">機能</span><strong>「総合ユーザーズガイド」へのリニューアル</strong>：従来の初心者向けガイドを大幅に拡充し、AIの3ステップ解析ロジック、各DSPプロセッサーの詳細、トラブル解決FAQ（刺さる高音の抑え方、低音のパワー補強等）を内包した総合解説書を新設。アコーディオン方式のFAQで利便性を高めました。</li>
+          <li><span class="badge-change">改善</span><strong>リミッターのダイナミクス・高域保護チューニング</strong>：マキシマイザーリミッターのしきい値を `-3.0 dB` から `-1.0 dB` へ引き上げ、ニーを `4.0 dB` に軟化、リリースを `120ms` に拡張。音圧の過度な圧縮圧を逃がし、高域トランジェントの潰れや金属的な固さ（カンカン感）を徹底排除してプロクオリティの空気感を再現します。</li>
+          <li><span class="badge-change">改善</span><strong>AI低域・高域EQアライメントのデッドゾーン排除</strong>：EQ調整ロジックから `+-0.5 dB` の不感帯を排除。高音域が既に十分明るい音源には即座にカット補正を適用（最大ブースト上限を `+0.8 dB` に制限）し、低音域が不足している音源には最大 `+4.5 dB` までの豊かなダイナミック補正を適用します。</li>
+          <li><span class="badge-change">改善</span><strong>サブベース自動保護セーフガード（Rumble Cut連動）の搭載</strong>：EDM、HIPHOP、HARDCOREなどのサブベース（キックや808ベースの80Hz以下）を重視するジャンルにおいて、AIによるRumble Cut（80Hz HPF）の自動ON化を強制的に禁止。超低音の迫力を100%保ったままマスタリングを実行します。</li>
+          <li><span class="badge-change">改善</span><strong>De-esserの音楽的カーブ（Q値2.2）およびHiss Reducer抜け感の維持</strong>：サ行の刺さり音を抑えるDe-esserのQ値を `5.0` から `2.2` に広げることで、ボーカルの艶を保ったまま自然に擦れ音をケア。また、Hiss Reducer適用時でも音が曇らないよう、フィルター周波数を `13,000 Hz` 以上に留めるマイルド設計にチューニングしました。</li>
+        </ul>
+      </div>
+
+      <!-- v4.1.0 -->
+      <div class="timeline-item major">
+        <div class="version-header">
+          <span class="version-tag major">v4.1.0</span>
+          <span class="version-date">2026.07.03</span>
+          <span class="version-title">「手動/動的 DE-ESSER」コントロールの搭載 ＆ UI操作性の向上</span>
+        </div>
+        <ul class="update-list">
+          <li><span class="badge-add">機能</span><strong>「DE-ESSER（ディエッサー）」コントロールスライダーの追加</strong>：ボーカルの「サ・シ・ス・セ・ソ」の突き刺さる高域成分を抑制するディエッサーの効き具合を、UI上のスライダーで 0%（OFF）から 100% まで手動変更可能に。AI解析実行時には、検出されたシビランス共鳴値に基づいて自動で最適な強さ（40%〜85%）を設定します。</li>
+          <li><span class="badge-change">改善</span><strong>シビランス共鳴ノッチ回路の動的減衰レンジ拡張</strong>：サ行の成分が強く出た瞬間のみ、最大 `-12.0 dB` までピンポイントで動的に低減するよう減衰レンジをチューニングし、より強力かつ滑らかに耳障りなキンキン音を抑制します。</li>
+        </ul>
+      </div>
+
+      <!-- v4.0.0 -->
+      <div class="timeline-item major">
+        <div class="version-header">
+          <span class="version-tag major">v4.0.0</span>
+          <span class="version-date">2026.07.01</span>
+          <span class="version-title">「Pro Clean ノッチフリー・マスタリング」の完全統合 ＆ 耳障りな高域シビランス自動制御の搭載</span>
+        </div>
+        <ul class="update-list">
+          <li><span class="badge-add">機能</span><strong>「8連 AI Corrective Notch Filters」の完全廃止（ノッチフリー化）</strong>：Web Audio APIのDSPシグナルパスから不要な固定8連ノッチフィルターを完全に排除。これにより、ボーカルの自然な空気感や楽器の抜け感、過渡特性（アタック）を100%保ったまま、位相干渉によるヨレのない極めてクリアなマスタリング音質を実現しました。</li>
+          <li><span class="badge-change">改善</span><strong>動的ディエッサー（Sibilance Notch）の信号パス復元 ＆ 最適接続</strong>：サ行のキンキンしたノイズだけを的確に制御するため、音圧感応型の動的ディエッサーのみを信号経路に復元。ボーカルなどのサ行成分が強く出た瞬間のみ、ピンポイントで最大 `-6.0 dB` 減衰します。</li>
+          <li><span class="badge-change">改善</span><strong>AIによる高域EQの「自動クランプ安全保護」</strong>：AI自動解析時に高域のキンキン共鳴ピーク（8kHz〜11kHz）を検出した場合、高域シェルフEQのブーストを自動で禁止し、減衰値（最大 `-1.5 dB`）に自動クランプする保護ロジックを搭載。不用意なキンキン音の増幅を根本からシャットアウトします。</li>
+          <li><span class="badge-add">機能</span><strong>AI思考プロセスの「完全見える化」ログ実装</strong>：読み込んだ音源の低域・高域のノイズ（Rumble/Hiss）測定値デシベルと、シビランス検知・高域クランプの作動ログをリアルタイムで出力し、AIの動作状況がUI上に明記されるように改善しました。</li>
+        </ul>
+      </div>
+
+      <!-- v3.26.0 -->
+      <div class="timeline-item major">
+        <div class="version-header">
+          <span class="version-tag major">v3.26.0</span>
+          <span class="version-date">2026.07.01</span>
+          <span class="version-title">FFT正規化バグ修正による高域抜け復活 ＆ スマホ省電力簡易表示の搭載</span>
+        </div>
+        <ul class="update-list">
+          <li><span class="badge-change">改善</span><strong>FFT振幅の完全正規化による「こもりバグ」の解消</strong>：高速フーリエ変換（FFT）の正規化漏れ（1024倍の出力誤差による+60dBのノイズ測定バグ）を修正。これにより無音のないクリーンな音源やEDM音源でノイズクリーナーが誤動作して高域を過剰にカットする不具合が完全に解消されました。</li>
+          <li><span class="badge-add">機能</span><strong>「HUMP/WHISTLE」二重共振検知アルゴリズムの追加</strong>：従来の極細幅（Q=15.0）での鋭い金属共振音（WHISTLE）検知に加え、広範囲な高域の盛り上がり（HUMP：例: 11k〜12kHz帯域の膨らみ）を検知する広域スキャンを実装。Q=6.0のなだらかなノッチで高域の耳障りな膨らみを滑らかにならします。</li>
+          <li><span class="badge-add">機能</span><strong>スマホ用省電力・簡易表示モードの自動適用</strong>：モバイル端末でのアクセス時に、描画を15fpsに半減し、重いグラデーション塗りつぶし（fill）をスキップして単一アウトライン化。さらに頂点計算数を6分の1に間引くことで、バッテリー消費と発熱を極小化しました。</li>
+          <li><span class="badge-change">改善</span><strong>Hiss Reducer 遮断上限天井の導入 ＆ セーフガード搭載</strong>：楽曲再生中もヒスノイズが漏れるのを防ぐため、Hiss Reducerの遮断上限周波数を最大13.7kHzに制限。また、LPFで減衰される高音域へのノッチ適用をスキップする「過剰カット防止セーフガード」により高域痩せを防ぎます。</li>
+          <li><span class="badge-change">改善</span><strong>プリセット切替時のノイズ設定継承 ＆ 新ファイル読込時のメモリ解放</strong>：プリセット変更時にノイズ除去パラメーターがクリアされるバグを修正し、さらにファイル読込時に前回のAI自動解析データが漏洩・干渉するセッションリークバグを完全に修正しました。</li>
+          <li><span class="badge-change">改善</span><strong>スペクトラムモニターの対数グリッド・dB目盛の追加</strong>：周波数（100Hz〜15kHz）と音量レベル（0dB〜-36dB）のガイドグリッドと明るく見やすいテキストを追加し、視認性をプロ用DAW水準に引き上げました。</li>
+        </ul>
+      </div>
+
+      <!-- v3.25.0 -->
+      <div class="timeline-item major">
+        <div class="version-header">
+          <span class="version-tag major">v3.25.0</span>
+          <span class="version-date">2026.07.01</span>
+          <span class="version-title">「スマート共振ノッチ」エンジンの搭載 ＆ 音源のヌケ感・空気感の完全両立</span>
+        </div>
+        <ul class="update-list">
+          <li><span class="badge-add">機能</span><strong>「スマート共振ノッチ」エンジンの開発と搭載</strong>：従来の過剰な高域カットによる「音が引っ込む/遠くなる」現象を根本的に解消。AIの共振ノッチ走査ロジックを大幅にスマート化しました。</li>
+          <li><span class="badge-change">改善</span><strong>ノッチ走査周波数の下限設定と上限撤廃（7.0kHz 〜 20kHz）</strong>：ボーカルの存在感であるプレゼンス・定義域（5kHz〜7.0kHz）を完全に保護することで距離感を維持しつつ、上限を20kHz（可聴限界）まで撤廃。これにより11kHz以上にある超高音のキンキンするデジタルノイズも完全に捕獲・除去できるようになりました。また、最大カット幅を `-6.0dB` に引き上げ、より的確にノイズを減衰させます。</li>
+          <li><span class="badge-change">改善</span><strong>突出度トリガーしきい値の精密微調整（1.20倍 / 1.25倍）</strong>：しきい値をより細かく最適化し、周辺フロアから `1.6dB 〜 1.9dB` 以上突出した鋭い金属共振のみを漏らさず正確に検出・カット。cymbalsやアコースティックギターの自然な広がりを維持したまま、微細なキンキン音を極めて的確に制御します。</li>
+          <li><span class="badge-change">改善</span><strong>Q値の最適チューニング（Q=15.0）＆ 最大ノッチ数を6基に拡張</strong>：ノッチフィルターのQ値を `18.0` ➔ `15.0` に再調整。わずかに幅を持たせることで、演奏中にわずかに揺らぐ共振周波数をより確実・効果的にトラップできるようになり、同時作動上限も6基に拡張して複数ノイズに対応。原音への影響を極小に抑えつつノイズ除去力を向上させました。</li>
+          <li><span class="badge-add">追加</span><strong>オフィシャルクレジット ＆ 相互ナビゲーションリンク設置</strong>：ヘッダーロゴエリアに「BitoMusic Presents」、フッターに「BitoMusic // AETHERMASTER」のブランドクレジットを追加。また、Bito MusicポータルおよびAetherPlayerへの相互ナビゲーションリンクボタンをヘッダー右側へ設置（ホバー時の発光エフェクト＆スマホ対応付き）。</li>
+        </ul>
+      </div>
+
+      <!-- v3.24.0 -->
+      <div class="timeline-item major">
+        <div class="version-header">
+          <span class="version-tag major">v3.24.0</span>
+          <span class="version-date">2026.06.29</span>
+          <span class="version-title">ルックアヘッド・リミッタークッション ＆ ハイブリッド動的プリセットAIの搭載</span>
+        </div>
+        <ul class="update-list">
+          <li><span class="badge-add">機能</span><strong>ルックアヘッド・リミッタークッションの搭載</strong>：リミッターコンプレッサーのしきい値を `-3.0 dBFS` に引き下げ、Web Audio API の自動メイクアップゲインと連携。波形が `0.0 dBFS` を超える 3dB 手前から先回りして滑らかに圧縮することで、EDM や ROCK などの強めのプリセットをかけた際の突発的なデジタル歪みやチリチリ音を物理的に完全防止。</li>
+          <li><span class="badge-add">機能</span><strong>ハイブリッド動的プリセットAI</strong>：初期状態の AI AUTO はジャンルを狙わずに、中立なフラット特性（Studio Reference）で安全かつ高音質な基準点を提供。そこからユーザーがプリセット（EDM や ROCK 等）を選択すると、AI がそのジャンル特有のターゲット（例: EDMなら+5.5dBブースト等）に合わせてパラメータをリアルタイムに自動最適化する仕様へアップグレード。AI 補正による圧倒的な音圧・パンチと、ユーザーの好みのスタイル変更を完璧に両立しました。</li>
+          <li><span class="badge-fix">修正</span><strong>L/R独立ピーク測定への根本修正</strong>：AI による入力音量測定時、従来のMid（モノラル平均）ピーク検出から、左右チャンネル（L/R）それぞれ独立した「真の最大値」を測定する設計へ修正。ステレオ幅の広い音源（左右に広がったギターなど）での音量の過小評価による入力過負荷・歪みバグを解消。</li>
+          <li><span class="badge-change">改善</span><strong>セーフティクリッパーの作動しきい値の最適化</strong>：マスターソフトクリッパーの作動しきい値を `0.85`（-1.4dBFS）から `0.96`（-0.35dBFS）へ引き上げ。リミッターによって処理されたベースやキックの持続音を無傷で通過させ、不要な突発スパイクのみをセーフティネットで丸めるプロ仕様の設計へと修正。</li>
+          <li><span class="badge-change">改善</span><strong>AI AUTO 基準プリセットの音質強化（低音・高音の伸び）</strong>：AI AUTOにおけるイコライザー周波数を、低域は `120Hz` ➔ `90Hz`（超低域サブベース）、高域は `10kHz` ➔ `11kHz`（シルキーな抜け感）へシフト。サチュレータも温かみのある真空管（Tube）へと変更し、低域の引き締まった深みと高域の伸びやかさを大幅に強化。</li>
+          <li><span class="badge-change">改善</span><strong>グルーコンプレッサーのポンピング防止再調整</strong>：全プリセットのコンプレッサーしきい値を安全な範囲（`-7.5dB` 〜 `-9.0dB`）に緩和し、圧縮比率を低減。キックドラムの打撃によって全体の音が不自然に揺らぐ「ポンピング（ほわほわ音）」を完全に解消。</li>
+          <li><span class="badge-change">改善</span><strong>ステレオ相関値（Correlation）によるジャンル判定の高度化</strong>：AI のジャンル分類ロジックにおいて、ステレオ相関値の検出を導入。これにより、ダイナミクスが大きく高域が強めなロック/メタル楽曲が、アコースティックやアンビエントと誤判定されるのを防ぐ高い分類精度を実現。</li>
+        </ul>
+      </div>
+
+      <!-- v3.23.0 -->
+      <div class="timeline-item major">
+        <div class="version-header">
+          <span class="version-tag major">v3.23.0</span>
+          <span class="version-date">2026.06.29</span>
+          <span class="version-title">AIジャンル自動判定（オートクラス分類） ＆ 音圧・圧感のプリセット最適化</span>
+        </div>
+        <ul class="update-list">
+          <li><span class="badge-change">機能</span><strong>AIジャンル自動判定（Heuristic Genre Classifier）</strong>：AI自動解析実行時に波形の周波数バランス（低域・高域エネルギー比）およびクレストファクター（ダイナミクス幅）から楽曲ジャンル（EDM、Hiphop、Rock、Metal、Pops、Classic、Jazz、Acoustic、Ambient、Podcast）を全自動判定。UIドロップダウンを検出ジャンルへ自動的に変更し、そのジャンルに最適化されたターゲットでマスタリングが開始されるよう改善。</li>
+          <li><span class="badge-change">改善</span><strong>音圧・密度のプリセット二極化調整</strong>：マスタリングプリセットを「音圧を重視する商業・電子音系」と「ダイナミクスを重視する生音系」に再定義しました。</li>
+          <li><span class="badge-change">改善</span><strong>EDM / HIPHOP / METAL / ROCK 等の音圧と圧感の復元</strong>：EDM等のダンス・商業系ジャンルのアタックタイムを速め（15ms〜20ms）、圧縮比を引き上げ、リミッターの最大ゲインを `+5.5dB` などへ引き上げることで、商業クオリティの「迫力ある密度の壁（音圧）」を完全復元。サチュレーターのブレンド率（mix）もバンプさせ、高域の倍音のジリジリとした圧感を濃密化しました。</li>
+          <li><span class="badge-change">改善</span><strong>CLASSIC / JAZZ / AMBIENT 等のダイナミクス温存</strong>：生楽器や空気感が主体のジャンルは、v3.22.0で構築したダイナミクス（クレストファクター 12dB以上）を大切にする緩やかなコンプレッサー・マスタリングを継続適用します。</li>
+        </ul>
+      </div>
+
+      <!-- v3.22.0 -->
+      <div class="timeline-item major">
+        <div class="version-header">
+          <span class="version-tag major">v3.22.0</span>
+          <span class="version-date">2026.06.29</span>
+          <span class="version-title">マスタリングエンジンの高品位・シンプル化再設計（完全機能維持）</span>
+        </div>
+        <ul class="update-list">
+          <li><span class="badge-change">改善</span><strong>全機能・全UIコントロールの完全維持</strong>：画面上のスライダー、ジャンルプリセット、各種サウンドスパイス、リアルタイム波形、AI自動解析などの全操作機能と見た目をそのままキープ。</li>
+          <li><span class="badge-change">改善</span><strong>音響処理エンジンのシンプル・高品位化</strong>：過剰な相互補正（Hiss Reducerによる高中域EQの自動変調など）をすべて廃止し、透明で予測しやすく、自然な周波数レスポンスを確保しました。</li>
+          <li><span class="badge-fix">修正</span><strong>高域の耳痛さ（サ行の刺さり）の解消</strong>：Hiss Reducer（VCF LPF）の最低カットオフ周波数を10kHzに固定制限。ボーカルのプレゼンス（4kHz〜8kHz）を無加工で保護し、過剰な自動ハイシェルフブーストを廃止したことで、耳を刺さない滑らかな高音を実現。</li>
+          <li><span class="badge-fix">修正</span><strong>低域の不自然な音量ムラ（ポンピング）の解消</strong>：グルーコンプレッサーのアタックタイム（35ms〜80ms）およびリリースタイム（150ms〜250ms）を遅めに再設計し、低音レシオを1.4〜1.6に緩和。キックのアタック感を潰さず、ベースの強弱が一貫して滑らかに出力されるプロ仕様の動作に改善。</li>
+          <li><span class="badge-fix">修正</span><strong>中低域のスカスカ感（位相干渉）の完全解消</strong>：サチュレーター並列パスのハイパスフィルターを廃止し、全帯域において完全同位相でDry/Wetミックスを実行。位相ズレによるローミッドの中抜けを物理的に100%解決。</li>
+        </ul>
+      </div>
+
       <!-- v3.21 -->
       <div class="timeline-item">
         <div class="version-header">
@@ -483,7 +706,7 @@
       <div class="footer-links">
         <a href="index.html"><i class="fa-solid fa-house"></i> AetherMaster ホーム</a>
         <span class="separator">|</span>
-        <a href="guide.html"><i class="fa-solid fa-book-open"></i> 初心者向けガイド</a>
+        <a href="guide.html"><i class="fa-solid fa-book-open"></i> 総合ユーザーズガイド</a>
         <span class="separator">|</span>
         <a href="tech.html"><i class="fa-solid fa-circle-info"></i> 技術仕様・DSP詳細</a>
       </div>
