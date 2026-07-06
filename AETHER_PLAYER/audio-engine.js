@@ -13,7 +13,7 @@ export const GENRE_PRESETS = {
     eqLowGain: 0.0, eqLowFreq: 90, eqLowQ: 0.55,
     eqLowMidGain: 0.0, eqLowMidFreq: 200, eqLowMidQ: 0.55,
     eqMidGain: 0.0, eqMidFreq: 1000, eqMidQ: 0.70,
-    eqMidHighGain: 0.0, eqMidHighFreq: 4800, eqMidHighQ: 0.70,
+    eqMidHighGain: 0.0, eqMidHighFreq: 4500, eqMidHighQ: 0.70,
     eqHighGain: -0.3, eqHighFreq: 9000, eqHighQ: 0.50,
     compEnabled: true, compThreshold: -8.0, compRatio: 1.35, compAttack: 0.04, compRelease: 0.20,
     stereoWidth: 1.15, limiterBoost: 3.5, sideHighPassFreq: 110
@@ -23,7 +23,7 @@ export const GENRE_PRESETS = {
     eqLowGain: 1.2, eqLowFreq: 80, eqLowQ: 0.55,
     eqLowMidGain: 0.0, eqLowMidFreq: 200, eqLowMidQ: 0.55,
     eqMidGain: 0.0, eqMidFreq: 1000, eqMidQ: 0.70,
-    eqMidHighGain: 2.2, eqMidHighFreq: 4800, eqMidHighQ: 0.70,
+    eqMidHighGain: 2.2, eqMidHighFreq: 4500, eqMidHighQ: 0.70,
     eqHighGain: -0.5, eqHighFreq: 14000, eqHighQ: 0.50,
     compEnabled: true, compThreshold: -8.0, compRatio: 1.35, compAttack: 0.035, compRelease: 0.16,
     stereoWidth: 1.15, limiterBoost: 3.5, sideHighPassFreq: 110
@@ -33,7 +33,7 @@ export const GENRE_PRESETS = {
     eqLowGain: 1.2, eqLowFreq: 75, eqLowQ: 0.55,
     eqLowMidGain: -0.6, eqLowMidFreq: 200, eqLowMidQ: 0.55,
     eqMidGain: -0.8, eqMidFreq: 1000, eqMidQ: 0.70,
-    eqMidHighGain: 1.2, eqMidHighFreq: 4800, eqMidHighQ: 0.70,
+    eqMidHighGain: 1.2, eqMidHighFreq: 4500, eqMidHighQ: 0.70,
     eqHighGain: -0.4, eqHighFreq: 10000, eqHighQ: 0.50,
     compEnabled: true, compThreshold: -8.0, compRatio: 1.35, compAttack: 0.04, compRelease: 0.20,
     stereoWidth: 1.25, limiterBoost: 3.2, sideHighPassFreq: 110
@@ -43,7 +43,7 @@ export const GENRE_PRESETS = {
     eqLowGain: 1.0, eqLowFreq: 80, eqLowQ: 0.55,
     eqLowMidGain: 0.6, eqLowMidFreq: 200, eqLowMidQ: 0.55,
     eqMidGain: -0.4, eqMidFreq: 1000, eqMidQ: 0.70,
-    eqMidHighGain: 1.8, eqMidHighFreq: 4800, eqMidHighQ: 0.70,
+    eqMidHighGain: 1.8, eqMidHighFreq: 4500, eqMidHighQ: 0.70,
     eqHighGain: -0.6, eqHighFreq: 12000, eqHighQ: 0.50,
     compEnabled: true, compThreshold: -7.5, compRatio: 1.35, compAttack: 0.05, compRelease: 0.15,
     stereoWidth: 1.15, limiterBoost: 4.0, sideHighPassFreq: 110
@@ -53,7 +53,7 @@ export const GENRE_PRESETS = {
     eqLowGain: 1.0, eqLowFreq: 70, eqLowQ: 0.55,
     eqLowMidGain: -1.2, eqLowMidFreq: 200, eqLowMidQ: 0.55,
     eqMidGain: -1.5, eqMidFreq: 1000, eqMidQ: 0.70,
-    eqMidHighGain: 1.5, eqMidHighFreq: 4800, eqMidHighQ: 0.70,
+    eqMidHighGain: 1.5, eqMidHighFreq: 4500, eqMidHighQ: 0.70,
     eqHighGain: -0.5, eqHighFreq: 8500, eqHighQ: 0.50,
     compEnabled: true, compThreshold: -7.5, compRatio: 1.40, compAttack: 0.02, compRelease: 0.10,
     stereoWidth: 1.28, limiterBoost: 3.8, sideHighPassFreq: 120
@@ -63,7 +63,7 @@ export const GENRE_PRESETS = {
     eqLowGain: 1.8, eqLowFreq: 65, eqLowQ: 0.55,
     eqLowMidGain: -0.8, eqLowMidFreq: 200, eqLowMidQ: 0.55,
     eqMidGain: -0.5, eqMidFreq: 800, eqMidQ: 0.70,
-    eqMidHighGain: 2.5, eqMidHighFreq: 4800, eqMidHighQ: 0.70,
+    eqMidHighGain: 2.5, eqMidHighFreq: 4500, eqMidHighQ: 0.70,
     eqHighGain: -0.4, eqHighFreq: 14000, eqHighQ: 0.50,
     compEnabled: true, compThreshold: -7.0, compRatio: 1.35, compAttack: 0.05, compRelease: 0.20,
     stereoWidth: 1.30, limiterBoost: 4.5, sideHighPassFreq: 150
@@ -73,7 +73,7 @@ export const GENRE_PRESETS = {
     eqLowGain: 1.8, eqLowFreq: 65, eqLowQ: 0.55,
     eqLowMidGain: -0.5, eqLowMidFreq: 200, eqLowMidQ: 0.55,
     eqMidGain: -0.8, eqMidFreq: 350, eqMidQ: 0.70,
-    eqMidHighGain: 1.2, eqMidHighFreq: 4800, eqMidHighQ: 0.70,
+    eqMidHighGain: 1.2, eqMidHighFreq: 4500, eqMidHighQ: 0.70,
     eqHighGain: -0.5, eqHighFreq: 10000, eqHighQ: 0.50,
     compEnabled: true, compThreshold: -8.0, compRatio: 1.40, compAttack: 0.035, compRelease: 0.15,
     stereoWidth: 1.20, limiterBoost: 3.6, sideHighPassFreq: 150
@@ -83,7 +83,7 @@ export const GENRE_PRESETS = {
     eqLowGain: 2.0, eqLowFreq: 100, eqLowQ: 0.55,
     eqLowMidGain: -0.5, eqLowMidFreq: 200, eqLowMidQ: 0.55,
     eqMidGain: 0.8, eqMidFreq: 1200, eqMidQ: 0.70,
-    eqMidHighGain: 0.0, eqMidHighFreq: 4800, eqMidHighQ: 0.70,
+    eqMidHighGain: 0.0, eqMidHighFreq: 4500, eqMidHighQ: 0.70,
     eqHighGain: -4.5, eqHighFreq: 7000, eqHighQ: 0.50,
     compEnabled: true, compThreshold: -10.0, compRatio: 1.5, compAttack: 0.06, compRelease: 0.30,
     stereoWidth: 0.92, limiterBoost: 2.8, sideHighPassFreq: 110
@@ -93,7 +93,7 @@ export const GENRE_PRESETS = {
     eqLowGain: 1.5, eqLowFreq: 80, eqLowQ: 0.55,
     eqLowMidGain: -0.8, eqLowMidFreq: 200, eqLowMidQ: 0.55,
     eqMidGain: -1.2, eqMidFreq: 800, eqMidQ: 0.70,
-    eqMidHighGain: 1.5, eqMidHighFreq: 4800, eqMidHighQ: 0.70,
+    eqMidHighGain: 1.5, eqMidHighFreq: 4500, eqMidHighQ: 0.70,
     eqHighGain: -0.3, eqHighFreq: 12000, eqHighQ: 0.50,
     compEnabled: true, compThreshold: -8.5, compRatio: 1.45, compAttack: 0.015, compRelease: 0.10,
     stereoWidth: 1.38, limiterBoost: 4.2, sideHighPassFreq: 150
@@ -103,7 +103,7 @@ export const GENRE_PRESETS = {
     eqLowGain: 2.0, eqLowFreq: 80, eqLowQ: 0.50,
     eqLowMidGain: 0.0, eqLowMidFreq: 200, eqLowMidQ: 0.55,
     eqMidGain: 0.0, eqMidFreq: 1000, eqMidQ: 0.70,
-    eqMidHighGain: 0.0, eqMidHighFreq: 4800, eqMidHighQ: 0.70,
+    eqMidHighGain: 0.0, eqMidHighFreq: 4500, eqMidHighQ: 0.70,
     eqHighGain: -0.3, eqHighFreq: 12000, eqHighQ: 0.50,
     compEnabled: true, compThreshold: -6.0, compRatio: 1.2, compAttack: 0.12, compRelease: 0.40,
     stereoWidth: 1.55, limiterBoost: 2.0, sideHighPassFreq: 90
@@ -113,7 +113,7 @@ export const GENRE_PRESETS = {
     eqLowGain: -2.0, eqLowFreq: 120, eqLowQ: 0.55,
     eqLowMidGain: 0.0, eqLowMidFreq: 200, eqLowMidQ: 0.55,
     eqMidGain: 0.8, eqMidFreq: 1600, eqMidQ: 0.70,
-    eqMidHighGain: 0.0, eqMidHighFreq: 4800, eqMidHighQ: 0.70,
+    eqMidHighGain: 0.0, eqMidHighFreq: 4500, eqMidHighQ: 0.70,
     eqHighGain: -0.3, eqHighFreq: 8000, eqHighQ: 0.50,
     compEnabled: true, compThreshold: -10.0, compRatio: 1.3, compAttack: 0.02, compRelease: 0.15,
     stereoWidth: 1.00, limiterBoost: 2.5, sideHighPassFreq: 150
@@ -123,7 +123,7 @@ export const GENRE_PRESETS = {
     eqLowGain: 0.5, eqLowFreq: 100, eqLowQ: 0.55,
     eqLowMidGain: 0.0, eqLowMidFreq: 200, eqLowMidQ: 0.55,
     eqMidGain: 0.0, eqMidFreq: 1000, eqMidQ: 0.70,
-    eqMidHighGain: 0.0, eqMidHighFreq: 4800, eqMidHighQ: 0.70,
+    eqMidHighGain: 0.0, eqMidHighFreq: 4500, eqMidHighQ: 0.70,
     eqHighGain: -0.3, eqHighFreq: 10000, eqHighQ: 0.50,
     compEnabled: true, compThreshold: -4.0, compRatio: 1.15, compAttack: 0.15, compRelease: 0.50,
     stereoWidth: 1.30, limiterBoost: 1.5, sideHighPassFreq: 90
@@ -133,7 +133,7 @@ export const GENRE_PRESETS = {
     eqLowGain: 0.8, eqLowFreq: 80, eqLowQ: 0.55,
     eqLowMidGain: 0.0, eqLowMidFreq: 200, eqLowMidQ: 0.55,
     eqMidGain: 0.0, eqMidFreq: 1000, eqMidQ: 0.70,
-    eqMidHighGain: 0.6, eqMidHighFreq: 4800, eqMidHighQ: 0.70,
+    eqMidHighGain: 0.6, eqMidHighFreq: 4500, eqMidHighQ: 0.70,
     eqHighGain: -0.3, eqHighFreq: 14000, eqHighQ: 0.50,
     compEnabled: true, compThreshold: -7.5, compRatio: 1.20, compAttack: 0.06, compRelease: 0.25,
     stereoWidth: 1.15, limiterBoost: 2.2, sideHighPassFreq: 90
@@ -143,7 +143,7 @@ export const GENRE_PRESETS = {
     eqLowGain: 1.0, eqLowFreq: 120, eqLowQ: 0.55,
     eqLowMidGain: 0.8, eqLowMidFreq: 200, eqLowMidQ: 0.55,
     eqMidGain: 0.4, eqMidFreq: 2000, eqMidQ: 0.70,
-    eqMidHighGain: 0.3, eqMidHighFreq: 4800, eqMidHighQ: 0.70,
+    eqMidHighGain: 0.3, eqMidHighFreq: 4500, eqMidHighQ: 0.70,
     eqHighGain: -0.2, eqHighFreq: 11000, eqHighQ: 0.50,
     compEnabled: true, compThreshold: -7.5, compRatio: 1.25, compAttack: 0.045, compRelease: 0.22,
     stereoWidth: 1.25, limiterBoost: 2.5, sideHighPassFreq: 90
@@ -637,7 +637,7 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
   const eqMidAdjustment = (-presenceDiffDb * 0.75 - 1.5) * spectralCorrectionScale; 
   const eqMidGain = Math.max(-4.5, Math.min(0.5, Math.round((basePreset.eqMidGain + eqMidAdjustment) * 10) / 10));
 
-  // 4. MID-HIGH EQ (中高域・プレゼンス補正: 4800Hz)
+  // 4. MID-HIGH EQ (中高域・プレゼンス補正: 4500Hz)
   // ユーザーの「抜け感・存在感を引き出したい」という要望に合わせ、最大ブースト上限を +4.0dB へ引き上げ、
   // 感度も 0.45 ➔ 0.85 に高めて積極的に持ち上げます。ただし、元々うるさい曲は適切にカットします。
   const eqMidHighAdjustment = -presenceDiffDb * 0.85 * spectralCorrectionScale;
@@ -922,7 +922,7 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
       eqMidFreq: basePreset.eqMidFreq,
       eqMidQ: basePreset.eqMidQ || 1.0,
       eqMidHighGain: eqMidHighGain,
-      eqMidHighFreq: basePreset.eqMidHighFreq || 4800,
+      eqMidHighFreq: basePreset.eqMidHighFreq || 4500,
       eqMidHighQ: basePreset.eqMidHighQ || 1.0,
       eqHighGain: eqHighGain,
       eqHighFreq: suggestedEqHighFreq,
@@ -988,7 +988,7 @@ export class AetherEnhancer {
     // 3. Dynamic Hiss Filter (VCF High Shelf)
     this.hissFilter = context.createBiquadFilter();
     this.hissFilter.type = 'highshelf';
-    this.hissFilter.frequency.setValueAtTime(7000.0, context.currentTime); // Lowered from 10kHz to 7kHz to cut the core of audible hiss noise
+    this.hissFilter.frequency.setValueAtTime(9000.0, context.currentTime); // Set to 9kHz to capture more hiss without muffling vocal clarity
     this.hissFilter.Q.setValueAtTime(0.707, context.currentTime);
 
     // 3b. Sidechain Envelope Follower for Hiss Filter
@@ -1077,7 +1077,7 @@ export class AetherEnhancer {
 
     this.eqMidHigh = context.createBiquadFilter();
     this.eqMidHigh.type = 'peaking';
-    this.eqMidHigh.frequency.setValueAtTime(4800.0, context.currentTime);
+    this.eqMidHigh.frequency.setValueAtTime(4500.0, context.currentTime);
     this.eqMidHigh.gain.setValueAtTime(0.0, context.currentTime);
     this.eqMidHigh.Q.setValueAtTime(1.0, context.currentTime);
 
@@ -1245,7 +1245,7 @@ export class AetherEnhancer {
 
     // 3. Hiss Reduction
     const hissAmount = params.hissReductionAmount || 0;
-    const baseGain = -24.0 * (hissAmount / 100.0);
+    const baseGain = -16.0 * (hissAmount / 100.0);
     this.hissFilter.gain.setTargetAtTime(baseGain, t, 0.05);
     
     const maxEnvGain = -baseGain;
@@ -1273,7 +1273,7 @@ export class AetherEnhancer {
     this.eqMid.gain.setTargetAtTime(params.eqMidGain || 0.0, t, 0.05);
     this.eqMid.Q.setTargetAtTime(params.eqMidQ || 1.0, t, 0.05);
 
-    this.eqMidHigh.frequency.setTargetAtTime(params.eqMidHighFreq || 4800.0, t, 0.05);
+    this.eqMidHigh.frequency.setTargetAtTime(params.eqMidHighFreq || 4500.0, t, 0.05);
     this.eqMidHigh.gain.setTargetAtTime(params.eqMidHighGain || 0.0, t, 0.05);
     this.eqMidHigh.Q.setTargetAtTime(params.eqMidHighQ || 1.0, t, 0.05);
 
