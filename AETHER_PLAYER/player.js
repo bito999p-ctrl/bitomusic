@@ -44,8 +44,8 @@ function getNormalizedArtist(name) {
   return name;
 }
 
-// Version: 3.0.39 (Re-deployed to ensure complete file sync)
-import { AetherEnhancer, analyzeAudioResonances, GENRE_PRESETS } from './audio-engine.js?v=3.0.39';
+// Version: 3.0.40 (Re-deployed to ensure complete file sync)
+import { AetherEnhancer, analyzeAudioResonances, GENRE_PRESETS } from './audio-engine.js?v=3.0.40';
 
 // --- State Variables ---
 let audioCtx = null;
@@ -1231,7 +1231,20 @@ function applySelectedPreset() {
     // Use the static preset parameters directly to guarantee a distinct preset sound character
     const presetParams = GENRE_PRESETS[presetKey] || GENRE_PRESETS.auto;
     result = {
-      suggestedParams: { ...presetParams },
+      suggestedParams: {
+        ...presetParams,
+        // Preserve AI-analyzed noise/hiss/de-esser and rumble parameters from the analysis result
+        hissReductionAmount: analysisResult.suggestedParams.hissReductionAmount,
+        hissReductionMaxCut: analysisResult.suggestedParams.hissReductionMaxCut,
+        hissReductionFreq: analysisResult.suggestedParams.hissReductionFreq,
+        hissReductionMaxFreq: analysisResult.suggestedParams.hissReductionMaxFreq,
+        deesserAmount: analysisResult.suggestedParams.deesserAmount,
+        deesserMaxCut: analysisResult.suggestedParams.deesserMaxCut,
+        deesserFreq: analysisResult.suggestedParams.deesserFreq,
+        deesserMaxFreq: analysisResult.suggestedParams.deesserMaxFreq,
+        sibilanceDynamicFreq: analysisResult.suggestedParams.sibilanceDynamicFreq,
+        rumbleCutEnabled: analysisResult.suggestedParams.rumbleCutEnabled
+      },
       notches: analysisResult.notches,
       crestDesc: analysisResult.crestDesc,
       correlationDesc: analysisResult.correlationDesc
