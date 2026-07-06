@@ -44,8 +44,8 @@ function getNormalizedArtist(name) {
   return name;
 }
 
-// Version: 3.0.38 (Re-deployed to ensure complete file sync)
-import { AetherEnhancer, analyzeAudioResonances, GENRE_PRESETS } from './audio-engine.js?v=3.0.38';
+// Version: 3.0.39 (Re-deployed to ensure complete file sync)
+import { AetherEnhancer, analyzeAudioResonances, GENRE_PRESETS } from './audio-engine.js?v=3.0.39';
 
 // --- State Variables ---
 let audioCtx = null;
@@ -128,8 +128,9 @@ const hudCompThreshEl = document.getElementById('hud-comp-thresh');
 const hudCompRatioEl = document.getElementById('hud-comp-ratio');
 const hudLimiterBoostEl = document.getElementById('hud-limiter-boost');
 
-const grValue = document.getElementById('gr-value');
-const grBarFill = document.getElementById('gr-bar-fill');
+const hudSatDriveEl = document.getElementById('hud-sat-drive');
+const hudDeesserEl = document.getElementById('hud-deesser');
+const hudRumbleEl = document.getElementById('hud-rumble');
 
 // Tabs & Lyrics
 const tabEnhancerBtn = document.getElementById('tab-enhancer-btn');
@@ -302,8 +303,6 @@ function initAudio() {
 
   // Start visualizer animation loop
   startVisualizerLoop();
-  // Start compressor GR meter loop
-  setInterval(updateCompressionMeter, 100);
 }
 
 // --- Event Listeners Setup ---
@@ -1257,13 +1256,41 @@ function updateAiHudUI(result) {
   hudWidthEl.textContent = `${sug.stereoWidth.toFixed(2)}x`;
   
   const hissAmount = sug.hissReductionAmount || 0;
-  const ceilFreq = 20000.0 - (7000.0 * (hissAmount / 100.0));
-  hudHissEl.textContent = `${hissAmount}% (${Math.round(ceilFreq)}Hz)`;
+  if (hissAmount > 0) {
+    const fStart = sug.hissReductionFreq || 9000;
+    const fEnd = sug.hissReductionMaxFreq || 16000;
+    hudHissEl.textContent = `${hissAmount}% (${fStart}Hz - ${fEnd}Hz)`;
+  } else {
+    hudHissEl.textContent = 'OFF';
+  }
 
   // Dynamics
   hudCompThreshEl.textContent = `${sug.compThreshold.toFixed(1)} dB`;
   hudCompRatioEl.textContent = `${sug.compRatio.toFixed(2)}:1`;
   hudLimiterBoostEl.textContent = `+${sug.limiterBoost.toFixed(1)} dB`;
+
+  // Saturation, De-esser, and Subsonic filter values in HUD
+  if (hudSatDriveEl) {
+    if (sug.satEnabled && sug.satDrive > 0) {
+      hudSatDriveEl.textContent = `${sug.satType.toUpperCase()} (Drive ${sug.satDrive} / Mix ${sug.satMix}%)`;
+    } else {
+      hudSatDriveEl.textContent = 'OFF';
+    }
+  }
+  
+  if (hudDeesserEl) {
+    const deesserAmount = sug.deesserAmount || 0;
+    if (deesserAmount > 0) {
+      const fStart = sug.deesserFreq || sug.sibilanceDynamicFreq || 7500;
+      hudDeesserEl.textContent = `${deesserAmount}% (${fStart}Hz)`;
+    } else {
+      hudDeesserEl.textContent = 'OFF';
+    }
+  }
+  
+  if (hudRumbleEl) {
+    hudRumbleEl.textContent = sug.rumbleCutEnabled ? 'ACTIVE (90Hz)' : 'BYPASS (18Hz)';
+  }
 
   // Dynamic Range, Stereo Field, and Detected Genre Style Descriptors
   const dynamicsDesc = document.getElementById('hud-dynamics-desc');
@@ -1475,27 +1502,7 @@ function updateProgressBar() {
   }
 }
 
-// --- Compressor Gain Reduction Meter ---
-function updateCompressionMeter() {
-  if (!isPlaying || !enhancer || !enhancerToggle.checked || enhancer.isBypassed) {
-    grValue.textContent = '0.0 dB';
-    grBarFill.style.width = '0%';
-    return;
-  }
-
-  let reduction = enhancer.compressor.reduction;
-  if (typeof reduction === 'object' && reduction.value !== undefined) {
-    reduction = reduction.value;
-  }
-  if (isNaN(reduction) || reduction >= 0) {
-    reduction = 0;
-  }
-
-  const absReduction = Math.abs(reduction);
-  grValue.textContent = `${absReduction.toFixed(1)} dB`;
-  const percent = Math.min(100, (absReduction / 15) * 100);
-  grBarFill.style.width = `${percent}%`;
-}
+// --- Compressor Gain Reduction Meter Removed ---
 
 // --- Visualizer Canvas Rendering ---
 function resizeCanvas() {

@@ -1,4 +1,4 @@
-<!-- Version: 3.0.38 (Re-deployed to ensure complete file sync) -->
+<!-- Version: 3.0.39 (Re-deployed to ensure complete file sync) -->
 <!DOCTYPE html>
 <html lang="ja" data-theme="dark">
 <head>
@@ -42,7 +42,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- CSS Stylesheet -->
-  <link rel="stylesheet" href="styles.css?v=3.0.38">
+  <link rel="stylesheet" href="styles.css?v=3.0.39">
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
@@ -131,7 +131,7 @@
         </div>
 
         <div class="landing-copyright-note">
-          Unauthorized reproduction, reprinting, or redistribution of this web tool is strictly prohibited. © 2026 Bito Music | v3.0.38
+          Unauthorized reproduction, reprinting, or redistribution of this web tool is strictly prohibited. © 2026 Bito Music | v3.0.39
         </div>
       </div>
     </div>
@@ -263,7 +263,7 @@
             </div>
 
             <div class="sidebar-copyright-note">
-              Unauthorized reproduction or redistribution of this web tool is strictly prohibited. © 2026 Bito Music | v3.0.38
+              Unauthorized reproduction or redistribution of this web tool is strictly prohibited. © 2026 Bito Music | v3.0.39
             </div>
           </div>
         </section>
@@ -499,18 +499,26 @@
                     </div>
                   </div>
                 </div>
+                <!-- Saturation & De-esser & Subsonic Details -->
+                <div class="param-card" style="margin-top: 12px;">
+                  <span class="param-title">アドバンスド DSP パラメータ</span>
+                  <div class="dynamics-info-row">
+                    <div class="info-cell">
+                      <span class="lbl">Saturator Drive</span>
+                      <span id="hud-sat-drive" class="val">--</span>
+                    </div>
+                    <div class="info-cell">
+                      <span class="lbl">De-esser Cut</span>
+                      <span id="hud-deesser" class="val">--</span>
+                    </div>
+                    <div class="info-cell">
+                      <span class="lbl">Subsonic Filter</span>
+                      <span id="hud-rumble" class="val">--</span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <!-- Gain Reduction Meter (visualizing compression dynamics) -->
-              <div class="gr-meter-wrapper" style="margin-top: 20px;">
-                <div class="gr-meter-label">
-                  <span>Glue Compressor GR</span>
-                  <span id="gr-value">0.0 dB</span>
-                </div>
-                <div class="gr-bar-bg">
-                  <div id="gr-bar-fill" class="gr-bar-fill"></div>
-                </div>
-              </div>
             </div>
 
             <!-- 2. Lyrics display -->
@@ -561,6 +569,6 @@
   </div>
 
   <!-- JS Scripts -->
-  <script type="module" src="player.js?v=3.0.38"></script>
+  <script type="module" src="player.js?v=3.0.39"></script>
 </body>
 </html>
