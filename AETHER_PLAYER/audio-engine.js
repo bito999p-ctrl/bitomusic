@@ -937,8 +937,12 @@ export function analyzeAudioResonances(buffer, userPresetKey) {
       limiterBoost: finalLimiterBoost,
       rumbleCutEnabled: sugRumbleCut,
       hissReductionAmount: finalHissAmount,
+      hissReductionMaxCut: -16.0,
+      hissReductionFreq: 9000,
       sibilanceDynamicFreq: sibilanceDynamicFreq,
-      deesserAmount: finalDeesserAmount
+      deesserAmount: finalDeesserAmount,
+      deesserMaxCut: -15.0,
+      deesserFreq: sibilanceDynamicFreq > 0 ? sibilanceDynamicFreq : 7500
     },
     // 中間解析値のデバッグ用出力
     crestFactorDb: crestFactorDb,
@@ -985,13 +989,19 @@ export class AetherEnhancer {
     this.rumbleFilter.frequency.setValueAtTime(18.0, context.currentTime); // 18Hz subsonic filter when disabled, protecting deep sub-bass while removing DC offset/infrasound mud.
     this.rumbleFilter.Q.setValueAtTime(0.707, context.currentTime);
 
-    // 3. Dynamic Hiss Filter (VCF High Shelf)
+    // 3. Dynamic Hiss Filter (VCF High Shelf - Lower bound)
     this.hissFilter = context.createBiquadFilter();
     this.hissFilter.type = 'highshelf';
-    this.hissFilter.frequency.setValueAtTime(9000.0, context.currentTime); // Set to 9kHz to capture more hiss without muffling vocal clarity
+    this.hissFilter.frequency.setValueAtTime(9000.0, context.currentTime); // Set to 9kHz dynamically to capture hiss without muffling vocal clarity
     this.hissFilter.Q.setValueAtTime(0.707, context.currentTime);
 
-    // 3b. Sidechain Envelope Follower for Hiss Filter
+    // 3b. Hiss Air Filter (VCF High Shelf - Upper bound to preserve air band)
+    this.hissAirFilter = context.createBiquadFilter();
+    this.hissAirFilter.type = 'highshelf';
+    this.hissAirFilter.frequency.setValueAtTime(16000.0, context.currentTime);
+    this.hissAirFilter.Q.setValueAtTime(0.707, context.currentTime);
+
+    // 3c. Sidechain Envelope Follower for Hiss Filter
     this.sidechainHpf = context.createBiquadFilter();
     this.sidechainHpf.type = 'highpass';
     this.sidechainHpf.frequency.setValueAtTime(6000.0, context.currentTime); // サイドチェーンの周波数を6,000Hzに引き上げ、超高音域の音量だけに反応させます
@@ -1011,15 +1021,20 @@ export class AetherEnhancer {
     this.hissEnvelopeGain = context.createGain();
     this.hissEnvelopeGain.gain.setValueAtTime(0.0, context.currentTime);
 
+    this.hissAirEnvelopeGain = context.createGain();
+    this.hissAirEnvelopeGain.gain.setValueAtTime(0.0, context.currentTime);
+
     // Hiss sidechain connections
     this.rumbleFilter.connect(this.sidechainHpf);
     this.sidechainHpf.connect(this.sidechainGainNode);
     this.sidechainGainNode.connect(this.rectifier);
     this.rectifier.connect(this.envelopeSmoother);
     this.envelopeSmoother.connect(this.hissEnvelopeGain);
+    this.envelopeSmoother.connect(this.hissAirEnvelopeGain);
 
-    // Connect envelope gain modulator to hissFilter gain AudioParam (opens up high shelf when music is loud)
+    // Connect envelope gain modulators to filters (opens up high shelves when music is loud)
     this.hissEnvelopeGain.connect(this.hissFilter.gain);
+    this.hissAirEnvelopeGain.connect(this.hissAirFilter.gain);
 
     // 4. Parallel Saturator Stage
     this.satDryGain = context.createGain();
@@ -1040,9 +1055,10 @@ export class AetherEnhancer {
     // Hook up saturator path
     this.inputGainNode.connect(this.rumbleFilter);
     this.rumbleFilter.connect(this.hissFilter);
+    this.hissFilter.connect(this.hissAirFilter);
 
-    this.hissFilter.connect(this.satDryGain);
-    this.hissFilter.connect(this.satHpf);
+    this.hissAirFilter.connect(this.satDryGain);
+    this.hissAirFilter.connect(this.satHpf);
     this.satHpf.connect(this.waveShaper);
     this.waveShaper.connect(this.satLpf);
     this.satLpf.connect(this.satWetGain);
@@ -1243,13 +1259,21 @@ export class AetherEnhancer {
       this.rumbleFilter.frequency.setTargetAtTime(18.0, t, 0.05);
     }
 
-    // 3. Hiss Reduction
+    // 3. Hiss Reduction (Double-shelf layout to preserve air band)
     const hissAmount = params.hissReductionAmount || 0;
-    const baseGain = -16.0 * (hissAmount / 100.0);
+    const hissLimit = params.hissReductionMaxCut !== undefined ? params.hissReductionMaxCut : -16.0;
+    const baseGain = hissLimit * (hissAmount / 100.0);
+    
     this.hissFilter.gain.setTargetAtTime(baseGain, t, 0.05);
+    this.hissFilter.frequency.setTargetAtTime(params.hissReductionFreq || 9000.0, t, 0.05);
+    
+    // Hiss Air Filter (Anti-hiss shelf for air band)
+    this.hissAirFilter.gain.setTargetAtTime(-baseGain, t, 0.05);
+    this.hissAirFilter.frequency.setTargetAtTime(params.hissReductionMaxFreq || 16000.0, t, 0.05);
     
     const maxEnvGain = -baseGain;
     this.hissEnvelopeGain.gain.setTargetAtTime(maxEnvGain, t, 0.05);
+    this.hissAirEnvelopeGain.gain.setTargetAtTime(-maxEnvGain, t, 0.05);
 
     // 4. Parallel Saturation
     const blend = params.satEnabled ? (params.satMix / 100.0) : 0.0;
@@ -1284,8 +1308,17 @@ export class AetherEnhancer {
     // Decoupled from hissAmount: active if deesserAmount > 0
     if (this.sibilanceNotch && this.sibilanceNotchDynamicGain) {
       const amount = params.deesserAmount || 0;
-      const dynamicCut = -15.0 * (amount / 100.0);
-      this.sibilanceNotch.frequency.setTargetAtTime(params.sibilanceDynamicFreq || 9000, t, 0.05);
+      const deesserMax = params.deesserMaxCut !== undefined ? params.deesserMaxCut : -15.0;
+      const dynamicCut = deesserMax * (amount / 100.0);
+      
+      const fStart = params.deesserFreq || params.sibilanceDynamicFreq || 7500;
+      const fEnd = params.deesserMaxFreq || 9500;
+      const fEndValid = fEnd > fStart ? fEnd : fStart + 1000;
+      const deesserCenterFreq = Math.sqrt(fStart * fEndValid);
+      const deesserQ = deesserCenterFreq / (fEndValid - fStart);
+      
+      this.sibilanceNotch.frequency.setTargetAtTime(deesserCenterFreq, t, 0.05);
+      this.sibilanceNotch.Q.setTargetAtTime(deesserQ, t, 0.05);
       this.sibilanceNotchDynamicGain.gain.setTargetAtTime(dynamicCut, t, 0.05);
     }
 
