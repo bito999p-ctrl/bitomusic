@@ -988,7 +988,7 @@ export class AetherEnhancer {
     // 3. Dynamic Hiss Filter (VCF High Shelf)
     this.hissFilter = context.createBiquadFilter();
     this.hissFilter.type = 'highshelf';
-    this.hissFilter.frequency.setValueAtTime(10000.0, context.currentTime); // Center at 10kHz where hiss noise lives
+    this.hissFilter.frequency.setValueAtTime(7000.0, context.currentTime); // Lowered from 10kHz to 7kHz to cut the core of audible hiss noise
     this.hissFilter.Q.setValueAtTime(0.707, context.currentTime);
 
     // 3b. Sidechain Envelope Follower for Hiss Filter
@@ -1245,7 +1245,7 @@ export class AetherEnhancer {
 
     // 3. Hiss Reduction
     const hissAmount = params.hissReductionAmount || 0;
-    const baseGain = -8.0 * (hissAmount / 100.0);
+    const baseGain = -24.0 * (hissAmount / 100.0);
     this.hissFilter.gain.setTargetAtTime(baseGain, t, 0.05);
     
     const maxEnvGain = -baseGain;
